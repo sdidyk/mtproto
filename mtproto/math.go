@@ -11,7 +11,7 @@ func SplitPQ(pq *big.Int) (p1, p2 *big.Int) {
 	value_1 := big.NewInt(1)
 	value_15 := big.NewInt(15)
 	value_17 := big.NewInt(17)
-	rndmax := big.NewInt(0).SetUint64(18446744073709551615)
+	rndmax := big.NewInt(0).SetBit(big.NewInt(0), 64, 1)
 
 	what := big.NewInt(0).Set(pq)
 	rnd := rand.New(rand.NewSource(time.Now().UnixNano()))
@@ -81,6 +81,16 @@ func SplitPQ(pq *big.Int) (p1, p2 *big.Int) {
 	if p1.Cmp(p2) == 1 {
 		p1, p2 = p2, p1
 	}
+
+	return
+}
+
+func MakeGAB(g int32, g_a, dh_prime *big.Int) (b, g_b, g_ab *big.Int) {
+	rnd := rand.New(rand.NewSource(time.Now().UnixNano()))
+	rndmax := big.NewInt(0).SetBit(big.NewInt(0), 2048, 1)
+	b = big.NewInt(0).Rand(rnd, rndmax)
+	g_b = big.NewInt(0).Exp(big.NewInt(int64(g)), b, dh_prime)
+	g_ab = big.NewInt(0).Exp(g_a, b, dh_prime)
 
 	return
 }

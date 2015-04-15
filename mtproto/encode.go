@@ -1,12 +1,12 @@
 package mtproto
 
 import (
-	// "crypto/aes"
-	// "crypto/cipher"
+	"crypto/aes"
 	"crypto/rand"
 	"crypto/rsa"
 	"crypto/sha1"
 	"encoding/binary"
+	"errors"
 	"math/big"
 	"time"
 )
@@ -40,6 +40,38 @@ func RSAEncode(em []byte) []byte {
 	copy(res, c.Bytes())
 
 	return res
+}
+
+func AES256IGE_encrypt(data, key, iv []byte) ([]byte, error) {
+	block, err := aes.NewCipher(key)
+	if err != nil {
+		return nil, err
+	}
+	if len(data) < aes.BlockSize {
+		return nil, errors.New("Слишком короткие данные")
+	}
+	if len(data)%aes.BlockSize != 0 {
+		return nil, errors.New("Данные некратны блоку")
+	}
+
+	t := make([]byte, aes.BlockSize)
+	x := make([]byte, aes.BlockSize)
+	y := make([]byte, aes.BlockSize)
+	copy(x, iv[:aes.BlockSize])
+	copy(y, iv[aes.BlockSize:])
+	encrypted := make([]byte, len(data))
+
+	i := 0
+	for i < len(data) {
+		Xor(x, data[i:i+aes.BlockSize])
+		block.Encrypt(t, x)
+		Xor(t, y)
+		x, y = t, data[i:i+aes.BlockSize]
+		copy(encrypted[i:], t)
+		i += aes.BlockSize
+	}
+
+	return encrypted, nil
 }
 
 func GenerateNonce(size int) []byte {
@@ -134,6 +166,25 @@ func Encode_TL_req_DH_params(nonce, server_nonce []byte, p, q *big.Int, fp uint6
 	x = append(x, EncodeBigInt(p)...)
 	x = append(x, EncodeBigInt(q)...)
 	x = append(x, EncodeLong(int64(fp))...)
+	x = append(x, EncodeStringBytes(encdata)...)
+	return x
+}
+
+func Encode_TL_client_DH_inner_data(nonce, server_nonce []byte, retry int64, g_b *big.Int) []byte {
+	x := make([]byte, 0, 256)
+	x = append(x, EncodeUInt(client_DH_inner_data)...)
+	x = append(x, EncodeBytes(nonce)...)
+	x = append(x, EncodeBytes(server_nonce)...)
+	x = append(x, EncodeLong(retry)...)
+	x = append(x, EncodeBigInt(g_b)...)
+	return x
+}
+
+func Encode_TL_set_client_DH_params(nonce, server_nonce, encdata []byte) []byte {
+	x := make([]byte, 0, 256)
+	x = append(x, EncodeUInt(set_client_DH_params)...)
+	x = append(x, EncodeBytes(nonce)...)
+	x = append(x, EncodeBytes(server_nonce)...)
 	x = append(x, EncodeStringBytes(encdata)...)
 	return x
 }

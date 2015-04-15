@@ -49,6 +49,21 @@ type TL_server_DH_params_ok struct {
 	encrypted_answer []byte
 }
 
+type TL_server_DH_inner_data struct {
+	nonce        []byte
+	server_nonce []byte
+	g            int32
+	dh_prime     *big.Int
+	g_a          *big.Int
+	server_time  int32
+}
+
+type TL_dh_gen_ok struct {
+	nonce           []byte
+	server_nonce    []byte
+	new_nonce_hash1 []byte
+}
+
 func AES256IGE_decrypt(data, key, iv []byte) ([]byte, error) {
 	block, err := aes.NewCipher(key)
 	if err != nil {
@@ -62,26 +77,27 @@ func AES256IGE_decrypt(data, key, iv []byte) ([]byte, error) {
 	}
 
 	t := make([]byte, aes.BlockSize)
-	x := iv[:aes.BlockSize]
-	y := iv[aes.BlockSize:]
-
-	decrtypted := make([]byte, len(data))
+	x := make([]byte, aes.BlockSize)
+	y := make([]byte, aes.BlockSize)
+	copy(x, iv[:aes.BlockSize])
+	copy(y, iv[aes.BlockSize:])
+	decrypted := make([]byte, len(data))
 
 	i := 0
 	for i < len(data) {
-		xor(y, data[i:i+aes.BlockSize])
+		Xor(y, data[i:i+aes.BlockSize])
 		block.Decrypt(t, y)
-		xor(t, x)
+		Xor(t, x)
 		y, x = t, data[i:i+aes.BlockSize]
-		copy(decrtypted[i:], t)
+		copy(decrypted[i:], t)
 		i += aes.BlockSize
 	}
 
-	return decrtypted, nil
+	return decrypted, nil
 
 }
 
-func xor(dst, src []byte) {
+func Xor(dst, src []byte) {
 	for i, _ := range dst {
 		dst[i] = dst[i] ^ src[i]
 	}
@@ -107,11 +123,33 @@ func (m *MTProto) DecodePacket() error {
 		if err != nil {
 			return err
 		}
+
 	case server_DH_params_ok:
 		nonce, err := m.DecodeBytes(16)
 		server_nonce, err := m.DecodeBytes(16)
 		encrypted_answer, err := m.DecodeStringBytes()
 		m.data = TL_server_DH_params_ok{nonce, server_nonce, encrypted_answer}
+		if err != nil {
+			return err
+		}
+
+	case server_DH_inner_data:
+		nonce, err := m.DecodeBytes(16)
+		server_nonce, err := m.DecodeBytes(16)
+		g, err := m.DecodeInt()
+		dh_prime, err := m.DecodeBigInt()
+		g_a, err := m.DecodeBigInt()
+		server_time, err := m.DecodeInt()
+		m.data = TL_server_DH_inner_data{nonce, server_nonce, g, dh_prime, g_a, server_time}
+		if err != nil {
+			return err
+		}
+
+	case dh_gen_ok:
+		nonce, err := m.DecodeBytes(16)
+		server_nonce, err := m.DecodeBytes(16)
+		new_nonce_hash1, err := m.DecodeBytes(16)
+		m.data = TL_dh_gen_ok{nonce, server_nonce, new_nonce_hash1}
 		if err != nil {
 			return err
 		}

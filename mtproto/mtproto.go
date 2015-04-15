@@ -12,11 +12,14 @@ import (
 )
 
 type MTProto struct {
+	conn *net.TCPConn
+
 	// данные соединения
-	g_ab       *big.Int
-	serverSalt uint64
-	conn       *net.TCPConn
-	encrypted  bool
+	g_ab        *big.Int
+	authKey     []byte
+	authKeyHash []byte
+	serverSalt  []byte
+	encrypted   bool
 
 	// буфер для пакета и данные его парсинга
 	buf       []byte
@@ -34,8 +37,7 @@ func (m *MTProto) Connect(addr string) error {
 	var err error
 	var tcpAddr *net.TCPAddr
 
-	m.g_ab = new(big.Int)
-	m.serverSalt = 0
+	m.g_ab = big.NewInt(0)
 	m.encrypted = false
 
 	tcpAddr, err = net.ResolveTCPAddr("tcp", addr)
@@ -176,7 +178,11 @@ func (m *MTProto) Handshake() error {
 	copy(tmpAESIV[8:], hash3)
 	copy(tmpAESIV[28:], nonceSecond[0:4])
 
+	// (parse-thru) server_DH_inner_data
 	decodedData, err := AES256IGE_decrypt(dh.encrypted_answer, tmpAESKey, tmpAESIV)
+	if err != nil {
+		return err
+	}
 	m.buf = decodedData[20:]
 	m.size = len(m.buf)
 	m.off = 0
@@ -185,9 +191,66 @@ func (m *MTProto) Handshake() error {
 	if err != nil {
 		return err
 	}
+	dhi, ok := m.data.(TL_server_DH_inner_data)
+	if !ok {
+		return errors.New("Handshake: ожидался server_DH_inner_data")
+	}
+	if !bytes.Equal(nonceFirst, dhi.nonce) {
+		return errors.New("Handshake: не совпадает nonce")
+	}
+	if !bytes.Equal(nonceServer, dhi.server_nonce) {
+		return errors.New("Handshake: не совпадает server_nonce")
+	}
+
+	_, g_b, g_ab := MakeGAB(dhi.g, dhi.g_a, dhi.dh_prime)
+	authKey := g_ab.Bytes()
+	if authKey[0] == 0 {
+		authKey = authKey[1:]
+	}
+	t4 := make([]byte, 32+1+8)
+	copy(t4[0:], nonceSecond)
+	t4[32] = 1
+	copy(t4[33:], Sha1(authKey)[0:8])
+	nonceHash1 := Sha1(t4)[4:20]
+	serverSalt := make([]byte, 8)
+	copy(serverSalt, nonceSecond[:8])
+	Xor(serverSalt, nonceServer[:8])
+
+	// (encoding) client_DH_inner_data
+	innerData2 := Encode_TL_client_DH_inner_data(nonceFirst, nonceServer, 0, g_b)
+	x = make([]byte, 20+len(innerData2)+(16-((20+len(innerData2))%16))&15)
+	copy(x[0:], Sha1(innerData2))
+	copy(x[20:], innerData2)
+	encryptedData2, err := AES256IGE_encrypt(x, tmpAESKey, tmpAESIV)
 
 	// (send) set_client_DH_params
+	err = m.SendPacket(Encode_TL_set_client_DH_params(nonceFirst, nonceServer, encryptedData2))
+	if err != nil {
+		return err
+	}
+
 	// (parse) dh_gen_{ok, retry, fail}
+	err = m.Read()
+	if err != nil {
+		return err
+	}
+	dhg, ok := m.data.(TL_dh_gen_ok)
+	if !ok {
+		return errors.New("Handshake: ожидался dh_gen_ok")
+	}
+	if !bytes.Equal(nonceFirst, dhg.nonce) {
+		return errors.New("Handshake: не совпадает nonce")
+	}
+	if !bytes.Equal(nonceServer, dhg.server_nonce) {
+		return errors.New("Handshake: не совпадает server_nonce")
+	}
+	if !bytes.Equal(nonceHash1, dhg.new_nonce_hash1) {
+		return errors.New("Handshake: не совпадает new_nonce_hash1")
+	}
+
+	// (all ok)
+	m.setGAB(g_ab)
+	m.setSalt(serverSalt)
 
 	return nil
 }
@@ -225,7 +288,7 @@ func (m *MTProto) Read() error {
 	m.off = 0
 
 	if m.size == 4 {
-		return fmt.Errorf("Ошибка: %d", int32(binary.LittleEndian.Uint32(m.buf)))
+		return fmt.Errorf("Ошибка сервера: %d", int32(binary.LittleEndian.Uint32(m.buf)))
 	}
 
 	if m.size <= 8 {
@@ -263,6 +326,20 @@ func (m *MTProto) Read() error {
 	}
 
 	return nil
+}
+
+func (m *MTProto) setGAB(g_ab *big.Int) {
+	m.g_ab = g_ab
+	m.authKey = g_ab.Bytes()
+	if m.authKey[0] == 0 {
+		m.authKey = m.authKey[1:]
+	}
+	m.authKeyHash = Sha1(m.authKey)[12:20]
+	m.encrypted = g_ab.Cmp(big.NewInt(0)) != 0
+}
+
+func (m *MTProto) setSalt(s []byte) {
+	m.serverSalt = s
 }
 
 func (m *MTProto) Dump() {
