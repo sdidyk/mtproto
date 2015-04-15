@@ -2,6 +2,7 @@ package mtproto
 
 import (
 	"bytes"
+	"encoding/binary"
 	"encoding/hex"
 	"errors"
 	"fmt"
@@ -54,7 +55,7 @@ func (m *MTProto) Connect(addr string) error {
 }
 
 func (m *MTProto) SendPacket(msg []byte) error {
-	var x []byte
+	x := make([]byte, 0, 256)
 
 	if m.encrypted {
 		// TODO: encrypt packet
@@ -67,11 +68,11 @@ func (m *MTProto) SendPacket(msg []byte) error {
 
 	}
 
-	len := len(x) / 4
-	if len < 127 {
-		x = append([]byte{byte(len)}, x...)
+	size := len(x) / 4
+	if size < 127 {
+		x = append([]byte{byte(size)}, x...)
 	} else {
-		x = append(EncodeInt(int32(len<<8|127)), x...)
+		x = append(EncodeInt(int32(size<<8|127)), x...)
 	}
 
 	_, err := m.conn.Write(x)
@@ -87,10 +88,8 @@ func (m *MTProto) Handshake() error {
 	var err error
 
 	// (send) req_pq
-	nonce := GenerateNonce(16)
-	x = append(x, EncodeUInt(req_pq)...)
-	x = append(x, nonce...)
-	err = m.SendPacket(x)
+	nonceFirst := GenerateNonce(16)
+	err = m.SendPacket(Encode_TL_req_pq(nonceFirst))
 	if err != nil {
 		return err
 	}
@@ -104,12 +103,12 @@ func (m *MTProto) Handshake() error {
 	if !ok {
 		return errors.New("Handshake: ожидался TL_resPQ")
 	}
-	if !bytes.Equal(nonce, res.nonce) {
+	if !bytes.Equal(nonceFirst, res.nonce) {
 		return errors.New("Handshake: не совпадает nonce")
 	}
 	found := false
 	for _, b := range res.fingerprints {
-		if b == 14101943622620965665 {
+		if b == telegramPublicKey_FP {
 			found = true
 			break
 		}
@@ -119,8 +118,28 @@ func (m *MTProto) Handshake() error {
 	}
 
 	// (encoding) p_q_inner_data
+	p, q := SplitPQ(res.pq)
+	nonceSecond := GenerateNonce(32)
+	nonceServer := res.server_nonce
+	innerData1 := Encode_TL_p_q_inner_data(res.pq, p, q, nonceFirst, nonceServer, nonceSecond)
+
+	x = make([]byte, 255)
+	copy(x[0:], Sha1(innerData1))
+	copy(x[20:], innerData1)
+	encryptedData1 := RSAEncode(x)
+
 	// (send) req_DH_params
+	err = m.SendPacket(Encode_TL_req_DH_params(nonceFirst, nonceServer, p, q, telegramPublicKey_FP, encryptedData1))
+	if err != nil {
+		return err
+	}
+
 	// (parse) server_DH_params_{ok, fail}
+	err = m.Read()
+	if err != nil {
+		return err
+	}
+
 	// (send) set_client_DH_params
 	// (parse) dh_gen_{ok, retry, fail}
 
@@ -145,7 +164,7 @@ func (m *MTProto) Read() error {
 		if err != nil {
 			return err
 		}
-		m.size = int(b[0]) | int(b[1])<<8 | int(b[2])<<16
+		m.size = (int(b[0]) | int(b[1])<<8 | int(b[2])<<16) << 2
 	}
 
 	left := m.size
@@ -160,14 +179,12 @@ func (m *MTProto) Read() error {
 	m.off = 0
 
 	if m.size == 4 {
-		return fmt.Errorf("Ошибка: %s", hex.EncodeToString(m.buf))
+		return fmt.Errorf("Ошибка: %d", int32(binary.LittleEndian.Uint32(m.buf)))
 	}
 
 	if m.size <= 8 {
 		return fmt.Errorf("Слишком маленький пакет: %d байт", m.size)
 	}
-
-	fmt.Print(hex.Dump(m.buf))
 
 	authKeyHash, err := m.DecodeLong()
 	if authKeyHash == 0 {
@@ -205,4 +222,8 @@ func (m *MTProto) Read() error {
 func (m *MTProto) Dump() {
 	fmt.Printf("AB: %v\tSALT: %v\tConnection: %v\n", m.g_ab, m.serverSalt, m.conn)
 	fmt.Println(reflect.TypeOf(m.data), m.data)
+}
+
+func Dump(x []byte) {
+	fmt.Println(hex.Dump(x))
 }

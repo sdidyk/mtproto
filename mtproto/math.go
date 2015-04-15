@@ -6,14 +6,15 @@ import (
 	"time"
 )
 
-func SplitPQ(what *big.Int) (p1 *big.Int, p2 *big.Int) {
+func SplitPQ(pq *big.Int) (p1 *big.Int, p2 *big.Int) {
 	value_0 := big.NewInt(0)
 	value_1 := big.NewInt(1)
 	value_15 := big.NewInt(15)
 	value_17 := big.NewInt(17)
 	rndmax := big.NewInt(0).SetUint64(18446744073709551615)
-	rnd := rand.New(rand.NewSource(time.Now().UnixNano()))
 
+	what := big.NewInt(0).Set(pq)
+	rnd := rand.New(rand.NewSource(time.Now().UnixNano()))
 	g := big.NewInt(0)
 	i := 0
 	for !(g.Cmp(value_1) == 1 && g.Cmp(what) == -1) {

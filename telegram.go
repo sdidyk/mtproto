@@ -1,43 +1,26 @@
 package main
 
 import (
-	"encoding/hex"
 	"fmt"
 	"github.com/sdidyk/telegram/mtproto"
-	"math/big"
 )
 
 func main() {
-	var x, y []byte
+	var err error
 
-	x = append(x, mtproto.EncodeUInt(0x83c95aec)...)
+	m := new(mtproto.MTProto)
 
-	pq, _ := hex.DecodeString("17ED48941A08F981")
-	x = append(x, mtproto.EncodeBigInt(new(big.Int).SetBytes(pq))...)
+	err = m.Connect("149.154.175.50:443")
+	if err != nil {
+		fmt.Println(err)
+		return
+	}
 
-	p, _ := hex.DecodeString("494C553B")
-	x = append(x, mtproto.EncodeBigInt(new(big.Int).SetBytes(p))...)
+	err = m.Handshake()
+	if err != nil {
+		fmt.Println(err)
+		return
+	}
 
-	q, _ := hex.DecodeString("53911073")
-	x = append(x, mtproto.EncodeBigInt(new(big.Int).SetBytes(q))...)
-
-	r4, _ := hex.DecodeString("3E0549828CCA27E966B301A48FECE2FCA5CF4D33F4A11EA877BA4AA573907330311C85DB234AA2640AFC4A76A735CF5B1F0FD68BD17FA181E1229AD867CC024D")
-	x = append(x, mtproto.EncodeBytes(r4)...)
-
-	y = append(y, mtproto.Sha1(x)...)
-	y = append(y, x...)
-
-	// res := mtproto.RSAEncode(y)
-	// fmt.Println("[encoded]", hex.EncodeToString(res))
-
-	// 	m := new(mtproto.MTProto)
-	// 	m.Connect("149.154.175.50:443")
-	// 	m.Handshake()
-	// 	m.Dump()
-
-	t, ok := big.NewInt(0).SetString("17ED48941A08F981", 16)
-	fmt.Println(t, ok)
-	p1, p2 := mtproto.SplitPQ(t)
-	fmt.Println(p1, p2)
-
+	m.Dump()
 }
