@@ -2,6 +2,7 @@ package main
 
 import (
 	"encoding/hex"
+	"fmt"
 	"github.com/sdidyk/telegram/mtproto"
 	"math/big"
 )
@@ -29,8 +30,14 @@ func main() {
 	// res := mtproto.RSAEncode(y)
 	// fmt.Println("[encoded]", hex.EncodeToString(res))
 
-	m := new(mtproto.MTProto)
-	m.Connect("149.154.175.50:443")
-	m.Handshake()
-	m.Dump()
+	// 	m := new(mtproto.MTProto)
+	// 	m.Connect("149.154.175.50:443")
+	// 	m.Handshake()
+	// 	m.Dump()
+
+	t, ok := big.NewInt(0).SetString("17ED48941A08F981", 16)
+	fmt.Println(t, ok)
+	p1, p2 := mtproto.SplitPQ(t)
+	fmt.Println(p1, p2)
+
 }
