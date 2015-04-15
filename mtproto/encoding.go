@@ -23,27 +23,6 @@ func Sha1(data []byte) []byte {
 	return r[:]
 }
 
-// func EncodeWithDefaultKeyOld(data []byte) []byte {
-// 	key := []byte("example key 1234")
-// 	ciphertext, _ := hex.DecodeString("f363f3ccdcb12bb883abf484ba77d9cd7d32b5baecb3d4b1b3e0e4beffdb3ded")
-
-// 	block := aes.NewCipher(key)
-
-// 	iv := ciphertext[:aes.BlockSize]
-// 	ciphertext = ciphertext[aes.BlockSize:]
-
-// 	if len(ciphertext)%aes.BlockSize != 0 {
-// 		panic("ciphertext is not a multiple of the block size")
-// 	}
-
-// 	mode := cipher.NewCBCDecrypter(block, iv)
-// 	mode.CryptBlocks(ciphertext, ciphertext)
-
-// 	fmt.Printf("%s\n", ciphertext)
-
-// 	return []byte{}
-// }
-
 func RSAEncode(em []byte) []byte {
 	z := make([]byte, 255)
 	copy(z, em)

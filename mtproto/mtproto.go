@@ -1,15 +1,30 @@
 package mtproto
 
 import (
+	"bytes"
 	"encoding/binary"
 	"encoding/hex"
 	"errors"
 	"fmt"
 	"math/big"
 	"net"
+	"reflect"
 )
 
 const (
+	// системные конструкторы
+	bool_false           = 0xbc799737
+	bool_true            = 0x997275b5
+	vector               = 0x1cb5c415
+	msg_container        = 0x73f1f8dc
+	new_session_created  = 0x9ec20908
+	msgs_ack             = 0x62d6b459
+	rpc_result           = 0xf35c6d01
+	rpc_error            = 0x2144ca19
+	bad_msg_notification = 0xa7eff811
+	bad_server_salt      = 0xedab447b
+
+	// конструкторы авторизации
 	req_pq                = 0x60469778
 	resPQ                 = 0x05162463
 	p_q_inner_data        = 0x83c95aec
@@ -41,7 +56,7 @@ type MTProto struct {
 	data interface{}
 }
 
-type TL_reqPQ struct {
+type TL_resPQ struct {
 	nonce        []byte
 	server_nonce []byte
 	pq           *big.Int
@@ -107,18 +122,43 @@ func (m *MTProto) Handshake() error {
 	var x []byte
 	var err error
 
+	// (send) req_pq
+	nonce := GenerateNonce(16)
 	x = append(x, EncodeUInt(req_pq)...)
-	x = append(x, GenerateNonce(16)...)
-
+	x = append(x, nonce...)
 	err = m.SendPacket(x)
 	if err != nil {
 		return err
 	}
 
+	// (parse) resPQ
 	err = m.Read()
 	if err != nil {
 		return err
 	}
+	res, ok := m.data.(TL_resPQ)
+	if !ok {
+		return errors.New("Handshake: ожидался TL_resPQ")
+	}
+	if !bytes.Equal(nonce, res.nonce) {
+		return errors.New("Handshake: не совпадает nonce")
+	}
+	found := false
+	for _, b := range res.fingerprints {
+		if b == 14101943622620965665 {
+			found = true
+			break
+		}
+	}
+	if !found {
+		return errors.New("Handshake: нет отпечатка нужного ключа")
+	}
+
+	// (encoding) p_q_inner_data
+	// (send) req_DH_params
+	// (parse) server_DH_params_{ok, fail}
+	// (send) set_client_DH_params
+	// (parse) dh_gen_{ok, retry, fail}
 
 	return nil
 }
@@ -185,8 +225,10 @@ func (m *MTProto) Read() error {
 		m.seqNo = 0
 		m.level = 0
 
-		// TODO: start recursive parsing here
-		fmt.Println(authKeyHash, m.messageId, messageLen)
+		err = m.DecodePacket()
+		if err != nil {
+			return err
+		}
 
 	} else {
 		// TODO: read encrypted packet
@@ -197,13 +239,18 @@ func (m *MTProto) Read() error {
 }
 
 func (m *MTProto) Dump() {
-	fmt.Printf("AB: %v\nSALT: %v\nConnection: %v\n", m.g_ab, m.serverSalt, m.conn)
+	fmt.Printf("AB: %v\tSALT: %v\tConnection: %v\n", m.g_ab, m.serverSalt, m.conn)
+	fmt.Println(reflect.TypeOf(m.data), m.data)
 }
 
 func (m *MTProto) DecodePacket() error {
 	var err error
 
 	constructor, err := m.DecodeUInt()
+	if err != nil {
+		return err
+	}
+
 	m.level++
 
 	switch constructor {
@@ -212,7 +259,10 @@ func (m *MTProto) DecodePacket() error {
 		server_nonce, err := m.DecodeBytes(16)
 		pq, err := m.DecodeBigInt()
 		fingerprints, err := m.DecodeVectorLong()
-		m.data = TL_reqPQ{nonce, server_nonce, pq, fingerprints}
+		m.data = TL_resPQ{nonce, server_nonce, pq, fingerprints}
+		if err != nil {
+			return err
+		}
 
 	default:
 		return fmt.Errorf("Неизвестный конструктор: %08x", constructor)
@@ -302,5 +352,33 @@ func (m *MTProto) DecodeBigInt() (r *big.Int, err error) {
 	y[0] = 0
 	copy(y[1:], b)
 	x := new(big.Int).SetBytes(y)
+	return x, nil
+}
+
+func (m *MTProto) DecodeVectorLong() (r []uint64, err error) {
+	constructor, err := m.DecodeUInt()
+	if err != nil {
+		return nil, err
+	}
+	if constructor != vector {
+		return nil, errors.New("DecodeVectorLong: Неправильный конструктор")
+	}
+	size, err := m.DecodeInt()
+	if err != nil {
+		return nil, err
+	}
+	if size <= 0 {
+		return nil, errors.New("DecodeVectorLong: Неправильный размер")
+	}
+	x := make([]uint64, size)
+	i := int32(0)
+	for i < size {
+		y, err := m.DecodeLong()
+		if err != nil {
+			return nil, err
+		}
+		x[i] = y
+		i++
+	}
 	return x, nil
 }

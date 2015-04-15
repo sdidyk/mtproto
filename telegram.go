@@ -32,5 +32,5 @@ func main() {
 	m := new(mtproto.MTProto)
 	m.Connect("149.154.175.50:443")
 	m.Handshake()
-	// m.Dump()
+	m.Dump()
 }
