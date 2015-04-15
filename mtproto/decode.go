@@ -1,6 +1,7 @@
 package mtproto
 
 import (
+	"crypto/aes"
 	"encoding/binary"
 	"errors"
 	"fmt"
@@ -42,6 +43,50 @@ type TL_resPQ struct {
 	fingerprints []uint64
 }
 
+type TL_server_DH_params_ok struct {
+	nonce            []byte
+	server_nonce     []byte
+	encrypted_answer []byte
+}
+
+func AES256IGE_decrypt(data, key, iv []byte) ([]byte, error) {
+	block, err := aes.NewCipher(key)
+	if err != nil {
+		return nil, err
+	}
+	if len(data) < aes.BlockSize {
+		return nil, errors.New("Слишком короткие данные")
+	}
+	if len(data)%aes.BlockSize != 0 {
+		return nil, errors.New("Данные некратны блоку")
+	}
+
+	t := make([]byte, aes.BlockSize)
+	x := iv[:aes.BlockSize]
+	y := iv[aes.BlockSize:]
+
+	decrtypted := make([]byte, len(data))
+
+	i := 0
+	for i < len(data) {
+		xor(y, data[i:i+aes.BlockSize])
+		block.Decrypt(t, y)
+		xor(t, x)
+		y, x = t, data[i:i+aes.BlockSize]
+		copy(decrtypted[i:], t)
+		i += aes.BlockSize
+	}
+
+	return decrtypted, nil
+
+}
+
+func xor(dst, src []byte) {
+	for i, _ := range dst {
+		dst[i] = dst[i] ^ src[i]
+	}
+}
+
 func (m *MTProto) DecodePacket() error {
 	var err error
 
@@ -59,6 +104,14 @@ func (m *MTProto) DecodePacket() error {
 		pq, err := m.DecodeBigInt()
 		fingerprints, err := m.DecodeVectorLong()
 		m.data = TL_resPQ{nonce, server_nonce, pq, fingerprints}
+		if err != nil {
+			return err
+		}
+	case server_DH_params_ok:
+		nonce, err := m.DecodeBytes(16)
+		server_nonce, err := m.DecodeBytes(16)
+		encrypted_answer, err := m.DecodeStringBytes()
+		m.data = TL_server_DH_params_ok{nonce, server_nonce, encrypted_answer}
 		if err != nil {
 			return err
 		}

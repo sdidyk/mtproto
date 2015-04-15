@@ -114,7 +114,7 @@ func Encode_TL_req_pq(nonce []byte) []byte {
 	return x
 }
 
-func Encode_TL_p_q_inner_data(pq *big.Int, p *big.Int, q *big.Int, nonce []byte, server_nonce []byte, new_nonce []byte) []byte {
+func Encode_TL_p_q_inner_data(pq, p, q *big.Int, nonce, server_nonce, new_nonce []byte) []byte {
 	x := make([]byte, 0, 256)
 	x = append(x, EncodeUInt(p_q_inner_data)...)
 	x = append(x, EncodeBigInt(pq)...)
@@ -126,7 +126,7 @@ func Encode_TL_p_q_inner_data(pq *big.Int, p *big.Int, q *big.Int, nonce []byte,
 	return x
 }
 
-func Encode_TL_req_DH_params(nonce []byte, server_nonce []byte, p *big.Int, q *big.Int, fp uint64, encdata []byte) []byte {
+func Encode_TL_req_DH_params(nonce, server_nonce []byte, p, q *big.Int, fp uint64, encdata []byte) []byte {
 	x := make([]byte, 0, 512)
 	x = append(x, EncodeUInt(req_DH_params)...)
 	x = append(x, EncodeBytes(nonce)...)

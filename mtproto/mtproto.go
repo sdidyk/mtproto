@@ -12,19 +12,21 @@ import (
 )
 
 type MTProto struct {
+	// данные соединения
 	g_ab       *big.Int
 	serverSalt uint64
 	conn       *net.TCPConn
 	encrypted  bool
 
-	buf  []byte
-	size int
-	off  int
-
+	// буфер для пакета и данные его парсинга
+	buf       []byte
+	size      int
+	off       int
 	level     int
 	messageId uint64
 	seqNo     int32
 
+	// разобранная структура
 	data interface{}
 }
 
@@ -101,7 +103,7 @@ func (m *MTProto) Handshake() error {
 	}
 	res, ok := m.data.(TL_resPQ)
 	if !ok {
-		return errors.New("Handshake: ожидался TL_resPQ")
+		return errors.New("Handshake: ожидался resPQ")
 	}
 	if !bytes.Equal(nonceFirst, res.nonce) {
 		return errors.New("Handshake: не совпадает nonce")
@@ -136,6 +138,50 @@ func (m *MTProto) Handshake() error {
 
 	// (parse) server_DH_params_{ok, fail}
 	err = m.Read()
+	if err != nil {
+		return err
+	}
+	dh, ok := m.data.(TL_server_DH_params_ok)
+	if !ok {
+		return errors.New("Handshake: ожидался server_DH_params_ok")
+	}
+	if !bytes.Equal(nonceFirst, dh.nonce) {
+		return errors.New("Handshake: не совпадает nonce")
+	}
+	if !bytes.Equal(nonceServer, dh.server_nonce) {
+		return errors.New("Handshake: не совпадает server_nonce")
+	}
+	t1 := make([]byte, 48)
+	copy(t1[0:], nonceSecond)
+	copy(t1[32:], nonceServer)
+	hash1 := Sha1(t1)
+
+	t2 := make([]byte, 48)
+	copy(t2[0:], nonceServer)
+	copy(t2[16:], nonceSecond)
+	hash2 := Sha1(t2)
+
+	t3 := make([]byte, 64)
+	copy(t3[0:], nonceSecond)
+	copy(t3[32:], nonceSecond)
+	hash3 := Sha1(t3)
+
+	tmpAESKey := make([]byte, 32)
+	tmpAESIV := make([]byte, 32)
+
+	copy(tmpAESKey[0:], hash1)
+	copy(tmpAESKey[20:], hash2[0:12])
+
+	copy(tmpAESIV[0:], hash2[12:20])
+	copy(tmpAESIV[8:], hash3)
+	copy(tmpAESIV[28:], nonceSecond[0:4])
+
+	decodedData, err := AES256IGE_decrypt(dh.encrypted_answer, tmpAESKey, tmpAESIV)
+	m.buf = decodedData[20:]
+	m.size = len(m.buf)
+	m.off = 0
+	m.level = 0
+	err = m.DecodePacket()
 	if err != nil {
 		return err
 	}

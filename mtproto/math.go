@@ -6,7 +6,7 @@ import (
 	"time"
 )
 
-func SplitPQ(pq *big.Int) (p1 *big.Int, p2 *big.Int) {
+func SplitPQ(pq *big.Int) (p1, p2 *big.Int) {
 	value_0 := big.NewInt(0)
 	value_1 := big.NewInt(1)
 	value_15 := big.NewInt(15)
