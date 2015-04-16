@@ -72,6 +72,16 @@ func EncodeBytes(s []byte) []byte {
 	return s
 }
 
+func EncodeVectorLong(v []int64) []byte {
+	x := make([]byte, 0, 8+4+len(v)*8)
+	x = append(x, EncodeUInt(crc_vector)...)
+	x = append(x, EncodeInt(int32(len(v)))...)
+	for _, v := range v {
+		x = append(x, EncodeLong(v)...)
+	}
+	return x
+}
+
 func Encode_TL_req_pq(nonce []byte) []byte {
 	x := make([]byte, 0, 20)
 	x = append(x, EncodeUInt(crc_req_pq)...)
@@ -140,5 +150,12 @@ func Encode_TL_pong(msg_id, ping_id int64) []byte {
 func Encode_TL_help_getConfig() []byte {
 	x := make([]byte, 0, 8)
 	x = append(x, EncodeUInt(crc_help_getConfig)...)
+	return x
+}
+
+func Encode_TL_msgs_ack(msgIds []int64) []byte {
+	x := make([]byte, 0, 64)
+	x = append(x, EncodeUInt(crc_msgs_ack)...)
+	x = append(x, EncodeVectorLong(msgIds)...)
 	return x
 }

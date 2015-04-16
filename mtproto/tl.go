@@ -77,99 +77,117 @@ type TL_new_session_created struct {
 	server_salt  []byte
 }
 
-func (m *DecodeBuf) DecodeRecursive(level int) (r interface{}) {
+type TL_bad_server_salt struct {
+	bad_msg_id      int64
+	bad_msg_seqno   int32
+	error_code      int32
+	new_server_salt []byte
+}
+
+type TL_msgs_ack struct {
+	msgIds []int64
+}
+
+type TL_rpc_result struct {
+	req_msg_id int64
+	obj        interface{}
+}
+
+type TL_config struct {
+	date          int32
+	test_mode     bool
+	this_dc       int32
+	dc_options    []TL_dcOption
+	chat_size_max int32
+}
+
+type TL_dcOption struct {
+	id         int32
+	hostname   string
+	ip_address string
+	port       int32
+}
+
+func (m *DecodeBuf) DecodeObject(level int) (r interface{}) {
 	constructor := m.DecodeUInt()
 	if m.err != nil {
 		return nil
 	}
 
-	level++
-
 	switch constructor {
 
 	case crc_resPQ:
-		nonce := m.DecodeBytes(16)
-		server_nonce := m.DecodeBytes(16)
-		pq := m.DecodeBigInt()
-		fingerprints := m.DecodeVectorLong()
-		r = &TL_resPQ{nonce, server_nonce, pq, fingerprints}
-		if m.err != nil {
-			return nil
-		}
+		r = &TL_resPQ{m.DecodeBytes(16), m.DecodeBytes(16), m.DecodeBigInt(), m.DecodeVectorLong()}
 
 	case crc_server_DH_params_ok:
-		nonce := m.DecodeBytes(16)
-		server_nonce := m.DecodeBytes(16)
-		encrypted_answer := m.DecodeStringBytes()
-		r = &TL_server_DH_params_ok{nonce, server_nonce, encrypted_answer}
-		if m.err != nil {
-			return nil
-		}
+		r = &TL_server_DH_params_ok{m.DecodeBytes(16), m.DecodeBytes(16), m.DecodeStringBytes()}
 
 	case crc_server_DH_inner_data:
-		nonce := m.DecodeBytes(16)
-		server_nonce := m.DecodeBytes(16)
-		g := m.DecodeInt()
-		dh_prime := m.DecodeBigInt()
-		g_a := m.DecodeBigInt()
-		server_time := m.DecodeInt()
-		r = &TL_server_DH_inner_data{nonce, server_nonce, g, dh_prime, g_a, server_time}
-		if m.err != nil {
-			return nil
+		r = &TL_server_DH_inner_data{
+			m.DecodeBytes(16), m.DecodeBytes(16), m.DecodeInt(),
+			m.DecodeBigInt(), m.DecodeBigInt(), m.DecodeInt(),
 		}
 
 	case crc_dh_gen_ok:
-		nonce := m.DecodeBytes(16)
-		server_nonce := m.DecodeBytes(16)
-		new_nonce_hash1 := m.DecodeBytes(16)
-		r = &TL_dh_gen_ok{nonce, server_nonce, new_nonce_hash1}
-		if m.err != nil {
-			return nil
-		}
+		r = &TL_dh_gen_ok{m.DecodeBytes(16), m.DecodeBytes(16), m.DecodeBytes(16)}
 
 	case crc_ping:
-		ping_id := m.DecodeLong()
-		r = &TL_ping{ping_id}
-		if m.err != nil {
-			return nil
-		}
+		r = &TL_ping{m.DecodeLong()}
 
 	case crc_pong:
-		msg_id := m.DecodeLong()
-		ping_id := m.DecodeLong()
-		r = &TL_pong{msg_id, ping_id}
-		if m.err != nil {
-			return nil
-		}
+		r = &TL_pong{m.DecodeLong(), m.DecodeLong()}
 
 	case crc_msg_container:
 		size := m.DecodeInt()
 		arr := make([]TL_message, size)
 		for i := int32(0); i < size; i++ {
-			msg_id := m.DecodeLong()
-			seq_no := m.DecodeInt()
-			size := m.DecodeInt()
-			data := m.DecodeRecursive(level)
-			arr[i] = TL_message{msg_id, seq_no, size, data}
+			arr[i] = TL_message{m.DecodeLong(), m.DecodeInt(), m.DecodeInt(), m.DecodeObject(level + 1)}
 			if m.err != nil {
 				return nil
 			}
 		}
 		r = &arr
 
+	case crc_rpc_result:
+		r = &TL_rpc_result{m.DecodeLong(), m.DecodeObject(level + 1)}
+		fmt.Println(r)
+
 	case crc_new_session_created:
-		msg_id := m.DecodeLong()
-		uniq_id := m.DecodeLong()
-		server_salt := m.DecodeBytes(8)
-		r = &TL_new_session_created{msg_id, uniq_id, server_salt}
-		if m.err != nil {
-			return nil
+		r = &TL_new_session_created{m.DecodeLong(), m.DecodeLong(), m.DecodeBytes(8)}
+
+	case crc_bad_server_salt:
+		r = &TL_bad_server_salt{m.DecodeLong(), m.DecodeInt(), m.DecodeInt(), m.DecodeBytes(8)}
+
+	case crc_msgs_ack:
+		r = &TL_msgs_ack{m.DecodeVectorLong()}
+
+	case crc_config:
+		r = &TL_config{
+			m.DecodeInt(),
+			m.DecodeBool(),
+			m.DecodeInt(),
+			func() []TL_dcOption {
+				x := m.DecodeVector(level + 1)
+				y := make([]TL_dcOption, len(x))
+				for i, v := range x {
+					y[i] = *(v.(*TL_dcOption))
+				}
+				return y
+			}(),
+			m.DecodeInt(),
 		}
+
+	case crc_dcOption:
+		r = &TL_dcOption{m.DecodeInt(), m.DecodeString(), m.DecodeString(), m.DecodeInt()}
 
 	default:
 		m.err = fmt.Errorf("Неизвестный конструктор: %08x", constructor)
 		return nil
 
+	}
+
+	if m.err != nil {
+		return nil
 	}
 
 	return

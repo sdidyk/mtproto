@@ -22,19 +22,12 @@ func main() {
 		return
 	}
 
-	err = m.SendPacket(mtproto.Encode_TL_ping(1), false)
-	// err = m.SendPacket(mtproto.Encode_TL_help_getConfig(), true)
-	if err != nil {
-		fmt.Println(err)
-		return
-	}
+	go m.ReadRoutine()
 
-	data, err := m.Read()
-	if err != nil {
-		fmt.Println(err)
-		return
-	}
+	_ = m.SendPacket(mtproto.Encode_TL_ping(1), false)
+	_ = m.SendPacket(mtproto.Encode_TL_help_getConfig(), true)
 
-	fmt.Println(data)
+	fmt.Println("[press enter to quit]")
+	_, _ = fmt.Scanf("abc")
 
 }

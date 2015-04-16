@@ -110,6 +110,15 @@ func (m *DecodeBuf) DecodeStringBytes() (r []byte) {
 	return x
 }
 
+func (m *DecodeBuf) DecodeString() (r string) {
+	b := m.DecodeStringBytes()
+	if m.err != nil {
+		return ""
+	}
+	x := string(b)
+	return x
+}
+
 func (m *DecodeBuf) DecodeBigInt() (r *big.Int) {
 	b := m.DecodeStringBytes()
 	if m.err != nil {
@@ -143,6 +152,50 @@ func (m *DecodeBuf) DecodeVectorLong() (r []int64) {
 	i := int32(0)
 	for i < size {
 		y := m.DecodeLong()
+		if m.err != nil {
+			return nil
+		}
+		x[i] = y
+		i++
+	}
+	return x
+}
+
+func (m *DecodeBuf) DecodeBool() (r bool) {
+	constructor := m.DecodeUInt()
+	if m.err != nil {
+		return false
+	}
+	switch constructor {
+	case crc_bool_false:
+		return false
+	case crc_bool_true:
+		return true
+	}
+	return false
+}
+
+func (m *DecodeBuf) DecodeVector(level int) []interface{} {
+	constructor := m.DecodeUInt()
+	if m.err != nil {
+		return nil
+	}
+	if constructor != crc_vector {
+		m.err = errors.New("DecodeVector: Неправильный конструктор")
+		return nil
+	}
+	size := m.DecodeInt()
+	if m.err != nil {
+		return nil
+	}
+	if size <= 0 {
+		m.err = errors.New("DecodeVector: Неправильный размер")
+		return nil
+	}
+	x := make([]interface{}, size)
+	i := int32(0)
+	for i < size {
+		y := m.DecodeObject(level)
 		if m.err != nil {
 			return nil
 		}

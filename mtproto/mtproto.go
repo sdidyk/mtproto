@@ -9,11 +9,15 @@ import (
 	"math/big"
 	"math/rand"
 	"net"
+	"os"
+	"sync"
 	"time"
 )
 
 type MTProto struct {
-	conn *net.TCPConn
+	// соединение
+	conn  *net.TCPConn
+	mutex *sync.Mutex
 
 	// данные соединения
 	g_ab        *big.Int
@@ -23,8 +27,12 @@ type MTProto struct {
 	encrypted   bool
 	sessionId   int64
 
-	// счетчики (туда)
+	// (туда)
 	lastSeqNo int32
+
+	// (сюда)
+	seqNo int32
+	msgId int64
 
 	// разобранная структура
 	data interface{}
@@ -54,10 +62,14 @@ func (m *MTProto) Connect(addr string) error {
 		return err
 	}
 
+	m.mutex = &sync.Mutex{}
+
 	return nil
 }
 
 func (m *MTProto) SendPacket(msg []byte, needAck bool) error {
+	m.mutex.Lock()
+	defer m.mutex.Unlock()
 	x := make([]byte, 0, 256)
 
 	if m.encrypted {
@@ -111,6 +123,8 @@ func (m *MTProto) SendPacket(msg []byte, needAck bool) error {
 	if err != nil {
 		return err
 	}
+
+	fmt.Println("Send: packet")
 
 	return nil
 }
@@ -213,7 +227,7 @@ func (m *MTProto) Handshake() error {
 		return err
 	}
 	innerbuf := NewDecodeBuf(decodedData[20:])
-	data = innerbuf.DecodeRecursive(0)
+	data = innerbuf.DecodeObject(0)
 	if innerbuf.err != nil {
 		return innerbuf.err
 	}
@@ -287,6 +301,7 @@ func (m *MTProto) Read() (interface{}, error) {
 	var size int
 	var data interface{}
 
+	m.conn.SetReadDeadline(time.Now().Add(300 * time.Second))
 	b := make([]byte, 1)
 	n, err = m.conn.Read(b)
 	if err != nil {
@@ -320,17 +335,16 @@ func (m *MTProto) Read() (interface{}, error) {
 
 	dbuf := NewDecodeBuf(buf)
 
-	var messageId int64
-
 	authKeyHash := dbuf.DecodeBytes(8)
 	if binary.LittleEndian.Uint64(authKeyHash) == 0 {
-		messageId = dbuf.DecodeLong()
+		m.msgId = dbuf.DecodeLong()
 		messageLen := dbuf.DecodeInt()
 		if int(messageLen) != dbuf.size-20 {
 			return nil, fmt.Errorf("Длина сообщения не совпадает: %d (должна быть %d)", messageLen, dbuf.size-20)
 		}
+		m.seqNo = 0
 
-		data = dbuf.DecodeRecursive(0)
+		data = dbuf.DecodeObject(0)
 		if dbuf.err != nil {
 			return nil, dbuf.err
 		}
@@ -346,25 +360,86 @@ func (m *MTProto) Read() (interface{}, error) {
 		dbuf = NewDecodeBuf(x)
 		_ = dbuf.DecodeLong() // salt
 		_ = dbuf.DecodeLong() // session_id
-		messageId = dbuf.DecodeLong()
-		_ = dbuf.DecodeInt() // seqNo
+		m.msgId = dbuf.DecodeLong()
+		m.seqNo = dbuf.DecodeInt()
 		messageLen := dbuf.DecodeInt()
 		if int(messageLen) != dbuf.size-40 {
 			return nil, fmt.Errorf("Длина сообщения не совпадает: %d (должна быть %d)", messageLen, dbuf.size-20)
 		}
 
-		data = dbuf.DecodeRecursive(0)
+		data = dbuf.DecodeObject(0)
 		if dbuf.err != nil {
 			return nil, dbuf.err
 		}
 
 	}
-	mod := messageId & 3
+	mod := m.msgId & 3
 	if mod != 1 && mod != 3 {
 		return nil, fmt.Errorf("Невалидные битые message_id: %d", mod)
 	}
 
+	fmt.Println("Read: packet")
+
 	return data, nil
+}
+
+func (m *MTProto) ReadRoutine() {
+	for true {
+		data, err := m.Read()
+		if err != nil {
+			fmt.Println("ReadRoutine:", err)
+			os.Exit(1)
+		}
+
+		switch data.(type) {
+
+		case *[]TL_message:
+			data := data.(*[]TL_message)
+			for _, v := range *data {
+				m.Process(v.msg_id, v.seq_no, v.data)
+			}
+
+		default:
+			m.Process(m.msgId, m.seqNo, data)
+
+		}
+	}
+
+}
+
+func (m *MTProto) Process(msgId int64, seqNo int32, data interface{}) {
+	switch data.(type) {
+
+	case *TL_bad_server_salt:
+		data := data.(*TL_bad_server_salt)
+		m.setSalt(data.new_server_salt)
+
+	case *TL_new_session_created:
+		data := data.(*TL_new_session_created)
+		m.setSalt(data.server_salt)
+
+	case *TL_ping:
+		data := data.(*TL_ping)
+		m.SendPacket(Encode_TL_pong(msgId, data.ping_id), false)
+
+	case *TL_pong:
+		// ignore
+
+	case *TL_msgs_ack:
+		data := data.(*TL_msgs_ack)
+		for _, v := range data.msgIds {
+			fmt.Println("ACK:", v)
+		}
+
+	default:
+		fmt.Println("unknown data to process", data)
+
+	}
+
+	if (seqNo & 1) == 1 {
+		m.SendPacket(Encode_TL_msgs_ack([]int64{msgId}), false)
+	}
+
 }
 
 func (m *MTProto) setGAB(g_ab *big.Int) {
