@@ -324,12 +324,8 @@ func (m *MTProto) Read() error {
 		return fmt.Errorf("Ошибка сервера: %d", int32(binary.LittleEndian.Uint32(m.buf)))
 	}
 
-	if m.size <= 8 {
-		return fmt.Errorf("Слишком маленький пакет: %d байт", m.size)
-	}
-
-	authKeyHash, err := m.DecodeLong()
-	if authKeyHash == 0 {
+	authKeyHash, err := m.DecodeBytes(8)
+	if binary.LittleEndian.Uint64(authKeyHash) == 0 {
 		m.messageId, err = m.DecodeLong()
 		if err != nil {
 			return err
@@ -354,7 +350,26 @@ func (m *MTProto) Read() error {
 		}
 
 	} else {
-		panic("TODO: read encrypted packet")
+		msgKey, err := m.DecodeBytes(16)
+		if err != nil {
+			return err
+		}
+		encryptedData, err := m.DecodeBytes(m.size - 24)
+		aesKey, aesIV := generateAES(msgKey, m.authKey, true)
+		x, err := AES256IGE_decrypt(encryptedData, aesKey, aesIV)
+		if err != nil {
+			return err
+		}
+		m.buf = x
+		m.size = len(x)
+		m.off = 0
+		_, err = m.DecodeLong() // salt
+		_, err = m.DecodeLong() // session_id
+		messageId, err := m.DecodeLong()
+		seqNo, err := m.DecodeInt()
+		messageLen, err := m.DecodeInt()
+
+		fmt.Println(messageId, seqNo, messageLen)
 
 	}
 

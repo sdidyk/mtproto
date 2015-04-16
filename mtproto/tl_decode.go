@@ -1,50 +1,10 @@
 package mtproto
 
 import (
-	"crypto/aes"
 	"encoding/binary"
 	"errors"
 	"math/big"
 )
-
-func AES256IGE_decrypt(data, key, iv []byte) ([]byte, error) {
-	block, err := aes.NewCipher(key)
-	if err != nil {
-		return nil, err
-	}
-	if len(data) < aes.BlockSize {
-		return nil, errors.New("Слишком короткие данные")
-	}
-	if len(data)%aes.BlockSize != 0 {
-		return nil, errors.New("Данные некратны блоку")
-	}
-
-	t := make([]byte, aes.BlockSize)
-	x := make([]byte, aes.BlockSize)
-	y := make([]byte, aes.BlockSize)
-	copy(x, iv[:aes.BlockSize])
-	copy(y, iv[aes.BlockSize:])
-	decrypted := make([]byte, len(data))
-
-	i := 0
-	for i < len(data) {
-		Xor(y, data[i:i+aes.BlockSize])
-		block.Decrypt(t, y)
-		Xor(t, x)
-		y, x = t, data[i:i+aes.BlockSize]
-		copy(decrypted[i:], t)
-		i += aes.BlockSize
-	}
-
-	return decrypted, nil
-
-}
-
-func Xor(dst, src []byte) {
-	for i, _ := range dst {
-		dst[i] = dst[i] ^ src[i]
-	}
-}
 
 func (m *MTProto) DecodeLong() (r int64, err error) {
 	if m.off+8 > m.size {
