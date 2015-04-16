@@ -23,13 +23,8 @@ type MTProto struct {
 	encrypted   bool
 	sessionId   int64
 
-	// буфер для пакета и данные его парсинга
-	buf       []byte
-	size      int
-	off       int
-	level     int
-	messageId int64
-	seqNo     int32
+	// счетчики (туда)
+	lastSeqNo int32
 
 	// разобранная структура
 	data interface{}
@@ -72,9 +67,9 @@ func (m *MTProto) SendPacket(msg []byte, needAck bool) error {
 		z = append(z, EncodeLong(m.sessionId)...)
 		z = append(z, EncodeLong(newMsgId)...)
 		if needAck {
-			z = append(z, EncodeInt(m.seqNo|1)...)
+			z = append(z, EncodeInt(m.lastSeqNo|1)...)
 		} else {
-			z = append(z, EncodeInt(m.seqNo)...)
+			z = append(z, EncodeInt(m.lastSeqNo)...)
 		}
 		z = append(z, EncodeInt(int32(len(msg)))...)
 		z = append(z, msg...)
@@ -89,7 +84,7 @@ func (m *MTProto) SendPacket(msg []byte, needAck bool) error {
 			return err
 		}
 
-		m.seqNo += 2
+		m.lastSeqNo += 2
 		if needAck {
 			// msgNeedToAck[] = ...
 		}
@@ -123,6 +118,7 @@ func (m *MTProto) SendPacket(msg []byte, needAck bool) error {
 func (m *MTProto) Handshake() error {
 	var x []byte
 	var err error
+	var data interface{}
 
 	// (send) req_pq
 	nonceFirst := GenerateNonce(16)
@@ -132,11 +128,11 @@ func (m *MTProto) Handshake() error {
 	}
 
 	// (parse) resPQ
-	err = m.Read()
+	data, err = m.Read()
 	if err != nil {
 		return err
 	}
-	res, ok := m.data.(*TL_resPQ)
+	res, ok := data.(*TL_resPQ)
 	if !ok {
 		return errors.New("Handshake: ожидался resPQ")
 	}
@@ -172,11 +168,11 @@ func (m *MTProto) Handshake() error {
 	}
 
 	// (parse) server_DH_params_{ok, fail}
-	err = m.Read()
+	data, err = m.Read()
 	if err != nil {
 		return err
 	}
-	dh, ok := m.data.(*TL_server_DH_params_ok)
+	dh, ok := data.(*TL_server_DH_params_ok)
 	if !ok {
 		return errors.New("Handshake: ожидался server_DH_params_ok")
 	}
@@ -216,15 +212,12 @@ func (m *MTProto) Handshake() error {
 	if err != nil {
 		return err
 	}
-	m.buf = decodedData[20:]
-	m.size = len(m.buf)
-	m.off = 0
-	m.level = 0
-	err = m.DecodePacket()
-	if err != nil {
-		return err
+	innerbuf := NewDecodeBuf(decodedData[20:])
+	data = innerbuf.DecodeRecursive(0)
+	if innerbuf.err != nil {
+		return innerbuf.err
 	}
-	dhi, ok := m.data.(*TL_server_DH_inner_data)
+	dhi, ok := data.(*TL_server_DH_inner_data)
 	if !ok {
 		return errors.New("Handshake: ожидался server_DH_inner_data")
 	}
@@ -263,11 +256,11 @@ func (m *MTProto) Handshake() error {
 	}
 
 	// (parse) dh_gen_{ok, retry, fail}
-	err = m.Read()
+	data, err = m.Read()
 	if err != nil {
 		return err
 	}
-	dhg, ok := m.data.(*TL_dh_gen_ok)
+	dhg, ok := data.(*TL_dh_gen_ok)
 	if !ok {
 		return errors.New("Handshake: ожидался dh_gen_ok")
 	}
@@ -288,92 +281,88 @@ func (m *MTProto) Handshake() error {
 	return nil
 }
 
-func (m *MTProto) Read() error {
+func (m *MTProto) Read() (interface{}, error) {
 	var err error
 	var n int
+	var size int
+	var data interface{}
 
 	b := make([]byte, 1)
 	n, err = m.conn.Read(b)
 	if err != nil {
-		return err
+		return nil, err
 	}
 
 	if b[0] < 127 {
-		m.size = int(b[0]) << 2
+		size = int(b[0]) << 2
 	} else {
 		b := make([]byte, 3)
 		n, err = m.conn.Read(b)
 		if err != nil {
-			return err
+			return nil, err
 		}
-		m.size = (int(b[0]) | int(b[1])<<8 | int(b[2])<<16) << 2
+		size = (int(b[0]) | int(b[1])<<8 | int(b[2])<<16) << 2
 	}
 
-	left := m.size
-	m.buf = make([]byte, m.size)
+	left := size
+	buf := make([]byte, size)
 	for left > 0 {
-		n, err = m.conn.Read(m.buf[m.size-left:])
+		n, err = m.conn.Read(buf[size-left:])
 		if err != nil {
-			return err
+			return nil, err
 		}
 		left -= n
 	}
-	m.off = 0
 
-	if m.size == 4 {
-		return fmt.Errorf("Ошибка сервера: %d", int32(binary.LittleEndian.Uint32(m.buf)))
+	if size == 4 {
+		return nil, fmt.Errorf("Ошибка сервера: %d", int32(binary.LittleEndian.Uint32(buf)))
 	}
 
-	authKeyHash, err := m.DecodeBytes(8)
-	if binary.LittleEndian.Uint64(authKeyHash) == 0 {
-		m.messageId, err = m.DecodeLong()
-		if err != nil {
-			return err
-		}
-		messageLen, err := m.DecodeInt()
-		if err != nil {
-			return err
-		}
-		if int(messageLen) != m.size-20 {
-			return fmt.Errorf("Длина сообщения не совпадает: %d (должна быть %d)", messageLen, m.size-20)
-		}
-		mod := m.messageId & 3
-		if mod != 1 && mod != 3 {
-			return fmt.Errorf("Невалидные битые message_id: %d", mod)
-		}
-		m.seqNo = 0
-		m.level = 0
+	dbuf := NewDecodeBuf(buf)
 
-		err = m.DecodePacket()
-		if err != nil {
-			return err
+	var messageId int64
+
+	authKeyHash := dbuf.DecodeBytes(8)
+	if binary.LittleEndian.Uint64(authKeyHash) == 0 {
+		messageId = dbuf.DecodeLong()
+		messageLen := dbuf.DecodeInt()
+		if int(messageLen) != dbuf.size-20 {
+			return nil, fmt.Errorf("Длина сообщения не совпадает: %d (должна быть %d)", messageLen, dbuf.size-20)
+		}
+
+		data = dbuf.DecodeRecursive(0)
+		if dbuf.err != nil {
+			return nil, dbuf.err
 		}
 
 	} else {
-		msgKey, err := m.DecodeBytes(16)
-		if err != nil {
-			return err
-		}
-		encryptedData, err := m.DecodeBytes(m.size - 24)
+		msgKey := dbuf.DecodeBytes(16)
+		encryptedData := dbuf.DecodeBytes(dbuf.size - 24)
 		aesKey, aesIV := generateAES(msgKey, m.authKey, true)
 		x, err := AES256IGE_decrypt(encryptedData, aesKey, aesIV)
 		if err != nil {
-			return err
+			return nil, err
 		}
-		m.buf = x
-		m.size = len(x)
-		m.off = 0
-		_, err = m.DecodeLong() // salt
-		_, err = m.DecodeLong() // session_id
-		messageId, err := m.DecodeLong()
-		seqNo, err := m.DecodeInt()
-		messageLen, err := m.DecodeInt()
+		dbuf = NewDecodeBuf(x)
+		_ = dbuf.DecodeLong() // salt
+		_ = dbuf.DecodeLong() // session_id
+		messageId = dbuf.DecodeLong()
+		seqNo := dbuf.DecodeInt()
+		messageLen := dbuf.DecodeInt()
 
 		fmt.Println(messageId, seqNo, messageLen)
+		data = dbuf.DecodeRecursive(0)
+		if dbuf.err != nil {
+			return nil, dbuf.err
+		}
 
 	}
+	mod := messageId & 3
+	if mod != 1 && mod != 3 {
+		return nil, fmt.Errorf("Невалидные битые message_id: %d", mod)
+	}
 
-	return nil
+	return data, nil
 }
 
 func (m *MTProto) setGAB(g_ab *big.Int) {

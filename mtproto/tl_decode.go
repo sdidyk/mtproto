@@ -6,55 +6,87 @@ import (
 	"math/big"
 )
 
-func (m *MTProto) DecodeLong() (r int64, err error) {
+type DecodeBuf struct {
+	buf  []byte
+	off  int
+	size int
+	err  error
+}
+
+func NewDecodeBuf(b []byte) *DecodeBuf {
+	return &DecodeBuf{b, 0, len(b), nil}
+}
+
+func (m *DecodeBuf) DecodeLong() (r int64) {
+	if m.err != nil {
+		return 0
+	}
 	if m.off+8 > m.size {
-		return 0, errors.New("DecodeLong: короткий пакет")
+		m.err = errors.New("DecodeLong: короткий пакет")
+		return 0
 	}
 	x := int64(binary.LittleEndian.Uint64(m.buf[m.off : m.off+8]))
 	m.off += 8
-	return x, nil
+	return x
 }
 
-func (m *MTProto) DecodeInt() (r int32, err error) {
+func (m *DecodeBuf) DecodeInt() (r int32) {
+	if m.err != nil {
+		return 0
+	}
 	if m.off+4 > m.size {
-		return 0, errors.New("DecodeInt: короткий пакет")
+		m.err = errors.New("DecodeInt: короткий пакет")
+		return 0
 	}
 	x := binary.LittleEndian.Uint32(m.buf[m.off : m.off+4])
 	m.off += 4
-	return int32(x), nil
+	return int32(x)
 }
 
-func (m *MTProto) DecodeUInt() (r uint32, err error) {
+func (m *DecodeBuf) DecodeUInt() (r uint32) {
+	if m.err != nil {
+		return 0
+	}
 	if m.off+4 > m.size {
-		return 0, errors.New("DecodeUInt: короткий пакет")
+		m.err = errors.New("DecodeUInt: короткий пакет")
+		return 0
 	}
 	x := binary.LittleEndian.Uint32(m.buf[m.off : m.off+4])
 	m.off += 4
-	return x, nil
+	return x
 }
 
-func (m *MTProto) DecodeBytes(size int) (r []byte, err error) {
+func (m *DecodeBuf) DecodeBytes(size int) (r []byte) {
+	if m.err != nil {
+		return nil
+	}
 	if m.off+size > m.size {
-		return nil, errors.New("DecodeBytes: короткий пакет")
+		m.err = errors.New("DecodeBytes: короткий пакет")
+		return nil
 	}
 	x := make([]byte, size)
 	copy(x, m.buf[m.off:m.off+size])
 	m.off += size
-	return x, nil
+	return x
 }
 
-func (m *MTProto) DecodeStringBytes() (r []byte, err error) {
+func (m *DecodeBuf) DecodeStringBytes() (r []byte) {
+	if m.err != nil {
+		return nil
+	}
 	var size, padding int
 
 	if m.off+1 > m.size {
-		return nil, errors.New("DecodeStringBytes: короткий пакет")
+		m.err = errors.New("DecodeStringBytes: короткий пакет")
+		return nil
 	}
 	size = int(m.buf[m.off])
 	m.off++
 	padding = (4 - ((size + 1) % 4)) & 3
 	if size == 254 {
 		if m.off+3 > m.size {
-			return nil, errors.New("DecodeStringBytes: короткий пакет")
+			m.err = errors.New("DecodeStringBytes: короткий пакет")
+			return nil
 		}
 		size = int(m.buf[m.off]) | int(m.buf[m.off+1])<<8 | int(m.buf[m.off+2])<<16
 		m.off += 3
@@ -62,56 +94,60 @@ func (m *MTProto) DecodeStringBytes() (r []byte, err error) {
 	}
 
 	if m.off+size > m.size {
-		return nil, errors.New("DecodeStringBytes: короткий пакет (size)")
+		m.err = errors.New("DecodeStringBytes: короткий пакет (size)")
+		return nil
 	}
 	x := make([]byte, size)
 	copy(x, m.buf[m.off:m.off+size])
 	m.off += size
 
 	if m.off+padding > m.size {
-		return nil, errors.New("DecodeStringBytes: короткий пакет (padding)")
+		m.err = errors.New("DecodeStringBytes: короткий пакет (padding)")
+		return nil
 	}
 	m.off += padding
 
-	return x, nil
+	return x
 }
 
-func (m *MTProto) DecodeBigInt() (r *big.Int, err error) {
-	b, err := m.DecodeStringBytes()
-	if err != nil {
-		return nil, err
+func (m *DecodeBuf) DecodeBigInt() (r *big.Int) {
+	b := m.DecodeStringBytes()
+	if m.err != nil {
+		return nil
 	}
 	y := make([]byte, len(b)+1)
 	y[0] = 0
 	copy(y[1:], b)
 	x := new(big.Int).SetBytes(y)
-	return x, nil
+	return x
 }
 
-func (m *MTProto) DecodeVectorLong() (r []int64, err error) {
-	constructor, err := m.DecodeUInt()
-	if err != nil {
-		return nil, err
+func (m *DecodeBuf) DecodeVectorLong() (r []int64) {
+	constructor := m.DecodeUInt()
+	if m.err != nil {
+		return nil
 	}
 	if constructor != crc_vector {
-		return nil, errors.New("DecodeVectorLong: Неправильный конструктор")
+		m.err = errors.New("DecodeVectorLong: Неправильный конструктор")
+		return nil
 	}
-	size, err := m.DecodeInt()
-	if err != nil {
-		return nil, err
+	size := m.DecodeInt()
+	if m.err != nil {
+		return nil
 	}
 	if size <= 0 {
-		return nil, errors.New("DecodeVectorLong: Неправильный размер")
+		m.err = errors.New("DecodeVectorLong: Неправильный размер")
+		return nil
 	}
 	x := make([]int64, size)
 	i := int32(0)
 	for i < size {
-		y, err := m.DecodeLong()
-		if err != nil {
-			return nil, err
+		y := m.DecodeLong()
+		if m.err != nil {
+			return nil
 		}
 		x[i] = y
 		i++
 	}
-	return x, nil
+	return x
 }

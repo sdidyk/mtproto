@@ -64,79 +64,78 @@ type TL_server_DH_inner_data struct {
 	server_time  int32
 }
 
-func (m *MTProto) DecodePacket() error {
-	var err error
-
-	constructor, err := m.DecodeUInt()
-	if err != nil {
-		return err
+func (m *DecodeBuf) DecodeRecursive(level int) (r interface{}) {
+	constructor := m.DecodeUInt()
+	if m.err != nil {
+		return nil
 	}
 
-	m.level++
+	level++
 
 	switch constructor {
+
 	case crc_resPQ:
-		nonce, err := m.DecodeBytes(16)
-		server_nonce, err := m.DecodeBytes(16)
-		pq, err := m.DecodeBigInt()
-		fingerprints, err := m.DecodeVectorLong()
-		m.data = &TL_resPQ{nonce, server_nonce, pq, fingerprints}
-		if err != nil {
-			return err
+		nonce := m.DecodeBytes(16)
+		server_nonce := m.DecodeBytes(16)
+		pq := m.DecodeBigInt()
+		fingerprints := m.DecodeVectorLong()
+		r = &TL_resPQ{nonce, server_nonce, pq, fingerprints}
+		if m.err != nil {
+			return nil
 		}
 
 	case crc_server_DH_params_ok:
-		nonce, err := m.DecodeBytes(16)
-		server_nonce, err := m.DecodeBytes(16)
-		encrypted_answer, err := m.DecodeStringBytes()
-		m.data = &TL_server_DH_params_ok{nonce, server_nonce, encrypted_answer}
-		if err != nil {
-			return err
+		nonce := m.DecodeBytes(16)
+		server_nonce := m.DecodeBytes(16)
+		encrypted_answer := m.DecodeStringBytes()
+		r = &TL_server_DH_params_ok{nonce, server_nonce, encrypted_answer}
+		if m.err != nil {
+			return nil
 		}
 
 	case crc_server_DH_inner_data:
-		nonce, err := m.DecodeBytes(16)
-		server_nonce, err := m.DecodeBytes(16)
-		g, err := m.DecodeInt()
-		dh_prime, err := m.DecodeBigInt()
-		g_a, err := m.DecodeBigInt()
-		server_time, err := m.DecodeInt()
-		m.data = &TL_server_DH_inner_data{nonce, server_nonce, g, dh_prime, g_a, server_time}
-		if err != nil {
-			return err
+		nonce := m.DecodeBytes(16)
+		server_nonce := m.DecodeBytes(16)
+		g := m.DecodeInt()
+		dh_prime := m.DecodeBigInt()
+		g_a := m.DecodeBigInt()
+		server_time := m.DecodeInt()
+		r = &TL_server_DH_inner_data{nonce, server_nonce, g, dh_prime, g_a, server_time}
+		if m.err != nil {
+			return nil
 		}
 
 	case crc_dh_gen_ok:
-		nonce, err := m.DecodeBytes(16)
-		server_nonce, err := m.DecodeBytes(16)
-		new_nonce_hash1, err := m.DecodeBytes(16)
-		m.data = &TL_dh_gen_ok{nonce, server_nonce, new_nonce_hash1}
-		if err != nil {
-			return err
+		nonce := m.DecodeBytes(16)
+		server_nonce := m.DecodeBytes(16)
+		new_nonce_hash1 := m.DecodeBytes(16)
+		r = &TL_dh_gen_ok{nonce, server_nonce, new_nonce_hash1}
+		if m.err != nil {
+			return nil
 		}
 
 	case crc_ping:
-		ping_id, err := m.DecodeLong()
-		m.data = &TL_ping{ping_id}
-		if err != nil {
-			return err
+		ping_id := m.DecodeLong()
+		r = &TL_ping{ping_id}
+		if m.err != nil {
+			return nil
 		}
 
 	case crc_pong:
-		msg_id, err := m.DecodeLong()
-		ping_id, err := m.DecodeLong()
-		m.data = &TL_pong{msg_id, ping_id}
-		if err != nil {
-			return err
+		msg_id := m.DecodeLong()
+		ping_id := m.DecodeLong()
+		r = &TL_pong{msg_id, ping_id}
+		if m.err != nil {
+			return nil
 		}
 
 	default:
-		return fmt.Errorf("Неизвестный конструктор: %08x", constructor)
+		m.err = fmt.Errorf("Неизвестный конструктор: %08x", constructor)
+		return nil
+
 	}
 
-	m.level--
-
-	return nil
+	return
 }
 
 type TL_dh_gen_ok struct {

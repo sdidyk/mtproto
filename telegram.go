@@ -29,10 +29,12 @@ func main() {
 		return
 	}
 
-	err = m.Read()
+	data, err := m.Read()
 	if err != nil {
 		fmt.Println(err)
 		return
 	}
+
+	fmt.Println(data)
 
 }
