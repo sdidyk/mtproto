@@ -10,14 +10,14 @@ import (
 	"math/rand"
 	"net"
 	"os"
-	"sync"
 	"time"
 )
 
 type MTProto struct {
 	// соединение
-	conn  *net.TCPConn
-	mutex *sync.Mutex
+	conn *net.TCPConn
+
+	QueueSend chan PacketToSend
 
 	// данные соединения
 	g_ab        *big.Int
@@ -28,7 +28,8 @@ type MTProto struct {
 	sessionId   int64
 
 	// (туда)
-	lastSeqNo int32
+	lastSeqNo   int32
+	msgsIdToAck map[int64]bool
 
 	// (сюда)
 	seqNo int32
@@ -36,6 +37,11 @@ type MTProto struct {
 
 	// разобранная структура
 	data interface{}
+}
+
+type PacketToSend struct {
+	Msg     []byte
+	NeedAck bool
 }
 
 func (m *MTProto) Connect(addr string) error {
@@ -62,14 +68,30 @@ func (m *MTProto) Connect(addr string) error {
 		return err
 	}
 
-	m.mutex = &sync.Mutex{}
+	err = m.Handshake()
+	if err != nil {
+		fmt.Println("Handshake failed:", err)
+		return err
+	}
+
+	m.QueueSend = make(chan PacketToSend, 64)
+	m.msgsIdToAck = make(map[int64]bool)
+
+	go func() {
+		for {
+			select {
+			case <-time.After(60 * time.Second):
+				m.QueueSend <- PacketToSend{Encode_TL_ping(0xCADACADA), false}
+			}
+		}
+	}()
+	go m.SendRoutine()
+	go m.ReadRoutine()
 
 	return nil
 }
 
 func (m *MTProto) SendPacket(msg []byte, needAck bool) error {
-	m.mutex.Lock()
-	defer m.mutex.Unlock()
 	x := make([]byte, 0, 256)
 
 	if m.encrypted {
@@ -98,7 +120,7 @@ func (m *MTProto) SendPacket(msg []byte, needAck bool) error {
 
 		m.lastSeqNo += 2
 		if needAck {
-			// msgNeedToAck[] = ...
+			m.msgsIdToAck[newMsgId] = true
 		}
 
 		x = append(x, m.authKeyHash...)
@@ -363,8 +385,11 @@ func (m *MTProto) Read() (interface{}, error) {
 		m.msgId = dbuf.DecodeLong()
 		m.seqNo = dbuf.DecodeInt()
 		messageLen := dbuf.DecodeInt()
-		if int(messageLen) != dbuf.size-40 {
-			return nil, fmt.Errorf("Длина сообщения не совпадает: %d (должна быть %d)", messageLen, dbuf.size-20)
+		if int(messageLen) >= +dbuf.size-32 {
+			return nil, fmt.Errorf("Длина сообщения не совпадает: %d (максимум %d)", messageLen, dbuf.size-32)
+		}
+		if !bytes.Equal(Sha1(dbuf.buf[0 : 32+messageLen])[4:20], msgKey) {
+			return nil, fmt.Errorf("Битый msg_key")
 		}
 
 		data = dbuf.DecodeObject(0)
@@ -383,6 +408,12 @@ func (m *MTProto) Read() (interface{}, error) {
 	return data, nil
 }
 
+func (m *MTProto) SendRoutine() {
+	for x := range m.QueueSend {
+		m.SendPacket(x.Msg, x.NeedAck)
+	}
+}
+
 func (m *MTProto) ReadRoutine() {
 	for true {
 		data, err := m.Read()
@@ -393,9 +424,9 @@ func (m *MTProto) ReadRoutine() {
 
 		switch data.(type) {
 
-		case *[]TL_message:
-			data := data.(*[]TL_message)
-			for _, v := range *data {
+		case []TL_message:
+			data := data.([]TL_message)
+			for _, v := range data {
 				m.Process(v.msg_id, v.seq_no, v.data)
 			}
 
@@ -420,7 +451,7 @@ func (m *MTProto) Process(msgId int64, seqNo int32, data interface{}) {
 
 	case *TL_ping:
 		data := data.(*TL_ping)
-		m.SendPacket(Encode_TL_pong(msgId, data.ping_id), false)
+		m.QueueSend <- PacketToSend{Encode_TL_pong(msgId, data.ping_id), false}
 
 	case *TL_pong:
 		// ignore
@@ -428,8 +459,13 @@ func (m *MTProto) Process(msgId int64, seqNo int32, data interface{}) {
 	case *TL_msgs_ack:
 		data := data.(*TL_msgs_ack)
 		for _, v := range data.msgIds {
-			fmt.Println("ACK:", v)
+			delete(m.msgsIdToAck, v)
 		}
+
+	case *TL_rpc_result:
+		data := data.(*TL_rpc_result)
+		delete(m.msgsIdToAck, data.req_msg_id)
+		m.Process(msgId, seqNo, data.obj)
 
 	default:
 		fmt.Println("unknown data to process", data)

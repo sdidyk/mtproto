@@ -114,6 +114,8 @@ func (m *DecodeBuf) DecodeObject(level int) (r interface{}) {
 		return nil
 	}
 
+	// fmt.Printf("[%08x]\n", constructor)
+
 	switch constructor {
 
 	case crc_resPQ:
@@ -146,11 +148,10 @@ func (m *DecodeBuf) DecodeObject(level int) (r interface{}) {
 				return nil
 			}
 		}
-		r = &arr
+		r = arr
 
 	case crc_rpc_result:
 		r = &TL_rpc_result{m.DecodeLong(), m.DecodeObject(level + 1)}
-		fmt.Println(r)
 
 	case crc_new_session_created:
 		r = &TL_new_session_created{m.DecodeLong(), m.DecodeLong(), m.DecodeBytes(8)}
