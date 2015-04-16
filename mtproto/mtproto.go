@@ -7,8 +7,9 @@ import (
 	"errors"
 	"fmt"
 	"math/big"
+	"math/rand"
 	"net"
-	"reflect"
+	"time"
 )
 
 type MTProto struct {
@@ -20,13 +21,14 @@ type MTProto struct {
 	authKeyHash []byte
 	serverSalt  []byte
 	encrypted   bool
+	sessionId   int64
 
 	// буфер для пакета и данные его парсинга
 	buf       []byte
 	size      int
 	off       int
 	level     int
-	messageId uint64
+	messageId int64
 	seqNo     int32
 
 	// разобранная структура
@@ -39,6 +41,8 @@ func (m *MTProto) Connect(addr string) error {
 
 	m.g_ab = big.NewInt(0)
 	m.encrypted = false
+	rand.Seed(time.Now().UnixNano())
+	m.sessionId = rand.Int63()
 
 	tcpAddr, err = net.ResolveTCPAddr("tcp", addr)
 	if err != nil {
@@ -58,11 +62,41 @@ func (m *MTProto) Connect(addr string) error {
 	return nil
 }
 
-func (m *MTProto) SendPacket(msg []byte) error {
+func (m *MTProto) SendPacket(msg []byte, needAck bool) error {
 	x := make([]byte, 0, 256)
 
 	if m.encrypted {
-		// TODO: encrypt packet
+		z := make([]byte, 0, 256)
+		newMsgId := GenerateMessageId()
+		z = append(z, m.serverSalt...)
+		z = append(z, EncodeLong(m.sessionId)...)
+		z = append(z, EncodeLong(newMsgId)...)
+		if needAck {
+			z = append(z, EncodeInt(m.seqNo|1)...)
+		} else {
+			z = append(z, EncodeInt(m.seqNo)...)
+		}
+		z = append(z, EncodeInt(int32(len(msg)))...)
+		z = append(z, msg...)
+
+		msgKey := Sha1(z)[4:20]
+		aesKey, aesIV := generateAES(msgKey, m.authKey, false)
+
+		y := make([]byte, len(z)+((16-(len(msg)%16))&15))
+		copy(y, z)
+		encryptedData, err := AES256IGE_encrypt(y, aesKey, aesIV)
+		if err != nil {
+			return err
+		}
+
+		m.seqNo += 2
+		if needAck {
+			// msgNeedToAck[] = ...
+		}
+
+		x = append(x, m.authKeyHash...)
+		x = append(x, msgKey...)
+		x = append(x, encryptedData...)
 
 	} else {
 		x = append(x, EncodeLong(0)...)
@@ -78,7 +112,6 @@ func (m *MTProto) SendPacket(msg []byte) error {
 	} else {
 		x = append(EncodeInt(int32(size<<8|127)), x...)
 	}
-
 	_, err := m.conn.Write(x)
 	if err != nil {
 		return err
@@ -93,7 +126,7 @@ func (m *MTProto) Handshake() error {
 
 	// (send) req_pq
 	nonceFirst := GenerateNonce(16)
-	err = m.SendPacket(Encode_TL_req_pq(nonceFirst))
+	err = m.SendPacket(Encode_TL_req_pq(nonceFirst), false)
 	if err != nil {
 		return err
 	}
@@ -103,7 +136,7 @@ func (m *MTProto) Handshake() error {
 	if err != nil {
 		return err
 	}
-	res, ok := m.data.(TL_resPQ)
+	res, ok := m.data.(*TL_resPQ)
 	if !ok {
 		return errors.New("Handshake: ожидался resPQ")
 	}
@@ -112,7 +145,7 @@ func (m *MTProto) Handshake() error {
 	}
 	found := false
 	for _, b := range res.fingerprints {
-		if b == telegramPublicKey_FP {
+		if uint64(b) == telegramPublicKey_FP {
 			found = true
 			break
 		}
@@ -133,7 +166,7 @@ func (m *MTProto) Handshake() error {
 	encryptedData1 := RSAEncode(x)
 
 	// (send) req_DH_params
-	err = m.SendPacket(Encode_TL_req_DH_params(nonceFirst, nonceServer, p, q, telegramPublicKey_FP, encryptedData1))
+	err = m.SendPacket(Encode_TL_req_DH_params(nonceFirst, nonceServer, p, q, telegramPublicKey_FP, encryptedData1), false)
 	if err != nil {
 		return err
 	}
@@ -143,7 +176,7 @@ func (m *MTProto) Handshake() error {
 	if err != nil {
 		return err
 	}
-	dh, ok := m.data.(TL_server_DH_params_ok)
+	dh, ok := m.data.(*TL_server_DH_params_ok)
 	if !ok {
 		return errors.New("Handshake: ожидался server_DH_params_ok")
 	}
@@ -191,7 +224,7 @@ func (m *MTProto) Handshake() error {
 	if err != nil {
 		return err
 	}
-	dhi, ok := m.data.(TL_server_DH_inner_data)
+	dhi, ok := m.data.(*TL_server_DH_inner_data)
 	if !ok {
 		return errors.New("Handshake: ожидался server_DH_inner_data")
 	}
@@ -224,7 +257,7 @@ func (m *MTProto) Handshake() error {
 	encryptedData2, err := AES256IGE_encrypt(x, tmpAESKey, tmpAESIV)
 
 	// (send) set_client_DH_params
-	err = m.SendPacket(Encode_TL_set_client_DH_params(nonceFirst, nonceServer, encryptedData2))
+	err = m.SendPacket(Encode_TL_set_client_DH_params(nonceFirst, nonceServer, encryptedData2), false)
 	if err != nil {
 		return err
 	}
@@ -234,7 +267,7 @@ func (m *MTProto) Handshake() error {
 	if err != nil {
 		return err
 	}
-	dhg, ok := m.data.(TL_dh_gen_ok)
+	dhg, ok := m.data.(*TL_dh_gen_ok)
 	if !ok {
 		return errors.New("Handshake: ожидался dh_gen_ok")
 	}
@@ -321,7 +354,7 @@ func (m *MTProto) Read() error {
 		}
 
 	} else {
-		// TODO: read encrypted packet
+		panic("TODO: read encrypted packet")
 
 	}
 
@@ -340,11 +373,6 @@ func (m *MTProto) setGAB(g_ab *big.Int) {
 
 func (m *MTProto) setSalt(s []byte) {
 	m.serverSalt = s
-}
-
-func (m *MTProto) Dump() {
-	fmt.Printf("AB: %v\tSALT: %v\tConnection: %v\n", m.g_ab, m.serverSalt, m.conn)
-	fmt.Println(reflect.TypeOf(m.data), m.data)
 }
 
 func Dump(x []byte) {

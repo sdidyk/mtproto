@@ -4,65 +4,8 @@ import (
 	"crypto/aes"
 	"encoding/binary"
 	"errors"
-	"fmt"
 	"math/big"
 )
-
-const (
-	// системные конструкторы
-	bool_false           = 0xbc799737
-	bool_true            = 0x997275b5
-	vector               = 0x1cb5c415
-	msg_container        = 0x73f1f8dc
-	new_session_created  = 0x9ec20908
-	msgs_ack             = 0x62d6b459
-	rpc_result           = 0xf35c6d01
-	rpc_error            = 0x2144ca19
-	bad_msg_notification = 0xa7eff811
-	bad_server_salt      = 0xedab447b
-
-	// конструкторы авторизации
-	req_pq                = 0x60469778
-	resPQ                 = 0x05162463
-	p_q_inner_data        = 0x83c95aec
-	req_DH_params         = 0xd712e4be
-	server_DH_params_ok   = 0xd0e8075c
-	server_DH_params_fail = 0x79cb045d
-	server_DH_inner_data  = 0xb5890dba
-	client_DH_inner_data  = 0x6643b654
-	set_client_DH_params  = 0xf5045f1f
-	dh_gen_ok             = 0x3bcbf734
-	dh_gen_retry          = 0x46dc1fb9
-	dh_gen_fail           = 0xa69dae02
-)
-
-type TL_resPQ struct {
-	nonce        []byte
-	server_nonce []byte
-	pq           *big.Int
-	fingerprints []uint64
-}
-
-type TL_server_DH_params_ok struct {
-	nonce            []byte
-	server_nonce     []byte
-	encrypted_answer []byte
-}
-
-type TL_server_DH_inner_data struct {
-	nonce        []byte
-	server_nonce []byte
-	g            int32
-	dh_prime     *big.Int
-	g_a          *big.Int
-	server_time  int32
-}
-
-type TL_dh_gen_ok struct {
-	nonce           []byte
-	server_nonce    []byte
-	new_nonce_hash1 []byte
-}
 
 func AES256IGE_decrypt(data, key, iv []byte) ([]byte, error) {
 	block, err := aes.NewCipher(key)
@@ -103,71 +46,11 @@ func Xor(dst, src []byte) {
 	}
 }
 
-func (m *MTProto) DecodePacket() error {
-	var err error
-
-	constructor, err := m.DecodeUInt()
-	if err != nil {
-		return err
-	}
-
-	m.level++
-
-	switch constructor {
-	case resPQ:
-		nonce, err := m.DecodeBytes(16)
-		server_nonce, err := m.DecodeBytes(16)
-		pq, err := m.DecodeBigInt()
-		fingerprints, err := m.DecodeVectorLong()
-		m.data = TL_resPQ{nonce, server_nonce, pq, fingerprints}
-		if err != nil {
-			return err
-		}
-
-	case server_DH_params_ok:
-		nonce, err := m.DecodeBytes(16)
-		server_nonce, err := m.DecodeBytes(16)
-		encrypted_answer, err := m.DecodeStringBytes()
-		m.data = TL_server_DH_params_ok{nonce, server_nonce, encrypted_answer}
-		if err != nil {
-			return err
-		}
-
-	case server_DH_inner_data:
-		nonce, err := m.DecodeBytes(16)
-		server_nonce, err := m.DecodeBytes(16)
-		g, err := m.DecodeInt()
-		dh_prime, err := m.DecodeBigInt()
-		g_a, err := m.DecodeBigInt()
-		server_time, err := m.DecodeInt()
-		m.data = TL_server_DH_inner_data{nonce, server_nonce, g, dh_prime, g_a, server_time}
-		if err != nil {
-			return err
-		}
-
-	case dh_gen_ok:
-		nonce, err := m.DecodeBytes(16)
-		server_nonce, err := m.DecodeBytes(16)
-		new_nonce_hash1, err := m.DecodeBytes(16)
-		m.data = TL_dh_gen_ok{nonce, server_nonce, new_nonce_hash1}
-		if err != nil {
-			return err
-		}
-
-	default:
-		return fmt.Errorf("Неизвестный конструктор: %08x", constructor)
-	}
-
-	m.level--
-
-	return nil
-}
-
-func (m *MTProto) DecodeLong() (r uint64, err error) {
+func (m *MTProto) DecodeLong() (r int64, err error) {
 	if m.off+8 > m.size {
 		return 0, errors.New("DecodeLong: короткий пакет")
 	}
-	x := binary.LittleEndian.Uint64(m.buf[m.off : m.off+8])
+	x := int64(binary.LittleEndian.Uint64(m.buf[m.off : m.off+8]))
 	m.off += 8
 	return x, nil
 }
@@ -245,12 +128,12 @@ func (m *MTProto) DecodeBigInt() (r *big.Int, err error) {
 	return x, nil
 }
 
-func (m *MTProto) DecodeVectorLong() (r []uint64, err error) {
+func (m *MTProto) DecodeVectorLong() (r []int64, err error) {
 	constructor, err := m.DecodeUInt()
 	if err != nil {
 		return nil, err
 	}
-	if constructor != vector {
+	if constructor != crc_vector {
 		return nil, errors.New("DecodeVectorLong: Неправильный конструктор")
 	}
 	size, err := m.DecodeInt()
@@ -260,7 +143,7 @@ func (m *MTProto) DecodeVectorLong() (r []uint64, err error) {
 	if size <= 0 {
 		return nil, errors.New("DecodeVectorLong: Неправильный размер")
 	}
-	x := make([]uint64, size)
+	x := make([]int64, size)
 	i := int32(0)
 	for i < size {
 		y, err := m.DecodeLong()
