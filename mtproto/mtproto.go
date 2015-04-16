@@ -347,10 +347,12 @@ func (m *MTProto) Read() (interface{}, error) {
 		_ = dbuf.DecodeLong() // salt
 		_ = dbuf.DecodeLong() // session_id
 		messageId = dbuf.DecodeLong()
-		seqNo := dbuf.DecodeInt()
+		_ = dbuf.DecodeInt() // seqNo
 		messageLen := dbuf.DecodeInt()
+		if int(messageLen) != dbuf.size-40 {
+			return nil, fmt.Errorf("Длина сообщения не совпадает: %d (должна быть %d)", messageLen, dbuf.size-20)
+		}
 
-		fmt.Println(messageId, seqNo, messageLen)
 		data = dbuf.DecodeRecursive(0)
 		if dbuf.err != nil {
 			return nil, dbuf.err

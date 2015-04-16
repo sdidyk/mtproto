@@ -42,6 +42,13 @@ const (
 	crc_dcOption       = 0x2ec2a43c
 )
 
+type TL_message struct {
+	msg_id int64
+	seq_no int32
+	size   int32
+	data   interface{}
+}
+
 type TL_resPQ struct {
 	nonce        []byte
 	server_nonce []byte
@@ -62,6 +69,12 @@ type TL_server_DH_inner_data struct {
 	dh_prime     *big.Int
 	g_a          *big.Int
 	server_time  int32
+}
+
+type TL_new_session_created struct {
+	first_msg_id int64
+	unique_id    int64
+	server_salt  []byte
 }
 
 func (m *DecodeBuf) DecodeRecursive(level int) (r interface{}) {
@@ -125,6 +138,30 @@ func (m *DecodeBuf) DecodeRecursive(level int) (r interface{}) {
 		msg_id := m.DecodeLong()
 		ping_id := m.DecodeLong()
 		r = &TL_pong{msg_id, ping_id}
+		if m.err != nil {
+			return nil
+		}
+
+	case crc_msg_container:
+		size := m.DecodeInt()
+		arr := make([]TL_message, size)
+		for i := int32(0); i < size; i++ {
+			msg_id := m.DecodeLong()
+			seq_no := m.DecodeInt()
+			size := m.DecodeInt()
+			data := m.DecodeRecursive(level)
+			arr[i] = TL_message{msg_id, seq_no, size, data}
+			if m.err != nil {
+				return nil
+			}
+		}
+		r = &arr
+
+	case crc_new_session_created:
+		msg_id := m.DecodeLong()
+		uniq_id := m.DecodeLong()
+		server_salt := m.DecodeBytes(8)
+		r = &TL_new_session_created{msg_id, uniq_id, server_salt}
 		if m.err != nil {
 			return nil
 		}
