@@ -23,7 +23,7 @@ func (m *DecodeBuf) Long() (r int64) {
 		return 0
 	}
 	if m.off+8 > m.size {
-		m.err = errors.New("DecodeLong: короткий пакет")
+		m.err = errors.New("DecodeLong")
 		return 0
 	}
 	x := int64(binary.LittleEndian.Uint64(m.buf[m.off : m.off+8]))
@@ -36,7 +36,7 @@ func (m *DecodeBuf) Int() (r int32) {
 		return 0
 	}
 	if m.off+4 > m.size {
-		m.err = errors.New("DecodeInt: короткий пакет")
+		m.err = errors.New("DecodeInt")
 		return 0
 	}
 	x := binary.LittleEndian.Uint32(m.buf[m.off : m.off+4])
@@ -49,7 +49,7 @@ func (m *DecodeBuf) UInt() (r uint32) {
 		return 0
 	}
 	if m.off+4 > m.size {
-		m.err = errors.New("DecodeUInt: короткий пакет")
+		m.err = errors.New("DecodeUInt")
 		return 0
 	}
 	x := binary.LittleEndian.Uint32(m.buf[m.off : m.off+4])
@@ -62,7 +62,7 @@ func (m *DecodeBuf) Bytes(size int) (r []byte) {
 		return nil
 	}
 	if m.off+size > m.size {
-		m.err = errors.New("DecodeBytes: короткий пакет")
+		m.err = errors.New("DecodeBytes")
 		return nil
 	}
 	x := make([]byte, size)
@@ -78,7 +78,7 @@ func (m *DecodeBuf) StringBytes() (r []byte) {
 	var size, padding int
 
 	if m.off+1 > m.size {
-		m.err = errors.New("DecodeStringBytes: короткий пакет")
+		m.err = errors.New("DecodeStringBytes")
 		return nil
 	}
 	size = int(m.buf[m.off])
@@ -86,7 +86,7 @@ func (m *DecodeBuf) StringBytes() (r []byte) {
 	padding = (4 - ((size + 1) % 4)) & 3
 	if size == 254 {
 		if m.off+3 > m.size {
-			m.err = errors.New("DecodeStringBytes: короткий пакет")
+			m.err = errors.New("DecodeStringBytes")
 			return nil
 		}
 		size = int(m.buf[m.off]) | int(m.buf[m.off+1])<<8 | int(m.buf[m.off+2])<<16
@@ -95,7 +95,7 @@ func (m *DecodeBuf) StringBytes() (r []byte) {
 	}
 
 	if m.off+size > m.size {
-		m.err = errors.New("DecodeStringBytes: короткий пакет (size)")
+		m.err = errors.New("DecodeStringBytes: Wrong size")
 		return nil
 	}
 	x := make([]byte, size)
@@ -103,7 +103,7 @@ func (m *DecodeBuf) StringBytes() (r []byte) {
 	m.off += size
 
 	if m.off+padding > m.size {
-		m.err = errors.New("DecodeStringBytes: короткий пакет (padding)")
+		m.err = errors.New("DecodeStringBytes: Wrong padding")
 		return nil
 	}
 	m.off += padding
@@ -138,7 +138,7 @@ func (m *DecodeBuf) VectorLong() (r []int64) {
 		return nil
 	}
 	if constructor != crc_vector {
-		m.err = errors.New("DecodeVectorLong: Неправильный конструктор")
+		m.err = errors.New("DecodeVectorLong: Wrong constructor")
 		return nil
 	}
 	size := m.Int()
@@ -146,7 +146,7 @@ func (m *DecodeBuf) VectorLong() (r []int64) {
 		return nil
 	}
 	if size <= 0 {
-		m.err = errors.New("DecodeVectorLong: Неправильный размер")
+		m.err = errors.New("DecodeVectorLong: Wrong size")
 		return nil
 	}
 	x := make([]int64, size)
@@ -182,7 +182,7 @@ func (m *DecodeBuf) Vector(level int) []interface{} {
 		return nil
 	}
 	if constructor != crc_vector {
-		m.err = errors.New("DecodeVector: Неправильный конструктор")
+		m.err = errors.New("DecodeVector: Wrong constructor")
 		return nil
 	}
 	size := m.Int()
@@ -190,7 +190,7 @@ func (m *DecodeBuf) Vector(level int) []interface{} {
 		return nil
 	}
 	if size <= 0 {
-		m.err = errors.New("DecodeVector: Неправильный размер")
+		m.err = errors.New("DecodeVector: Wrong size")
 		return nil
 	}
 	x := make([]interface{}, size)
@@ -280,7 +280,7 @@ func (m *DecodeBuf) Object(level int) (r interface{}) {
 		r = &TL_dcOption{m.Int(), m.String(), m.String(), m.Int()}
 
 	default:
-		m.err = fmt.Errorf("Неизвестный конструктор: %08x", constructor)
+		m.err = fmt.Errorf("Unknown constructor: %08x", constructor)
 		return nil
 
 	}

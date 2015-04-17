@@ -18,29 +18,21 @@ const (
 )
 
 type MTProto struct {
-	// соединение
-	conn *net.TCPConn
-	f    *os.File
-
+	conn      *net.TCPConn
+	f         *os.File
 	queueSend chan packetToSend
 
-	// данные соединения
-	g_ab        *big.Int
 	authKey     []byte
 	authKeyHash []byte
 	serverSalt  []byte
 	encrypted   bool
 	sessionId   int64
 
-	// (туда)
 	lastSeqNo   int32
 	msgsIdToAck map[int64]bool
+	seqNo       int32
+	msgId       int64
 
-	// (сюда)
-	seqNo int32
-	msgId int64
-
-	// разобранная структура
 	data interface{}
 }
 
@@ -70,7 +62,6 @@ func NewMTProto(addr, authkeyfile string) (*MTProto, error) {
 	} else {
 		m.encrypted = false
 	}
-	m.g_ab = big.NewInt(0)
 	rand.Seed(time.Now().UnixNano())
 	m.sessionId = rand.Int63()
 
@@ -124,10 +115,13 @@ func (m *MTProto) SendPacket(obj interface{}, needAck bool) error {
 	case []byte:
 		msg = obj.([]byte)
 	default:
-		panic("Unknown data to send")
+		panic("Unknown type to send")
 	}
 
 	x := NewEncodeBuf(256)
+
+	// padding for tcpsize
+	x.Int(0)
 
 	if m.encrypted {
 		z := NewEncodeBuf(256)
@@ -170,14 +164,14 @@ func (m *MTProto) SendPacket(obj interface{}, needAck bool) error {
 
 	}
 
-	size := len(x.buf) / 4
+	// minus padding
+	size := len(x.buf)/4 - 1
 
 	if size < 127 {
-		m.conn.Write([]byte{byte(size)})
+		x.buf[3] = byte(size)
+		x.buf = x.buf[3:]
 	} else {
-		tcpsize := []byte{0, 0, 0, 0}
-		binary.LittleEndian.PutUint32(tcpsize, uint32(size<<8|127))
-		m.conn.Write(tcpsize)
+		binary.LittleEndian.PutUint32(x.buf, uint32(size<<8|127))
 	}
 	_, err := m.conn.Write(x.buf)
 	if err != nil {
@@ -206,10 +200,10 @@ func (m *MTProto) makeAuthKey() error {
 	}
 	res, ok := data.(*TL_resPQ)
 	if !ok {
-		return errors.New("Handshake: ожидался resPQ")
+		return errors.New("Handshake: Need resPQ")
 	}
 	if !bytes.Equal(nonceFirst, res.nonce) {
-		return errors.New("Handshake: не совпадает nonce")
+		return errors.New("Handshake: Wrong nonce")
 	}
 	found := false
 	for _, b := range res.fingerprints {
@@ -219,7 +213,7 @@ func (m *MTProto) makeAuthKey() error {
 		}
 	}
 	if !found {
-		return errors.New("Handshake: нет отпечатка нужного ключа")
+		return errors.New("Handshake: No fingerprint")
 	}
 
 	// (encoding) p_q_inner_data
@@ -246,13 +240,13 @@ func (m *MTProto) makeAuthKey() error {
 	}
 	dh, ok := data.(*TL_server_DH_params_ok)
 	if !ok {
-		return errors.New("Handshake: ожидался server_DH_params_ok")
+		return errors.New("Handshake: Need server_DH_params_ok")
 	}
 	if !bytes.Equal(nonceFirst, dh.nonce) {
-		return errors.New("Handshake: не совпадает nonce")
+		return errors.New("Handshake: Wrong nonce")
 	}
 	if !bytes.Equal(nonceServer, dh.server_nonce) {
-		return errors.New("Handshake: не совпадает server_nonce")
+		return errors.New("Handshake: Wrong server_nonce")
 	}
 	t1 := make([]byte, 48)
 	copy(t1[0:], nonceSecond)
@@ -291,13 +285,13 @@ func (m *MTProto) makeAuthKey() error {
 	}
 	dhi, ok := data.(*TL_server_DH_inner_data)
 	if !ok {
-		return errors.New("Handshake: ожидался server_DH_inner_data")
+		return errors.New("Handshake: Need server_DH_inner_data")
 	}
 	if !bytes.Equal(nonceFirst, dhi.nonce) {
-		return errors.New("Handshake: не совпадает nonce")
+		return errors.New("Handshake: Wrong nonce")
 	}
 	if !bytes.Equal(nonceServer, dhi.server_nonce) {
-		return errors.New("Handshake: не совпадает server_nonce")
+		return errors.New("Handshake: Wrong server_nonce")
 	}
 
 	_, g_b, g_ab := MakeGAB(dhi.g, dhi.g_a, dhi.dh_prime)
@@ -334,16 +328,16 @@ func (m *MTProto) makeAuthKey() error {
 	}
 	dhg, ok := data.(*TL_dh_gen_ok)
 	if !ok {
-		return errors.New("Handshake: ожидался dh_gen_ok")
+		return errors.New("Handshake: Need dh_gen_ok")
 	}
 	if !bytes.Equal(nonceFirst, dhg.nonce) {
-		return errors.New("Handshake: не совпадает nonce")
+		return errors.New("Handshake: Wrong nonce")
 	}
 	if !bytes.Equal(nonceServer, dhg.server_nonce) {
-		return errors.New("Handshake: не совпадает server_nonce")
+		return errors.New("Handshake: Wrong server_nonce")
 	}
 	if !bytes.Equal(nonceHash1, dhg.new_nonce_hash1) {
-		return errors.New("Handshake: не совпадает new_nonce_hash1")
+		return errors.New("Handshake: Wrong new_nonce_hash1")
 	}
 
 	// (all ok)
@@ -388,7 +382,7 @@ func (m *MTProto) Read() (interface{}, error) {
 	}
 
 	if size == 4 {
-		return nil, fmt.Errorf("Ошибка сервера: %d", int32(binary.LittleEndian.Uint32(buf)))
+		return nil, fmt.Errorf("Server response error: %d", int32(binary.LittleEndian.Uint32(buf)))
 	}
 
 	dbuf := NewDecodeBuf(buf)
@@ -398,7 +392,7 @@ func (m *MTProto) Read() (interface{}, error) {
 		m.msgId = dbuf.Long()
 		messageLen := dbuf.Int()
 		if int(messageLen) != dbuf.size-20 {
-			return nil, fmt.Errorf("Длина сообщения не совпадает: %d (должна быть %d)", messageLen, dbuf.size-20)
+			return nil, fmt.Errorf("Message len: %d (need %d)", messageLen, dbuf.size-20)
 		}
 		m.seqNo = 0
 
@@ -421,11 +415,11 @@ func (m *MTProto) Read() (interface{}, error) {
 		m.msgId = dbuf.Long()
 		m.seqNo = dbuf.Int()
 		messageLen := dbuf.Int()
-		if int(messageLen) >= +dbuf.size-32 {
-			return nil, fmt.Errorf("Длина сообщения не совпадает: %d (максимум %d)", messageLen, dbuf.size-32)
+		if int(messageLen) >= dbuf.size-32 {
+			return nil, fmt.Errorf("Message len: %d (need less than %d)", messageLen, dbuf.size-32)
 		}
 		if !bytes.Equal(sha1(dbuf.buf[0 : 32+messageLen])[4:20], msgKey) {
-			return nil, fmt.Errorf("Битый msg_key")
+			return nil, fmt.Errorf("Wrong msg_key")
 		}
 
 		data = dbuf.Object(0)
@@ -436,7 +430,7 @@ func (m *MTProto) Read() (interface{}, error) {
 	}
 	mod := m.msgId & 3
 	if mod != 1 && mod != 3 {
-		return nil, fmt.Errorf("Невалидные битые message_id: %d", mod)
+		return nil, fmt.Errorf("Wrong bits of message_id: %d", mod)
 	}
 
 	return data, nil
@@ -513,7 +507,6 @@ func (m *MTProto) Process(msgId int64, seqNo int32, data interface{}) {
 }
 
 func (m *MTProto) setGAB(g_ab *big.Int) {
-	m.g_ab = g_ab
 	m.authKey = g_ab.Bytes()
 	if m.authKey[0] == 0 {
 		m.authKey = m.authKey[1:]

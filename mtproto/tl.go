@@ -5,7 +5,6 @@ import (
 )
 
 const (
-	// системные конструкторы
 	crc_bool_false           = 0xbc799737
 	crc_bool_true            = 0x997275b5
 	crc_vector               = 0x1cb5c415
@@ -17,7 +16,6 @@ const (
 	crc_bad_msg_notification = 0xa7eff811
 	crc_bad_server_salt      = 0xedab447b
 
-	// конструкторы авторизации
 	crc_req_pq                = 0x60469778
 	crc_resPQ                 = 0x05162463
 	crc_p_q_inner_data        = 0x83c95aec
@@ -31,11 +29,9 @@ const (
 	crc_dh_gen_retry          = 0x46dc1fb9
 	crc_dh_gen_fail           = 0xa69dae02
 
-	// пинги и понги
 	crc_ping = 0x7abe77ec
 	crc_pong = 0x347773c5
 
-	// коды help
 	crc_help_getConfig = 0xc4f9186b
 	crc_config         = 0x232d5905
 	crc_dcOption       = 0x2ec2a43c
