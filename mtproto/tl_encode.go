@@ -163,3 +163,23 @@ func (e *TL_msgs_ack) encode() []byte {
 	x.VectorLong(e.msgIds)
 	return x.buf
 }
+
+func (e *TL_invokeWithLayer) encode() []byte {
+	x := NewEncodeBuf(512)
+	x.UInt(crc_invokeWithLayer)
+	x.Int(e.layer)
+	x.Bytes(e.query.encode())
+	return x.buf
+}
+
+func (e *TL_initConnection) encode() []byte {
+	x := NewEncodeBuf(512)
+	x.UInt(crc_initConnection)
+	x.Int(e.app_id)
+	x.String(e.device_model)
+	x.String(e.system_version)
+	x.String(e.app_version)
+	x.String(e.lang_code)
+	x.Bytes(e.query.encode())
+	return x.buf
+}

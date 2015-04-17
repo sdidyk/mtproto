@@ -2,6 +2,7 @@ package mtproto
 
 import (
 	"encoding/binary"
+	"encoding/hex"
 	"errors"
 	"fmt"
 	"math/big"
@@ -138,14 +139,14 @@ func (m *DecodeBuf) VectorLong() (r []int64) {
 		return nil
 	}
 	if constructor != crc_vector {
-		m.err = errors.New("DecodeVectorLong: Wrong constructor")
+		m.err = fmt.Errorf("DecodeVectorLong: Wrong constructor (0x%08x)", constructor)
 		return nil
 	}
 	size := m.Int()
 	if m.err != nil {
 		return nil
 	}
-	if size <= 0 {
+	if size < 0 {
 		m.err = errors.New("DecodeVectorLong: Wrong size")
 		return nil
 	}
@@ -168,9 +169,9 @@ func (m *DecodeBuf) Bool() (r bool) {
 		return false
 	}
 	switch constructor {
-	case crc_bool_false:
+	case crc_boolFalse:
 		return false
-	case crc_bool_true:
+	case crc_boolTrue:
 		return true
 	}
 	return false
@@ -182,14 +183,14 @@ func (m *DecodeBuf) Vector(level int) []interface{} {
 		return nil
 	}
 	if constructor != crc_vector {
-		m.err = errors.New("DecodeVector: Wrong constructor")
+		m.err = fmt.Errorf("DecodeVector: Wrong constructor (0x%08x)", constructor)
 		return nil
 	}
 	size := m.Int()
 	if m.err != nil {
 		return nil
 	}
-	if size <= 0 {
+	if size < 0 {
 		m.err = errors.New("DecodeVector: Wrong size")
 		return nil
 	}
@@ -263,6 +264,7 @@ func (m *DecodeBuf) Object(level int) (r interface{}) {
 	case crc_config:
 		r = &TL_config{
 			m.Int(),
+			m.Int(),
 			m.Bool(),
 			m.Int(),
 			func() []TL_dcOption {
@@ -274,6 +276,16 @@ func (m *DecodeBuf) Object(level int) (r interface{}) {
 				return y
 			}(),
 			m.Int(),
+			m.Int(),
+			m.Int(),
+			func() []TL_disabledFeature {
+				x := m.Vector(level + 1)
+				y := make([]TL_disabledFeature, len(x))
+				for i, v := range x {
+					y[i] = *(v.(*TL_disabledFeature))
+				}
+				return y
+			}(),
 		}
 
 	case crc_dcOption:
@@ -290,4 +302,8 @@ func (m *DecodeBuf) Object(level int) (r interface{}) {
 	}
 
 	return
+}
+
+func (d *DecodeBuf) dump() {
+	fmt.Println(hex.Dump(d.buf[d.off:d.size]))
 }

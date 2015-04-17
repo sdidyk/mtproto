@@ -4,39 +4,6 @@ import (
 	"math/big"
 )
 
-const (
-	crc_bool_false           = 0xbc799737
-	crc_bool_true            = 0x997275b5
-	crc_vector               = 0x1cb5c415
-	crc_msg_container        = 0x73f1f8dc
-	crc_new_session_created  = 0x9ec20908
-	crc_msgs_ack             = 0x62d6b459
-	crc_rpc_result           = 0xf35c6d01
-	crc_rpc_error            = 0x2144ca19
-	crc_bad_msg_notification = 0xa7eff811
-	crc_bad_server_salt      = 0xedab447b
-
-	crc_req_pq                = 0x60469778
-	crc_resPQ                 = 0x05162463
-	crc_p_q_inner_data        = 0x83c95aec
-	crc_req_DH_params         = 0xd712e4be
-	crc_server_DH_params_ok   = 0xd0e8075c
-	crc_server_DH_params_fail = 0x79cb045d
-	crc_server_DH_inner_data  = 0xb5890dba
-	crc_client_DH_inner_data  = 0x6643b654
-	crc_set_client_DH_params  = 0xf5045f1f
-	crc_dh_gen_ok             = 0x3bcbf734
-	crc_dh_gen_retry          = 0x46dc1fb9
-	crc_dh_gen_fail           = 0xa69dae02
-
-	crc_ping = 0x7abe77ec
-	crc_pong = 0x347773c5
-
-	crc_help_getConfig = 0xc4f9186b
-	crc_config         = 0x232d5905
-	crc_dcOption       = 0x2ec2a43c
-)
-
 type TL interface {
 	encode() []byte
 }
@@ -126,11 +93,15 @@ type TL_rpc_result struct {
 }
 
 type TL_config struct {
-	date          int32
-	test_mode     bool
-	this_dc       int32
-	dc_options    []TL_dcOption
-	chat_size_max int32
+	date               int32
+	expires            int32
+	test_mode          bool
+	this_dc            int32
+	dc_options         []TL_dcOption
+	chat_big_size      int32
+	chat_size_max      int32
+	broadcast_size_max int32
+	disabled_features  []TL_disabledFeature
 }
 
 type TL_dcOption struct {
@@ -138,6 +109,11 @@ type TL_dcOption struct {
 	hostname   string
 	ip_address string
 	port       int32
+}
+
+type TL_disabledFeature struct {
+	feature     string
+	description string
 }
 
 type TL_dh_gen_ok struct {
@@ -153,4 +129,18 @@ type TL_ping struct {
 type TL_pong struct {
 	msg_id  int64
 	ping_id int64
+}
+
+type TL_invokeWithLayer struct {
+	layer int32
+	query TL
+}
+
+type TL_initConnection struct {
+	app_id         int32
+	device_model   string
+	system_version string
+	app_version    string
+	lang_code      string
+	query          TL
 }

@@ -101,7 +101,20 @@ func NewMTProto(addr, authkeyfile string) (*MTProto, error) {
 	go m.SendRoutine()
 	go m.ReadRoutine()
 
-	m.queueSend <- packetToSend{&TL_help_getConfig{}, true}
+	m.queueSend <- packetToSend{
+		&TL_invokeWithLayer{
+			layer,
+			&TL_initConnection{
+				appId,
+				"MacBook Pro (Retina, Mid 2012)",
+				"OS X 10.10.3",
+				"0.0.1",
+				"en",
+				&TL_help_getConfig{},
+			},
+		},
+		true,
+	}
 
 	return m, nil
 }
