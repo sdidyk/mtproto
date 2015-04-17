@@ -3,6 +3,7 @@ package mtproto
 import (
 	"encoding/binary"
 	"errors"
+	"fmt"
 	"math/big"
 )
 
@@ -17,7 +18,7 @@ func NewDecodeBuf(b []byte) *DecodeBuf {
 	return &DecodeBuf{b, 0, len(b), nil}
 }
 
-func (m *DecodeBuf) DecodeLong() (r int64) {
+func (m *DecodeBuf) Long() (r int64) {
 	if m.err != nil {
 		return 0
 	}
@@ -30,7 +31,7 @@ func (m *DecodeBuf) DecodeLong() (r int64) {
 	return x
 }
 
-func (m *DecodeBuf) DecodeInt() (r int32) {
+func (m *DecodeBuf) Int() (r int32) {
 	if m.err != nil {
 		return 0
 	}
@@ -43,7 +44,7 @@ func (m *DecodeBuf) DecodeInt() (r int32) {
 	return int32(x)
 }
 
-func (m *DecodeBuf) DecodeUInt() (r uint32) {
+func (m *DecodeBuf) UInt() (r uint32) {
 	if m.err != nil {
 		return 0
 	}
@@ -56,7 +57,7 @@ func (m *DecodeBuf) DecodeUInt() (r uint32) {
 	return x
 }
 
-func (m *DecodeBuf) DecodeBytes(size int) (r []byte) {
+func (m *DecodeBuf) Bytes(size int) (r []byte) {
 	if m.err != nil {
 		return nil
 	}
@@ -70,7 +71,7 @@ func (m *DecodeBuf) DecodeBytes(size int) (r []byte) {
 	return x
 }
 
-func (m *DecodeBuf) DecodeStringBytes() (r []byte) {
+func (m *DecodeBuf) StringBytes() (r []byte) {
 	if m.err != nil {
 		return nil
 	}
@@ -110,8 +111,8 @@ func (m *DecodeBuf) DecodeStringBytes() (r []byte) {
 	return x
 }
 
-func (m *DecodeBuf) DecodeString() (r string) {
-	b := m.DecodeStringBytes()
+func (m *DecodeBuf) String() (r string) {
+	b := m.StringBytes()
 	if m.err != nil {
 		return ""
 	}
@@ -119,8 +120,8 @@ func (m *DecodeBuf) DecodeString() (r string) {
 	return x
 }
 
-func (m *DecodeBuf) DecodeBigInt() (r *big.Int) {
-	b := m.DecodeStringBytes()
+func (m *DecodeBuf) BigInt() (r *big.Int) {
+	b := m.StringBytes()
 	if m.err != nil {
 		return nil
 	}
@@ -131,8 +132,8 @@ func (m *DecodeBuf) DecodeBigInt() (r *big.Int) {
 	return x
 }
 
-func (m *DecodeBuf) DecodeVectorLong() (r []int64) {
-	constructor := m.DecodeUInt()
+func (m *DecodeBuf) VectorLong() (r []int64) {
+	constructor := m.UInt()
 	if m.err != nil {
 		return nil
 	}
@@ -140,7 +141,7 @@ func (m *DecodeBuf) DecodeVectorLong() (r []int64) {
 		m.err = errors.New("DecodeVectorLong: Неправильный конструктор")
 		return nil
 	}
-	size := m.DecodeInt()
+	size := m.Int()
 	if m.err != nil {
 		return nil
 	}
@@ -151,7 +152,7 @@ func (m *DecodeBuf) DecodeVectorLong() (r []int64) {
 	x := make([]int64, size)
 	i := int32(0)
 	for i < size {
-		y := m.DecodeLong()
+		y := m.Long()
 		if m.err != nil {
 			return nil
 		}
@@ -161,8 +162,8 @@ func (m *DecodeBuf) DecodeVectorLong() (r []int64) {
 	return x
 }
 
-func (m *DecodeBuf) DecodeBool() (r bool) {
-	constructor := m.DecodeUInt()
+func (m *DecodeBuf) Bool() (r bool) {
+	constructor := m.UInt()
 	if m.err != nil {
 		return false
 	}
@@ -175,8 +176,8 @@ func (m *DecodeBuf) DecodeBool() (r bool) {
 	return false
 }
 
-func (m *DecodeBuf) DecodeVector(level int) []interface{} {
-	constructor := m.DecodeUInt()
+func (m *DecodeBuf) Vector(level int) []interface{} {
+	constructor := m.UInt()
 	if m.err != nil {
 		return nil
 	}
@@ -184,7 +185,7 @@ func (m *DecodeBuf) DecodeVector(level int) []interface{} {
 		m.err = errors.New("DecodeVector: Неправильный конструктор")
 		return nil
 	}
-	size := m.DecodeInt()
+	size := m.Int()
 	if m.err != nil {
 		return nil
 	}
@@ -195,7 +196,7 @@ func (m *DecodeBuf) DecodeVector(level int) []interface{} {
 	x := make([]interface{}, size)
 	i := int32(0)
 	for i < size {
-		y := m.DecodeObject(level)
+		y := m.Object(level)
 		if m.err != nil {
 			return nil
 		}
@@ -203,4 +204,90 @@ func (m *DecodeBuf) DecodeVector(level int) []interface{} {
 		i++
 	}
 	return x
+}
+
+func (m *DecodeBuf) Object(level int) (r interface{}) {
+	constructor := m.UInt()
+	if m.err != nil {
+		return nil
+	}
+
+	// fmt.Printf("[%08x]\n", constructor)
+
+	switch constructor {
+
+	case crc_resPQ:
+		r = &TL_resPQ{m.Bytes(16), m.Bytes(16), m.BigInt(), m.VectorLong()}
+
+	case crc_server_DH_params_ok:
+		r = &TL_server_DH_params_ok{m.Bytes(16), m.Bytes(16), m.StringBytes()}
+
+	case crc_server_DH_inner_data:
+		r = &TL_server_DH_inner_data{
+			m.Bytes(16), m.Bytes(16), m.Int(),
+			m.BigInt(), m.BigInt(), m.Int(),
+		}
+
+	case crc_dh_gen_ok:
+		r = &TL_dh_gen_ok{m.Bytes(16), m.Bytes(16), m.Bytes(16)}
+
+	case crc_ping:
+		r = &TL_ping{m.Long()}
+
+	case crc_pong:
+		r = &TL_pong{m.Long(), m.Long()}
+
+	case crc_msg_container:
+		size := m.Int()
+		arr := make([]TL_message, size)
+		for i := int32(0); i < size; i++ {
+			arr[i] = TL_message{m.Long(), m.Int(), m.Int(), m.Object(level + 1)}
+			if m.err != nil {
+				return nil
+			}
+		}
+		r = arr
+
+	case crc_rpc_result:
+		r = &TL_rpc_result{m.Long(), m.Object(level + 1)}
+
+	case crc_new_session_created:
+		r = &TL_new_session_created{m.Long(), m.Long(), m.Bytes(8)}
+
+	case crc_bad_server_salt:
+		r = &TL_bad_server_salt{m.Long(), m.Int(), m.Int(), m.Bytes(8)}
+
+	case crc_msgs_ack:
+		r = &TL_msgs_ack{m.VectorLong()}
+
+	case crc_config:
+		r = &TL_config{
+			m.Int(),
+			m.Bool(),
+			m.Int(),
+			func() []TL_dcOption {
+				x := m.Vector(level + 1)
+				y := make([]TL_dcOption, len(x))
+				for i, v := range x {
+					y[i] = *(v.(*TL_dcOption))
+				}
+				return y
+			}(),
+			m.Int(),
+		}
+
+	case crc_dcOption:
+		r = &TL_dcOption{m.Int(), m.String(), m.String(), m.Int()}
+
+	default:
+		m.err = fmt.Errorf("Неизвестный конструктор: %08x", constructor)
+		return nil
+
+	}
+
+	if m.err != nil {
+		return nil
+	}
+
+	return
 }

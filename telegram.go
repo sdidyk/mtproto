@@ -15,7 +15,5 @@ func main() {
 		os.Exit(1)
 	}
 
-	m.QueueSend <- mtproto.PacketToSend{mtproto.Encode_TL_help_getConfig(), true}
-
-	select {}
+	m.Halt()
 }

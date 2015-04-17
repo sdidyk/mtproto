@@ -3,7 +3,7 @@ package mtproto
 import (
 	"crypto/aes"
 	"crypto/rsa"
-	"crypto/sha1"
+	sha1lib "crypto/sha1"
 	"errors"
 	"math/big"
 	"math/rand"
@@ -23,12 +23,12 @@ func init() {
 	telegramPublicKey.E = telegramPublicKey_E
 }
 
-func Sha1(data []byte) []byte {
-	r := sha1.Sum(data)
+func sha1(data []byte) []byte {
+	r := sha1lib.Sum(data)
 	return r[:]
 }
 
-func RSAEncode(em []byte) []byte {
+func RSA_encrypt(em []byte) []byte {
 	z := make([]byte, 255)
 	copy(z, em)
 
@@ -157,10 +157,10 @@ func generateAES(msg_key, auth_key []byte, decode bool) ([]byte, []byte) {
 	t_d = append(t_d, msg_key...)
 	t_d = append(t_d, auth_key[96+x:96+x+32]...)
 
-	sha1_a := Sha1(t_a)
-	sha1_b := Sha1(t_b)
-	sha1_c := Sha1(t_c)
-	sha1_d := Sha1(t_d)
+	sha1_a := sha1(t_a)
+	sha1_b := sha1(t_b)
+	sha1_c := sha1(t_c)
+	sha1_d := sha1(t_d)
 
 	aes_key = append(aes_key, sha1_a[0:8]...)
 	aes_key = append(aes_key, sha1_b[8:8+12]...)
@@ -195,9 +195,9 @@ func AES256IGE_encrypt(data, key, iv []byte) ([]byte, error) {
 
 	i := 0
 	for i < len(data) {
-		Xor(x, data[i:i+aes.BlockSize])
+		xor(x, data[i:i+aes.BlockSize])
 		block.Encrypt(t, x)
-		Xor(t, y)
+		xor(t, y)
 		x, y = t, data[i:i+aes.BlockSize]
 		copy(encrypted[i:], t)
 		i += aes.BlockSize
@@ -227,9 +227,9 @@ func AES256IGE_decrypt(data, key, iv []byte) ([]byte, error) {
 
 	i := 0
 	for i < len(data) {
-		Xor(y, data[i:i+aes.BlockSize])
+		xor(y, data[i:i+aes.BlockSize])
 		block.Decrypt(t, y)
-		Xor(t, x)
+		xor(t, x)
 		y, x = t, data[i:i+aes.BlockSize]
 		copy(decrypted[i:], t)
 		i += aes.BlockSize
@@ -239,7 +239,7 @@ func AES256IGE_decrypt(data, key, iv []byte) ([]byte, error) {
 
 }
 
-func Xor(dst, src []byte) {
+func xor(dst, src []byte) {
 	for i, _ := range dst {
 		dst[i] = dst[i] ^ src[i]
 	}

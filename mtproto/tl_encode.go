@@ -20,142 +20,146 @@ func GenerateMessageId() int64 {
 	return ((time / nano) << 32) | ((time % nano) & -4)
 }
 
-func EncodeInt(s int32) []byte {
-	bs := make([]byte, 4)
-	binary.LittleEndian.PutUint32(bs, uint32(s))
-	return bs
+type EncodeBuf struct {
+	buf []byte
 }
 
-func EncodeUInt(s uint32) []byte {
-	bs := make([]byte, 4)
-	binary.LittleEndian.PutUint32(bs, s)
-	return bs
+func NewEncodeBuf(cap int) *EncodeBuf {
+	return &EncodeBuf{make([]byte, 0, cap)}
 }
 
-func EncodeLong(s int64) []byte {
-	bs := make([]byte, 8)
-	binary.LittleEndian.PutUint64(bs, uint64(s))
-	return bs
+func (e *EncodeBuf) Int(s int32) {
+	e.buf = append(e.buf, 0, 0, 0, 0)
+	binary.LittleEndian.PutUint32(e.buf[len(e.buf)-4:], uint32(s))
 }
 
-func EncodeString(s string) []byte {
-	return EncodeStringBytes([]byte(s))
+func (e *EncodeBuf) UInt(s uint32) {
+	e.buf = append(e.buf, 0, 0, 0, 0)
+	binary.LittleEndian.PutUint32(e.buf[len(e.buf)-4:], s)
 }
 
-func EncodeBigInt(s *big.Int) []byte {
-	return EncodeStringBytes(s.Bytes())
+func (e *EncodeBuf) Long(s int64) {
+	e.buf = append(e.buf, 0, 0, 0, 0, 0, 0, 0, 0)
+	binary.LittleEndian.PutUint64(e.buf[len(e.buf)-8:], uint64(s))
 }
 
-func EncodeStringBytes(s []byte) []byte {
+func (e *EncodeBuf) String(s string) {
+	e.StringBytes([]byte(s))
+}
+
+func (e *EncodeBuf) BigInt(s *big.Int) {
+	e.StringBytes(s.Bytes())
+}
+
+func (e *EncodeBuf) StringBytes(s []byte) {
 	var res []byte
-
-	len := len(s)
-
-	if len < 254 {
-		nl := 1 + len + (4-(len+1)%4)&3
+	size := len(s)
+	if size < 254 {
+		nl := 1 + size + (4-(size+1)%4)&3
 		res = make([]byte, nl)
-		res[0] = byte(len)
+		res[0] = byte(size)
 		copy(res[1:], s)
 
 	} else {
-		nl := 4 + len + (4-len%4)&3
+		nl := 4 + size + (4-size%4)&3
 		res = make([]byte, nl)
-		copy(res, EncodeInt(int32(len<<8|254)))
+		binary.LittleEndian.PutUint32(res, uint32(size<<8|254))
 		copy(res[4:], s)
 
 	}
-	return res
-
+	e.buf = append(e.buf, res...)
 }
 
-func EncodeBytes(s []byte) []byte {
-	return s
+func (e *EncodeBuf) Bytes(s []byte) {
+	e.buf = append(e.buf, s...)
 }
 
-func EncodeVectorLong(v []int64) []byte {
-	x := make([]byte, 0, 8+4+len(v)*8)
-	x = append(x, EncodeUInt(crc_vector)...)
-	x = append(x, EncodeInt(int32(len(v)))...)
+func (e *EncodeBuf) VectorLong(v []int64) {
+	x := make([]byte, 4+4+len(v)*8)
+	binary.LittleEndian.PutUint32(x, crc_vector)
+	binary.LittleEndian.PutUint32(x[4:], uint32(len(v)))
+	i := 8
 	for _, v := range v {
-		x = append(x, EncodeLong(v)...)
+		binary.LittleEndian.PutUint64(x[i:], uint64(v))
+		i += 8
 	}
-	return x
+	e.buf = append(e.buf, x...)
 }
 
-func Encode_TL_req_pq(nonce []byte) []byte {
-	x := make([]byte, 0, 20)
-	x = append(x, EncodeUInt(crc_req_pq)...)
-	x = append(x, EncodeBytes(nonce)...)
-	return x
+func (e *TL_req_pq) encode() []byte {
+	x := NewEncodeBuf(20)
+	x.UInt(crc_req_pq)
+	x.Bytes(e.nonce)
+	return x.buf
 }
 
-func Encode_TL_p_q_inner_data(pq, p, q *big.Int, nonce, server_nonce, new_nonce []byte) []byte {
-	x := make([]byte, 0, 256)
-	x = append(x, EncodeUInt(crc_p_q_inner_data)...)
-	x = append(x, EncodeBigInt(pq)...)
-	x = append(x, EncodeBigInt(p)...)
-	x = append(x, EncodeBigInt(q)...)
-	x = append(x, EncodeBytes(nonce)...)
-	x = append(x, EncodeBytes(server_nonce)...)
-	x = append(x, EncodeBytes(new_nonce)...)
-	return x
+func (e *TL_p_q_inner_data) encode() []byte {
+	x := NewEncodeBuf(256)
+	x.UInt(crc_p_q_inner_data)
+	x.BigInt(e.pq)
+	x.BigInt(e.p)
+	x.BigInt(e.q)
+	x.Bytes(e.nonce)
+	x.Bytes(e.server_nonce)
+	x.Bytes(e.new_nonce)
+	return x.buf
 }
 
-func Encode_TL_req_DH_params(nonce, server_nonce []byte, p, q *big.Int, fp uint64, encdata []byte) []byte {
-	x := make([]byte, 0, 512)
-	x = append(x, EncodeUInt(crc_req_DH_params)...)
-	x = append(x, EncodeBytes(nonce)...)
-	x = append(x, EncodeBytes(server_nonce)...)
-	x = append(x, EncodeBigInt(p)...)
-	x = append(x, EncodeBigInt(q)...)
-	x = append(x, EncodeLong(int64(fp))...)
-	x = append(x, EncodeStringBytes(encdata)...)
-	return x
+func (e *TL_req_DH_params) encode() []byte {
+	x := NewEncodeBuf(512)
+	x.UInt(crc_req_DH_params)
+	x.Bytes(e.nonce)
+	x.Bytes(e.server_nonce)
+	x.BigInt(e.p)
+	x.BigInt(e.q)
+	x.Long(int64(e.fp))
+	x.StringBytes(e.encdata)
+	return x.buf
 }
 
-func Encode_TL_client_DH_inner_data(nonce, server_nonce []byte, retry int64, g_b *big.Int) []byte {
-	x := make([]byte, 0, 256)
-	x = append(x, EncodeUInt(crc_client_DH_inner_data)...)
-	x = append(x, EncodeBytes(nonce)...)
-	x = append(x, EncodeBytes(server_nonce)...)
-	x = append(x, EncodeLong(retry)...)
-	x = append(x, EncodeBigInt(g_b)...)
-	return x
+func (e *TL_client_DH_inner_data) encode() []byte {
+	x := NewEncodeBuf(512)
+	x.UInt(crc_client_DH_inner_data)
+	x.Bytes(e.nonce)
+	x.Bytes(e.server_nonce)
+	x.Long(e.retry)
+	x.BigInt(e.g_b)
+	return x.buf
 }
 
-func Encode_TL_set_client_DH_params(nonce, server_nonce, encdata []byte) []byte {
-	x := make([]byte, 0, 256)
-	x = append(x, EncodeUInt(crc_set_client_DH_params)...)
-	x = append(x, EncodeBytes(nonce)...)
-	x = append(x, EncodeBytes(server_nonce)...)
-	x = append(x, EncodeStringBytes(encdata)...)
-	return x
+func (e *TL_set_client_DH_params) encode() []byte {
+	x := NewEncodeBuf(256)
+	x.UInt(crc_set_client_DH_params)
+	x.Bytes(e.nonce)
+	x.Bytes(e.server_nonce)
+	x.StringBytes(e.encdata)
+	return x.buf
 }
 
-func Encode_TL_ping(ping_id int64) []byte {
-	x := make([]byte, 0, 32)
-	x = append(x, EncodeUInt(crc_ping)...)
-	x = append(x, EncodeLong(ping_id)...)
-	return x
+func (e *TL_ping) encode() []byte {
+	x := NewEncodeBuf(32)
+	x.UInt(crc_ping)
+	x.Long(e.ping_id)
+	return x.buf
 }
 
-func Encode_TL_pong(msg_id, ping_id int64) []byte {
-	x := make([]byte, 0, 32)
-	x = append(x, EncodeUInt(crc_pong)...)
-	x = append(x, EncodeLong(msg_id)...)
-	x = append(x, EncodeLong(ping_id)...)
-	return x
+func (e *TL_pong) encode() []byte {
+	x := NewEncodeBuf(32)
+	x.UInt(crc_pong)
+	x.Long(e.msg_id)
+	x.Long(e.ping_id)
+	return x.buf
 }
 
-func Encode_TL_help_getConfig() []byte {
-	x := make([]byte, 0, 8)
-	x = append(x, EncodeUInt(crc_help_getConfig)...)
-	return x
+func (e *TL_help_getConfig) encode() []byte {
+	x := NewEncodeBuf(8)
+	x.UInt(crc_help_getConfig)
+	return x.buf
 }
 
-func Encode_TL_msgs_ack(msgIds []int64) []byte {
-	x := make([]byte, 0, 64)
-	x = append(x, EncodeUInt(crc_msgs_ack)...)
-	x = append(x, EncodeVectorLong(msgIds)...)
-	return x
+func (e *TL_msgs_ack) encode() []byte {
+	x := NewEncodeBuf(64)
+	x.UInt(crc_msgs_ack)
+	x.VectorLong(e.msgIds)
+	return x.buf
 }

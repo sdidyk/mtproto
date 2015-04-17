@@ -1,7 +1,6 @@
 package mtproto
 
 import (
-	"fmt"
 	"math/big"
 )
 
@@ -42,12 +41,49 @@ const (
 	crc_dcOption       = 0x2ec2a43c
 )
 
+type TL interface {
+	encode() []byte
+}
+
 type TL_message struct {
 	msg_id int64
 	seq_no int32
 	size   int32
 	data   interface{}
 }
+
+type TL_req_pq struct {
+	nonce []byte
+}
+
+type TL_p_q_inner_data struct {
+	pq           *big.Int
+	p            *big.Int
+	q            *big.Int
+	nonce        []byte
+	server_nonce []byte
+	new_nonce    []byte
+}
+type TL_req_DH_params struct {
+	nonce        []byte
+	server_nonce []byte
+	p            *big.Int
+	q            *big.Int
+	fp           uint64
+	encdata      []byte
+}
+type TL_client_DH_inner_data struct {
+	nonce        []byte
+	server_nonce []byte
+	retry        int64
+	g_b          *big.Int
+}
+type TL_set_client_DH_params struct {
+	nonce        []byte
+	server_nonce []byte
+	encdata      []byte
+}
+type TL_help_getConfig struct{}
 
 type TL_resPQ struct {
 	nonce        []byte
@@ -106,92 +142,6 @@ type TL_dcOption struct {
 	hostname   string
 	ip_address string
 	port       int32
-}
-
-func (m *DecodeBuf) DecodeObject(level int) (r interface{}) {
-	constructor := m.DecodeUInt()
-	if m.err != nil {
-		return nil
-	}
-
-	// fmt.Printf("[%08x]\n", constructor)
-
-	switch constructor {
-
-	case crc_resPQ:
-		r = &TL_resPQ{m.DecodeBytes(16), m.DecodeBytes(16), m.DecodeBigInt(), m.DecodeVectorLong()}
-
-	case crc_server_DH_params_ok:
-		r = &TL_server_DH_params_ok{m.DecodeBytes(16), m.DecodeBytes(16), m.DecodeStringBytes()}
-
-	case crc_server_DH_inner_data:
-		r = &TL_server_DH_inner_data{
-			m.DecodeBytes(16), m.DecodeBytes(16), m.DecodeInt(),
-			m.DecodeBigInt(), m.DecodeBigInt(), m.DecodeInt(),
-		}
-
-	case crc_dh_gen_ok:
-		r = &TL_dh_gen_ok{m.DecodeBytes(16), m.DecodeBytes(16), m.DecodeBytes(16)}
-
-	case crc_ping:
-		r = &TL_ping{m.DecodeLong()}
-
-	case crc_pong:
-		r = &TL_pong{m.DecodeLong(), m.DecodeLong()}
-
-	case crc_msg_container:
-		size := m.DecodeInt()
-		arr := make([]TL_message, size)
-		for i := int32(0); i < size; i++ {
-			arr[i] = TL_message{m.DecodeLong(), m.DecodeInt(), m.DecodeInt(), m.DecodeObject(level + 1)}
-			if m.err != nil {
-				return nil
-			}
-		}
-		r = arr
-
-	case crc_rpc_result:
-		r = &TL_rpc_result{m.DecodeLong(), m.DecodeObject(level + 1)}
-
-	case crc_new_session_created:
-		r = &TL_new_session_created{m.DecodeLong(), m.DecodeLong(), m.DecodeBytes(8)}
-
-	case crc_bad_server_salt:
-		r = &TL_bad_server_salt{m.DecodeLong(), m.DecodeInt(), m.DecodeInt(), m.DecodeBytes(8)}
-
-	case crc_msgs_ack:
-		r = &TL_msgs_ack{m.DecodeVectorLong()}
-
-	case crc_config:
-		r = &TL_config{
-			m.DecodeInt(),
-			m.DecodeBool(),
-			m.DecodeInt(),
-			func() []TL_dcOption {
-				x := m.DecodeVector(level + 1)
-				y := make([]TL_dcOption, len(x))
-				for i, v := range x {
-					y[i] = *(v.(*TL_dcOption))
-				}
-				return y
-			}(),
-			m.DecodeInt(),
-		}
-
-	case crc_dcOption:
-		r = &TL_dcOption{m.DecodeInt(), m.DecodeString(), m.DecodeString(), m.DecodeInt()}
-
-	default:
-		m.err = fmt.Errorf("Неизвестный конструктор: %08x", constructor)
-		return nil
-
-	}
-
-	if m.err != nil {
-		return nil
-	}
-
-	return
 }
 
 type TL_dh_gen_ok struct {
