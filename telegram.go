@@ -3,22 +3,19 @@ package main
 import (
 	"fmt"
 	"github.com/sdidyk/telegram/mtproto"
+	"os"
 )
 
 func main() {
-	var err error
+	authkeyfile := os.Getenv("HOME") + "/.telegram_go"
+	m, err := mtproto.NewMTProto("149.154.175.50:443", authkeyfile)
 
-	m := new(mtproto.MTProto)
-
-	err = m.Connect("149.154.175.50:443")
 	if err != nil {
 		fmt.Println("Connect failed", err)
-		return
+		os.Exit(1)
 	}
 
 	m.QueueSend <- mtproto.PacketToSend{mtproto.Encode_TL_help_getConfig(), true}
 
-	fmt.Println("[press enter to quit]")
-	_, _ = fmt.Scanf("abc")
-
+	select {}
 }

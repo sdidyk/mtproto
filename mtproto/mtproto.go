@@ -13,9 +13,15 @@ import (
 	"time"
 )
 
+const (
+	appId   = 2899
+	appHash = "36722c72256a24c1225de00eb6a1ca74"
+)
+
 type MTProto struct {
 	// соединение
 	conn *net.TCPConn
+	f    *os.File
 
 	QueueSend chan PacketToSend
 
@@ -44,34 +50,51 @@ type PacketToSend struct {
 	NeedAck bool
 }
 
-func (m *MTProto) Connect(addr string) error {
+func NewMTProto(addr, authkeyfile string) (*MTProto, error) {
 	var err error
 	var tcpAddr *net.TCPAddr
 
+	m := new(MTProto)
+
+	m.f, err = os.OpenFile(authkeyfile, os.O_RDWR|os.O_CREATE, 0600)
+	if err != nil {
+		return nil, err
+	}
+
+	b := make([]byte, 256+8+8)
+	n, err := m.f.Read(b)
+	if n == 256+8+8 {
+		m.authKey = b[:256]
+		m.authKeyHash = b[256 : 256+8]
+		m.serverSalt = b[256+8:]
+		m.encrypted = true
+	} else {
+		m.encrypted = false
+	}
 	m.g_ab = big.NewInt(0)
-	m.encrypted = false
 	rand.Seed(time.Now().UnixNano())
 	m.sessionId = rand.Int63()
 
 	tcpAddr, err = net.ResolveTCPAddr("tcp", addr)
 	if err != nil {
-		return err
+		return nil, err
 	}
 
 	m.conn, err = net.DialTCP("tcp", nil, tcpAddr)
 	if err != nil {
-		return err
+		return nil, err
 	}
 
 	_, err = m.conn.Write([]byte{0xef})
 	if err != nil {
-		return err
+		return nil, err
 	}
 
-	err = m.Handshake()
-	if err != nil {
-		fmt.Println("Handshake failed:", err)
-		return err
+	if !m.encrypted {
+		err = m.makeAuthKey()
+		if err != nil {
+			return nil, err
+		}
 	}
 
 	m.QueueSend = make(chan PacketToSend, 64)
@@ -88,7 +111,7 @@ func (m *MTProto) Connect(addr string) error {
 	go m.SendRoutine()
 	go m.ReadRoutine()
 
-	return nil
+	return m, nil
 }
 
 func (m *MTProto) SendPacket(msg []byte, needAck bool) error {
@@ -146,12 +169,10 @@ func (m *MTProto) SendPacket(msg []byte, needAck bool) error {
 		return err
 	}
 
-	fmt.Println("Send: packet")
-
 	return nil
 }
 
-func (m *MTProto) Handshake() error {
+func (m *MTProto) makeAuthKey() error {
 	var x []byte
 	var err error
 	var data interface{}
@@ -403,8 +424,6 @@ func (m *MTProto) Read() (interface{}, error) {
 		return nil, fmt.Errorf("Невалидные битые message_id: %d", mod)
 	}
 
-	fmt.Println("Read: packet")
-
 	return data, nil
 }
 
@@ -419,7 +438,7 @@ func (m *MTProto) ReadRoutine() {
 		data, err := m.Read()
 		if err != nil {
 			fmt.Println("ReadRoutine:", err)
-			os.Exit(1)
+			os.Exit(2)
 		}
 
 		switch data.(type) {
@@ -468,7 +487,7 @@ func (m *MTProto) Process(msgId int64, seqNo int32, data interface{}) {
 		m.Process(msgId, seqNo, data.obj)
 
 	default:
-		fmt.Println("unknown data to process", data)
+		fmt.Println("INFO: data to process", data)
 
 	}
 
@@ -486,10 +505,13 @@ func (m *MTProto) setGAB(g_ab *big.Int) {
 	}
 	m.authKeyHash = Sha1(m.authKey)[12:20]
 	m.encrypted = g_ab.Cmp(big.NewInt(0)) != 0
+	m.f.WriteAt(m.authKey, 0)
+	m.f.WriteAt(m.authKeyHash, 256)
 }
 
 func (m *MTProto) setSalt(s []byte) {
 	m.serverSalt = s
+	m.f.WriteAt(m.serverSalt, 256+8)
 }
 
 func Dump(x []byte) {
