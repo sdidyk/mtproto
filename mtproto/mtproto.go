@@ -292,7 +292,7 @@ func (m *MTProto) makeAuthKey() error {
 		return err
 	}
 	innerbuf := NewDecodeBuf(decodedData[20:])
-	data = innerbuf.Object(0)
+	data = innerbuf.Object()
 	if innerbuf.err != nil {
 		return innerbuf.err
 	}
@@ -409,7 +409,7 @@ func (m *MTProto) Read() (interface{}, error) {
 		}
 		m.seqNo = 0
 
-		data = dbuf.Object(0)
+		data = dbuf.Object()
 		if dbuf.err != nil {
 			return nil, dbuf.err
 		}
@@ -435,7 +435,7 @@ func (m *MTProto) Read() (interface{}, error) {
 			return nil, fmt.Errorf("Wrong msg_key")
 		}
 
-		data = dbuf.Object(0)
+		data = dbuf.Object()
 		if dbuf.err != nil {
 			return nil, dbuf.err
 		}
@@ -463,24 +463,18 @@ func (m *MTProto) ReadRoutine() {
 			os.Exit(2)
 		}
 
-		switch data.(type) {
-
-		case []TL_message:
-			data := data.([]TL_message)
-			for _, v := range data {
-				m.Process(v.msg_id, v.seq_no, v.data)
-			}
-
-		default:
-			m.Process(m.msgId, m.seqNo, data)
-
-		}
+		m.Process(m.msgId, m.seqNo, data)
 	}
 
 }
 
 func (m *MTProto) Process(msgId int64, seqNo int32, data interface{}) {
 	switch data.(type) {
+	case *TL_msg_container:
+		data := data.(*TL_msg_container).items
+		for _, v := range data {
+			m.Process(v.msg_id, v.seq_no, v.data)
+		}
 
 	case *TL_bad_server_salt:
 		data := data.(*TL_bad_server_salt)
@@ -509,7 +503,7 @@ func (m *MTProto) Process(msgId int64, seqNo int32, data interface{}) {
 		m.Process(msgId, seqNo, data.obj)
 
 	default:
-		fmt.Println("INFO: data to process", data)
+		fmt.Printf("INFO: data to process\n%#v\n", data)
 
 	}
 

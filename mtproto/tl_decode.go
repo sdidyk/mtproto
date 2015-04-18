@@ -5,6 +5,7 @@ import (
 	"encoding/hex"
 	"errors"
 	"fmt"
+	"math"
 	"math/big"
 )
 
@@ -28,6 +29,19 @@ func (m *DecodeBuf) Long() (r int64) {
 		return 0
 	}
 	x := int64(binary.LittleEndian.Uint64(m.buf[m.off : m.off+8]))
+	m.off += 8
+	return x
+}
+
+func (m *DecodeBuf) Double() (r float64) {
+	if m.err != nil {
+		return 0
+	}
+	if m.off+8 > m.size {
+		m.err = errors.New("DecodeDouble")
+		return 0
+	}
+	x := math.Float64frombits(binary.LittleEndian.Uint64(m.buf[m.off : m.off+8]))
 	m.off += 8
 	return x
 }
@@ -133,6 +147,36 @@ func (m *DecodeBuf) BigInt() (r *big.Int) {
 	return x
 }
 
+func (m *DecodeBuf) VectorInt() (r []int32) {
+	constructor := m.UInt()
+	if m.err != nil {
+		return nil
+	}
+	if constructor != crc_vector {
+		m.err = fmt.Errorf("DecodeVectorInt: Wrong constructor (0x%08x)", constructor)
+		return nil
+	}
+	size := m.Int()
+	if m.err != nil {
+		return nil
+	}
+	if size < 0 {
+		m.err = errors.New("DecodeVectorInt: Wrong size")
+		return nil
+	}
+	x := make([]int32, size)
+	i := int32(0)
+	for i < size {
+		y := m.Int()
+		if m.err != nil {
+			return nil
+		}
+		x[i] = y
+		i++
+	}
+	return x
+}
+
 func (m *DecodeBuf) VectorLong() (r []int64) {
 	constructor := m.UInt()
 	if m.err != nil {
@@ -163,6 +207,36 @@ func (m *DecodeBuf) VectorLong() (r []int64) {
 	return x
 }
 
+func (m *DecodeBuf) VectorString() (r []string) {
+	constructor := m.UInt()
+	if m.err != nil {
+		return nil
+	}
+	if constructor != crc_vector {
+		m.err = fmt.Errorf("DecodeVectorString: Wrong constructor (0x%08x)", constructor)
+		return nil
+	}
+	size := m.Int()
+	if m.err != nil {
+		return nil
+	}
+	if size < 0 {
+		m.err = errors.New("DecodeVectorString: Wrong size")
+		return nil
+	}
+	x := make([]string, size)
+	i := int32(0)
+	for i < size {
+		y := m.String()
+		if m.err != nil {
+			return nil
+		}
+		x[i] = y
+		i++
+	}
+	return x
+}
+
 func (m *DecodeBuf) Bool() (r bool) {
 	constructor := m.UInt()
 	if m.err != nil {
@@ -177,7 +251,7 @@ func (m *DecodeBuf) Bool() (r bool) {
 	return false
 }
 
-func (m *DecodeBuf) Vector(level int) []interface{} {
+func (m *DecodeBuf) Vector() []TL {
 	constructor := m.UInt()
 	if m.err != nil {
 		return nil
@@ -194,10 +268,10 @@ func (m *DecodeBuf) Vector(level int) []interface{} {
 		m.err = errors.New("DecodeVector: Wrong size")
 		return nil
 	}
-	x := make([]interface{}, size)
+	x := make([]TL, size)
 	i := int32(0)
 	for i < size {
-		y := m.Object(level)
+		y := m.Object()
 		if m.err != nil {
 			return nil
 		}
@@ -207,13 +281,13 @@ func (m *DecodeBuf) Vector(level int) []interface{} {
 	return x
 }
 
-func (m *DecodeBuf) Object(level int) (r interface{}) {
+func (m *DecodeBuf) Object() (r TL) {
 	constructor := m.UInt()
 	if m.err != nil {
 		return nil
 	}
 
-	// fmt.Printf("[%08x]\n", constructor)
+	// m.dump()
 
 	switch constructor {
 
@@ -240,17 +314,17 @@ func (m *DecodeBuf) Object(level int) (r interface{}) {
 
 	case crc_msg_container:
 		size := m.Int()
-		arr := make([]TL_message, size)
+		arr := make([]TL_MT_message, size)
 		for i := int32(0); i < size; i++ {
-			arr[i] = TL_message{m.Long(), m.Int(), m.Int(), m.Object(level + 1)}
+			arr[i] = TL_MT_message{m.Long(), m.Int(), m.Int(), m.Object()}
 			if m.err != nil {
 				return nil
 			}
 		}
-		r = arr
+		r = &TL_msg_container{arr}
 
 	case crc_rpc_result:
-		r = &TL_rpc_result{m.Long(), m.Object(level + 1)}
+		r = &TL_rpc_result{m.Long(), m.Object()}
 
 	case crc_new_session_created:
 		r = &TL_new_session_created{m.Long(), m.Long(), m.Bytes(8)}
@@ -261,39 +335,8 @@ func (m *DecodeBuf) Object(level int) (r interface{}) {
 	case crc_msgs_ack:
 		r = &TL_msgs_ack{m.VectorLong()}
 
-	case crc_config:
-		r = &TL_config{
-			m.Int(),
-			m.Int(),
-			m.Bool(),
-			m.Int(),
-			func() []TL_dcOption {
-				x := m.Vector(level + 1)
-				y := make([]TL_dcOption, len(x))
-				for i, v := range x {
-					y[i] = *(v.(*TL_dcOption))
-				}
-				return y
-			}(),
-			m.Int(),
-			m.Int(),
-			m.Int(),
-			func() []TL_disabledFeature {
-				x := m.Vector(level + 1)
-				y := make([]TL_disabledFeature, len(x))
-				for i, v := range x {
-					y[i] = *(v.(*TL_disabledFeature))
-				}
-				return y
-			}(),
-		}
-
-	case crc_dcOption:
-		r = &TL_dcOption{m.Int(), m.String(), m.String(), m.Int()}
-
 	default:
-		m.err = fmt.Errorf("Unknown constructor: %08x", constructor)
-		return nil
+		r = m.ObjectGenerated(constructor)
 
 	}
 

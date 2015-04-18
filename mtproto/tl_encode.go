@@ -3,6 +3,7 @@ package mtproto
 import (
 	"crypto/rand"
 	"encoding/binary"
+	"math"
 	"math/big"
 	"time"
 )
@@ -43,6 +44,11 @@ func (e *EncodeBuf) Long(s int64) {
 	binary.LittleEndian.PutUint64(e.buf[len(e.buf)-8:], uint64(s))
 }
 
+func (e *EncodeBuf) Double(s float64) {
+	e.buf = append(e.buf, 0, 0, 0, 0, 0, 0, 0, 0)
+	binary.LittleEndian.PutUint64(e.buf[len(e.buf)-8:], math.Float64bits(s))
+}
+
 func (e *EncodeBuf) String(s string) {
 	e.StringBytes([]byte(s))
 }
@@ -74,6 +80,18 @@ func (e *EncodeBuf) Bytes(s []byte) {
 	e.buf = append(e.buf, s...)
 }
 
+func (e *EncodeBuf) VectorInt(v []int32) {
+	x := make([]byte, 4+4+len(v)*4)
+	binary.LittleEndian.PutUint32(x, crc_vector)
+	binary.LittleEndian.PutUint32(x[4:], uint32(len(v)))
+	i := 8
+	for _, v := range v {
+		binary.LittleEndian.PutUint32(x[i:], uint32(v))
+		i += 4
+	}
+	e.buf = append(e.buf, x...)
+}
+
 func (e *EncodeBuf) VectorLong(v []int64) {
 	x := make([]byte, 4+4+len(v)*8)
 	binary.LittleEndian.PutUint32(x, crc_vector)
@@ -85,6 +103,35 @@ func (e *EncodeBuf) VectorLong(v []int64) {
 	}
 	e.buf = append(e.buf, x...)
 }
+
+func (e *EncodeBuf) VectorString(v []string) {
+	x := make([]byte, 512)
+	binary.LittleEndian.PutUint32(x, crc_vector)
+	binary.LittleEndian.PutUint32(x[4:], uint32(len(v)))
+	e.buf = append(e.buf, x...)
+	for _, v := range v {
+		e.String(v)
+	}
+}
+
+func (e *EncodeBuf) Vector(v []TL) {
+	x := make([]byte, 512)
+	binary.LittleEndian.PutUint32(x, crc_vector)
+	binary.LittleEndian.PutUint32(x[4:], uint32(len(v)))
+	e.buf = append(e.buf, x...)
+	for _, v := range v {
+		e.buf = append(e.buf, v.encode()...)
+	}
+}
+
+func (e *TL_msg_container) encode() []byte        { return nil }
+func (e *TL_resPQ) encode() []byte                { return nil }
+func (e *TL_server_DH_params_ok) encode() []byte  { return nil }
+func (e *TL_server_DH_inner_data) encode() []byte { return nil }
+func (e *TL_dh_gen_ok) encode() []byte            { return nil }
+func (e *TL_rpc_result) encode() []byte           { return nil }
+func (e *TL_new_session_created) encode() []byte  { return nil }
+func (e *TL_bad_server_salt) encode() []byte      { return nil }
 
 func (e *TL_req_pq) encode() []byte {
 	x := NewEncodeBuf(20)
@@ -151,35 +198,9 @@ func (e *TL_pong) encode() []byte {
 	return x.buf
 }
 
-func (e *TL_help_getConfig) encode() []byte {
-	x := NewEncodeBuf(8)
-	x.UInt(crc_help_getConfig)
-	return x.buf
-}
-
 func (e *TL_msgs_ack) encode() []byte {
 	x := NewEncodeBuf(64)
 	x.UInt(crc_msgs_ack)
 	x.VectorLong(e.msgIds)
-	return x.buf
-}
-
-func (e *TL_invokeWithLayer) encode() []byte {
-	x := NewEncodeBuf(512)
-	x.UInt(crc_invokeWithLayer)
-	x.Int(e.layer)
-	x.Bytes(e.query.encode())
-	return x.buf
-}
-
-func (e *TL_initConnection) encode() []byte {
-	x := NewEncodeBuf(512)
-	x.UInt(crc_initConnection)
-	x.Int(e.app_id)
-	x.String(e.device_model)
-	x.String(e.system_version)
-	x.String(e.app_version)
-	x.String(e.lang_code)
-	x.Bytes(e.query.encode())
 	return x.buf
 }
