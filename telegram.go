@@ -21,11 +21,11 @@ func main() {
 		os.Exit(1)
 	}
 
-	err = m.AuthCheckPhone("79197252746")
+	err = m.SendCode("79197252746")
 	if err != nil {
-		fmt.Printf("AuthCheckPhone: %s\n", err)
+		fmt.Printf("SendCode: %s\n", err)
 		os.Exit(1)
 	}
 
-	m.Halt()
+	// m.Halt()
 }

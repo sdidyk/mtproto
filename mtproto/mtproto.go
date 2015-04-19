@@ -163,15 +163,18 @@ func (m *MTProto) Reconnect(newaddr string) error {
 	return err
 }
 
-func (m *MTProto) AuthCheckPhone(phonenumber string) error {
+func (m *MTProto) SendCode(phonenumber string) error {
+	var authSentCode TL_auth_sentCode
+
+	// (TL_auth_sendCode)
 	flag := true
 	for flag {
 		resp := make(chan TL, 1)
-		m.queueSend <- packetToSend{&TL_auth_checkPhone{phonenumber}, resp}
+		m.queueSend <- packetToSend{&TL_auth_sendCode{phonenumber, 0, appId, appHash, "en"}, resp}
 		x := <-resp
 		switch x.(type) {
-		case *TL_auth_checkedPhone:
-			dump(x)
+		case *TL_auth_sentCode:
+			authSentCode = *(x.(*TL_auth_sentCode))
 			flag = false
 		case *TL_rpc_error:
 			x := x.(*TL_rpc_error)
@@ -181,8 +184,12 @@ func (m *MTProto) AuthCheckPhone(phonenumber string) error {
 			var newDc int32
 			n, _ := fmt.Sscanf(x.error_message, "PHONE_MIGRATE_%d", &newDc)
 			if n != 1 {
-				return fmt.Errorf("RPC error_string: %s", x.error_message)
+				n, _ := fmt.Sscanf(x.error_message, "NETWORK_MIGRATE_%d", &newDc)
+				if n != 1 {
+					return fmt.Errorf("RPC error_string: %s", x.error_message)
+				}
 			}
+
 			newDcAddr, ok := m.dclist[newDc]
 			if !ok {
 				return fmt.Errorf("Wrong DC index: %s", newDc)
@@ -193,6 +200,32 @@ func (m *MTProto) AuthCheckPhone(phonenumber string) error {
 		}
 
 	}
+
+	var code int
+
+	fmt.Print("Enter code: ")
+	fmt.Scanf("%d", &code)
+
+	_, phone_registed := authSentCode.phone_registered.(*TL_boolTrue)
+	if phone_registed {
+		resp := make(chan TL, 1)
+		m.queueSend <- packetToSend{
+			&TL_auth_signIn{phonenumber, authSentCode.phone_code_hash, fmt.Sprintf("%d", code)},
+			resp,
+		}
+		x := <-resp
+		auth, ok := x.(*TL_auth_authorization)
+		if !ok {
+			return fmt.Errorf("RPC: %#v", x)
+		}
+		userSelf := auth.user.(*TL_userSelf)
+		fmt.Printf("Signed in: user %d <%s %s>\n", userSelf.id, userSelf.first_name, userSelf.last_name)
+
+	} else {
+
+		return fmt.Errorf("Cannot signUp yet")
+	}
+
 	return nil
 }
 

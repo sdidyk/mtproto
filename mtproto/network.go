@@ -162,7 +162,7 @@ func (m *MTProto) Read(stop <-chan struct{}) (interface{}, error) {
 		m.msgId = dbuf.Long()
 		m.seqNo = dbuf.Int()
 		messageLen := dbuf.Int()
-		if int(messageLen) >= dbuf.size-32 {
+		if int(messageLen) > dbuf.size-32 {
 			return nil, fmt.Errorf("Message len: %d (need less than %d)", messageLen, dbuf.size-32)
 		}
 		if !bytes.Equal(sha1(dbuf.buf[0 : 32+messageLen])[4:20], msgKey) {
