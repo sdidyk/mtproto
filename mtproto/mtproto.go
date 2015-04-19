@@ -21,6 +21,7 @@ type MTProto struct {
 	f         *os.File
 	queueSend chan packetToSend
 	stopRead  chan struct{}
+	stopPing  chan struct{}
 
 	authKey     []byte
 	authKeyHash []byte
@@ -100,6 +101,7 @@ func (m *MTProto) Connect() error {
 	// start goroutines
 	m.queueSend = make(chan packetToSend, 64)
 	m.stopRead = make(chan struct{}, 1)
+	m.stopPing = make(chan struct{}, 1)
 	m.msgsIdToAck = make(map[int64]bool)
 	m.msgsIdToResp = make(map[int64]chan TL)
 	go m.SendRoutine()
@@ -136,14 +138,25 @@ func (m *MTProto) Connect() error {
 		return fmt.Errorf("Got: %T", x)
 	}
 
+	m.startPing()
+
 	return nil
 }
 
 func (m *MTProto) Reconnect(newaddr string) error {
+	// stop ping routine
+	m.stopPing <- struct{}{}
+	close(m.stopPing)
+
+	// close send routine & close connection
 	close(m.queueSend)
 	m.conn.Close()
-	m.stopRead <- struct{}{}
 
+	// stop read routine
+	m.stopRead <- struct{}{}
+	close(m.stopRead)
+
+	// renew connection
 	m.encrypted = false
 	m.addr = newaddr
 	err := m.Connect()
@@ -183,11 +196,13 @@ func (m *MTProto) AuthCheckPhone(phonenumber string) error {
 	return nil
 }
 
-func (m *MTProto) StartPings() {
+func (m *MTProto) startPing() {
 	// goroutine (TL_ping)
 	go func() {
 		for {
 			select {
+			case <-m.stopPing:
+				return
 			case <-time.After(60 * time.Second):
 				m.queueSend <- packetToSend{&TL_ping{0xCADACADA}, nil}
 			}
