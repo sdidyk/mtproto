@@ -287,6 +287,7 @@ func (m *DecodeBuf) Object() (r TL) {
 		return nil
 	}
 
+	// fmt.Printf("[%08x]\n", constructor)
 	// m.dump()
 
 	switch constructor {
@@ -326,11 +327,17 @@ func (m *DecodeBuf) Object() (r TL) {
 	case crc_rpc_result:
 		r = &TL_rpc_result{m.Long(), m.Object()}
 
+	case crc_rpc_error:
+		r = &TL_rpc_error{m.Int(), m.String()}
+
 	case crc_new_session_created:
 		r = &TL_new_session_created{m.Long(), m.Long(), m.Bytes(8)}
 
 	case crc_bad_server_salt:
 		r = &TL_bad_server_salt{m.Long(), m.Int(), m.Int(), m.Bytes(8)}
+
+	case crc_bad_msg_notification:
+		r = &TL_crc_bad_msg_notification{m.Long(), m.Int(), m.Int()}
 
 	case crc_msgs_ack:
 		r = &TL_msgs_ack{m.VectorLong()}

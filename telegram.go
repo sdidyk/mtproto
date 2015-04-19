@@ -11,7 +11,7 @@ func main() {
 	m, err := mtproto.NewMTProto("149.154.175.50:443", authkeyfile)
 
 	if err != nil {
-		fmt.Println("Connect failed", err)
+		fmt.Printf("Connect failed: %s\n", err)
 		os.Exit(1)
 	}
 

@@ -85,6 +85,12 @@ type TL_bad_server_salt struct {
 	new_server_salt []byte
 }
 
+type TL_crc_bad_msg_notification struct {
+	bad_msg_id    int64
+	bad_msg_seqno int32
+	error_code    int32
+}
+
 type TL_msgs_ack struct {
 	msgIds []int64
 }
@@ -92,6 +98,11 @@ type TL_msgs_ack struct {
 type TL_rpc_result struct {
 	req_msg_id int64
 	obj        interface{}
+}
+
+type TL_rpc_error struct {
+	error_code    int32
+	error_message string
 }
 
 type TL_dh_gen_ok struct {

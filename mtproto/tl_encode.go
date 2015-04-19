@@ -124,14 +124,16 @@ func (e *EncodeBuf) Vector(v []TL) {
 	}
 }
 
-func (e *TL_msg_container) encode() []byte        { return nil }
-func (e *TL_resPQ) encode() []byte                { return nil }
-func (e *TL_server_DH_params_ok) encode() []byte  { return nil }
-func (e *TL_server_DH_inner_data) encode() []byte { return nil }
-func (e *TL_dh_gen_ok) encode() []byte            { return nil }
-func (e *TL_rpc_result) encode() []byte           { return nil }
-func (e *TL_new_session_created) encode() []byte  { return nil }
-func (e *TL_bad_server_salt) encode() []byte      { return nil }
+func (e *TL_msg_container) encode() []byte            { return nil }
+func (e *TL_resPQ) encode() []byte                    { return nil }
+func (e *TL_server_DH_params_ok) encode() []byte      { return nil }
+func (e *TL_server_DH_inner_data) encode() []byte     { return nil }
+func (e *TL_dh_gen_ok) encode() []byte                { return nil }
+func (e *TL_rpc_result) encode() []byte               { return nil }
+func (e *TL_rpc_error) encode() []byte                { return nil }
+func (e *TL_new_session_created) encode() []byte      { return nil }
+func (e *TL_bad_server_salt) encode() []byte          { return nil }
+func (e *TL_crc_bad_msg_notification) encode() []byte { return nil }
 
 func (e *TL_req_pq) encode() []byte {
 	x := NewEncodeBuf(20)
