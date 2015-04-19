@@ -6,6 +6,7 @@ import (
 	"math/rand"
 	"net"
 	"os"
+	"strings"
 	"time"
 )
 
@@ -15,9 +16,11 @@ const (
 )
 
 type MTProto struct {
+	addr      string
 	conn      *net.TCPConn
 	f         *os.File
 	queueSend chan packetToSend
+	stopRead  chan struct{}
 
 	authKey     []byte
 	authKeyHash []byte
@@ -39,59 +42,68 @@ type packetToSend struct {
 	resp chan TL
 }
 
-func NewMTProto(addr, authkeyfile string) (*MTProto, error) {
+func NewMTProto(authkeyfile string) (*MTProto, error) {
 	var err error
-	var tcpAddr *net.TCPAddr
-
 	m := new(MTProto)
 
-	// try to read [authKey, serverSalt]
-	// TODO: read [dcAddr, authStatus]
+	// try to read [authKey, serverSalt, dcAddr]
 	m.f, err = os.OpenFile(authkeyfile, os.O_RDWR|os.O_CREATE, 0600)
 	if err != nil {
 		return nil, err
 	}
-	b := make([]byte, 256+8+8)
+	b := make([]byte, 256+8+8+32)
 	n, err := m.f.Read(b)
-	if n == 256+8+8 {
+	if n == 256+8+8+32 {
 		m.authKey = b[:256]
 		m.authKeyHash = b[256 : 256+8]
-		m.serverSalt = b[256+8:]
+		m.serverSalt = b[256+8 : 256+8+8]
+		m.addr = strings.TrimRight(string(b[256+8+8:]), "\x00")
 		m.encrypted = true
 	} else {
+		m.addr = "149.154.175.50:443"
 		m.encrypted = false
 	}
 	rand.Seed(time.Now().UnixNano())
 	m.sessionId = rand.Int63()
 
+	return m, nil
+}
+
+func (m *MTProto) Connect() error {
+	var err error
+	var tcpAddr *net.TCPAddr
+
 	// connect
-	tcpAddr, err = net.ResolveTCPAddr("tcp", addr)
+	fmt.Printf("Connecting to %s\n", m.addr)
+	tcpAddr, err = net.ResolveTCPAddr("tcp", m.addr)
 	if err != nil {
-		return nil, err
+		return err
 	}
 	m.conn, err = net.DialTCP("tcp", nil, tcpAddr)
 	if err != nil {
-		return nil, err
+		return err
 	}
 	_, err = m.conn.Write([]byte{0xef})
 	if err != nil {
-		return nil, err
+		return err
 	}
 
 	// get new authKey if need
 	if !m.encrypted {
 		err = m.makeAuthKey()
 		if err != nil {
-			return nil, err
+			return err
 		}
+		m.setAddr(m.addr)
 	}
 
 	// start goroutines
 	m.queueSend = make(chan packetToSend, 64)
+	m.stopRead = make(chan struct{}, 1)
 	m.msgsIdToAck = make(map[int64]bool)
 	m.msgsIdToResp = make(map[int64]chan TL)
 	go m.SendRoutine()
-	go m.ReadRoutine()
+	go m.ReadRoutine(m.stopRead)
 
 	var resp chan TL
 	var x TL
@@ -121,34 +133,57 @@ func NewMTProto(addr, authkeyfile string) (*MTProto, error) {
 			m.dclist[v.id] = fmt.Sprintf("%s:%d", v.ip_address, v.port)
 		}
 	default:
-		return nil, fmt.Errorf("Got: %T", x)
+		return fmt.Errorf("Got: %T", x)
 	}
 
-	// (auth_checkPhone)
-	resp = make(chan TL, 1)
-	m.queueSend <- packetToSend{&TL_auth_checkPhone{"79197252476"}, resp}
-	x = <-resp
-	switch x.(type) {
-	case *TL_rpc_error:
-		x := x.(*TL_rpc_error)
-		if x.error_code != 303 {
-			return nil, fmt.Errorf("RPC error_code: %d", x.error_code)
-		}
-		var newDc int32
-		n, _ := fmt.Sscanf(x.error_message, "NETWORK_MIGRATE_%d", &newDc)
-		if n != 1 {
-			return nil, fmt.Errorf("RPC error_string: %s", x.error_message)
-		}
-		newDcAddr, ok := m.dclist[newDc]
-		if !ok {
-			return nil, fmt.Errorf("Wrong DC index: %s", newDc)
-		}
-		// reconnect to newDcAddr
-		fmt.Println(newDcAddr)
-	default:
-		return nil, fmt.Errorf("Got: %T", x)
-	}
+	return nil
+}
 
+func (m *MTProto) Reconnect(newaddr string) error {
+	close(m.queueSend)
+	m.conn.Close()
+	m.stopRead <- struct{}{}
+
+	m.encrypted = false
+	m.addr = newaddr
+	err := m.Connect()
+	return err
+}
+
+func (m *MTProto) AuthCheckPhone(phonenumber string) error {
+	flag := true
+	for flag {
+		resp := make(chan TL, 1)
+		m.queueSend <- packetToSend{&TL_auth_checkPhone{phonenumber}, resp}
+		x := <-resp
+		switch x.(type) {
+		case *TL_auth_checkedPhone:
+			dump(x)
+			flag = false
+		case *TL_rpc_error:
+			x := x.(*TL_rpc_error)
+			if x.error_code != 303 {
+				return fmt.Errorf("RPC error_code: %d", x.error_code)
+			}
+			var newDc int32
+			n, _ := fmt.Sscanf(x.error_message, "PHONE_MIGRATE_%d", &newDc)
+			if n != 1 {
+				return fmt.Errorf("RPC error_string: %s", x.error_message)
+			}
+			newDcAddr, ok := m.dclist[newDc]
+			if !ok {
+				return fmt.Errorf("Wrong DC index: %s", newDc)
+			}
+			m.Reconnect(newDcAddr)
+		default:
+			return fmt.Errorf("Got: %T", x)
+		}
+
+	}
+	return nil
+}
+
+func (m *MTProto) StartPings() {
 	// goroutine (TL_ping)
 	go func() {
 		for {
@@ -158,8 +193,6 @@ func NewMTProto(addr, authkeyfile string) (*MTProto, error) {
 			}
 		}
 	}()
-
-	return m, nil
 }
 
 func (m *MTProto) SendRoutine() {
@@ -177,12 +210,15 @@ func (m *MTProto) SendRoutine() {
 	}
 }
 
-func (m *MTProto) ReadRoutine() {
+func (m *MTProto) ReadRoutine(stop <-chan struct{}) {
 	for true {
-		data, err := m.Read()
+		data, err := m.Read(stop)
 		if err != nil {
 			fmt.Println("ReadRoutine:", err)
 			os.Exit(2)
+		}
+		if data == nil {
+			return
 		}
 
 		m.Process(m.msgId, m.seqNo, data)
@@ -244,12 +280,12 @@ func (m *MTProto) Process(msgId int64, seqNo int32, data interface{}) interface{
 }
 
 func (m *MTProto) setGAB(g_ab *big.Int) {
+	m.encrypted = true
 	m.authKey = g_ab.Bytes()
 	if m.authKey[0] == 0 {
 		m.authKey = m.authKey[1:]
 	}
 	m.authKeyHash = sha1(m.authKey)[12:20]
-	m.encrypted = g_ab.Cmp(big.NewInt(0)) != 0
 	m.f.WriteAt(m.authKey, 0)
 	m.f.WriteAt(m.authKeyHash, 256)
 }
@@ -259,6 +295,17 @@ func (m *MTProto) setSalt(s []byte) {
 	m.f.WriteAt(m.serverSalt, 256+8)
 }
 
+func (m *MTProto) setAddr(s string) {
+	m.addr = s
+	b := make([]byte, 32)
+	copy(b, []byte(s))
+	m.f.WriteAt(b, 256+8+8)
+}
+
 func (m *MTProto) Halt() {
 	select {}
+}
+
+func dump(x interface{}) {
+	fmt.Printf("%#v\n", x)
 }

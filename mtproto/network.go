@@ -87,7 +87,7 @@ func (m *MTProto) SendPacket(obj interface{}, needAck bool, resp chan TL) error 
 	return nil
 }
 
-func (m *MTProto) Read() (interface{}, error) {
+func (m *MTProto) Read(stop <-chan struct{}) (interface{}, error) {
 	var err error
 	var n int
 	var size int
@@ -96,6 +96,13 @@ func (m *MTProto) Read() (interface{}, error) {
 	m.conn.SetReadDeadline(time.Now().Add(300 * time.Second))
 	b := make([]byte, 1)
 	n, err = m.conn.Read(b)
+	if stop != nil {
+		select {
+		case <-stop:
+			return nil, nil
+		default:
+		}
+	}
 	if err != nil {
 		return nil, err
 	}
@@ -189,7 +196,7 @@ func (m *MTProto) makeAuthKey() error {
 	}
 
 	// (parse) resPQ
-	data, err = m.Read()
+	data, err = m.Read(nil)
 	if err != nil {
 		return err
 	}
@@ -229,7 +236,7 @@ func (m *MTProto) makeAuthKey() error {
 	}
 
 	// (parse) server_DH_params_{ok, fail}
-	data, err = m.Read()
+	data, err = m.Read(nil)
 	if err != nil {
 		return err
 	}
@@ -317,7 +324,7 @@ func (m *MTProto) makeAuthKey() error {
 	}
 
 	// (parse) dh_gen_{ok, retry, fail}
-	data, err = m.Read()
+	data, err = m.Read(nil)
 	if err != nil {
 		return err
 	}
