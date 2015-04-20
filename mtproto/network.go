@@ -8,17 +8,8 @@ import (
 	"time"
 )
 
-func (m *MTProto) SendPacket(obj interface{}, needAck bool, resp chan TL) error {
-	var msg []byte
-
-	switch obj.(type) {
-	case TL:
-		msg = obj.(TL).encode()
-	case []byte:
-		msg = obj.([]byte)
-	default:
-		panic("Unknown type to send")
-	}
+func (m *MTProto) SendPacket(obj TL, needAck bool, resp chan TL) error {
+	msg := obj.encode()
 
 	x := NewEncodeBuf(256)
 

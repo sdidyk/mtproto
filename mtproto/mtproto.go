@@ -40,7 +40,7 @@ type MTProto struct {
 }
 
 type packetToSend struct {
-	msg  interface{}
+	msg  TL
 	resp chan TL
 }
 
@@ -207,8 +207,7 @@ func (m *MTProto) Auth(phonenumber string) error {
 	fmt.Print("Enter code: ")
 	fmt.Scanf("%d", &code)
 
-	_, phone_registed := authSentCode.phone_registered.(TL_boolTrue)
-	if phone_registed {
+	if toBool(authSentCode.phone_registered) {
 		resp := make(chan TL, 1)
 		m.queueSend <- packetToSend{
 			TL_auth_signIn{phonenumber, authSentCode.phone_code_hash, fmt.Sprintf("%d", code)},
@@ -244,15 +243,39 @@ func (m *MTProto) GetContacts() error {
 		v := v.(TL_userContact)
 		contacts[v.id] = v
 	}
+	fmt.Printf(
+		"%10s    %10s    %-30s    %-20s\n",
+		"(id)", "(mutual)", "(name)", "(username)",
+	)
 	for _, v := range list.contacts {
 		v := v.(TL_contact)
 		fmt.Printf(
-			"%15d    %5t    %-30s    %-20s\n",
+			"%10d    %10t    %-30s    %-20s\n",
 			v.user_id,
 			toBool(v.mutual),
 			fmt.Sprintf("%s %s", contacts[v.user_id].first_name, contacts[v.user_id].last_name),
 			contacts[v.user_id].username,
 		)
+	}
+
+	return nil
+}
+
+func (m *MTProto) SendMsg(user_id int32, msg string) error {
+	resp := make(chan TL, 1)
+	m.queueSend <- packetToSend{
+		TL_messages_sendMessage{
+			// TL_inputPeerSelf{},
+			TL_inputPeerContact{user_id},
+			msg,
+			rand.Int63(),
+		},
+		resp,
+	}
+	x := <-resp
+	_, ok := x.(TL_messages_sentMessage)
+	if !ok {
+		return fmt.Errorf("RPC: %#v", x)
 	}
 
 	return nil
@@ -384,9 +407,5 @@ func (m *MTProto) Halt() {
 }
 
 func dump(x interface{}) {
-	fmt.Printf("%#v\n", x)
-}
-
-func dump2(x interface{}) {
 	pp.Println(x)
 }
