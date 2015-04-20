@@ -11,7 +11,7 @@ func usage() {
 	fmt.Print("Telegram is a simple MTProto tool.\n\nUsage:\n\n")
 	fmt.Print("    ./telegram <command> [arguments]\n\n")
 	fmt.Print("The commands are:\n\n")
-	fmt.Print("    auth  <phone_number>            authes connection by sms-code\n")
+	fmt.Print("    auth  <phone_number>            auth connection by code\n")
 	fmt.Print("    msg   <user_id> <msgtext>       send message to user\n")
 	fmt.Print("    list                            get contact list\n")
 	fmt.Println()

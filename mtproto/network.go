@@ -47,8 +47,9 @@ func (m *MTProto) SendPacket(msg TL, resp chan TL) error {
 
 		m.lastSeqNo += 2
 		if needAck {
-			// TODO: mutex here
+			m.mutex.Lock()
 			m.msgsIdToAck[newMsgId] = packetToSend{msg, resp}
+			m.mutex.Unlock()
 		}
 
 		x.Bytes(m.authKeyHash)
@@ -56,8 +57,9 @@ func (m *MTProto) SendPacket(msg TL, resp chan TL) error {
 		x.Bytes(encryptedData)
 
 		if resp != nil {
-			// TODO: mutex here
+			m.mutex.Lock()
 			m.msgsIdToResp[newMsgId] = resp
+			m.mutex.Unlock()
 		}
 
 	} else {

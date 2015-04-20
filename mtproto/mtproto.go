@@ -7,7 +7,9 @@ import (
 	"math/rand"
 	"net"
 	"os"
+	"runtime"
 	"strings"
+	"sync"
 	"time"
 )
 
@@ -30,6 +32,7 @@ type MTProto struct {
 	encrypted   bool
 	sessionId   int64
 
+	mutex        *sync.Mutex
 	lastSeqNo    int32
 	msgsIdToAck  map[int64]packetToSend
 	msgsIdToResp map[int64]chan TL
@@ -48,11 +51,11 @@ func NewMTProto(authkeyfile string) (*MTProto, error) {
 	var err error
 	m := new(MTProto)
 
-	// try to read [authKey, serverSalt, dcAddr]
 	m.f, err = os.OpenFile(authkeyfile, os.O_RDWR|os.O_CREATE, 0600)
 	if err != nil {
 		return nil, err
 	}
+	// TODO: rewrite to DecodeBuf
 	b := make([]byte, 256+8+8+32)
 	n, err := m.f.Read(b)
 	if n == 256+8+8+32 {
@@ -104,6 +107,7 @@ func (m *MTProto) Connect() error {
 	m.stopPing = make(chan struct{}, 1)
 	m.msgsIdToAck = make(map[int64]packetToSend)
 	m.msgsIdToResp = make(map[int64]chan TL)
+	m.mutex = &sync.Mutex{}
 	go m.SendRoutine()
 	go m.ReadRoutine(m.stopRead)
 
@@ -117,9 +121,9 @@ func (m *MTProto) Connect() error {
 			layer,
 			TL_initConnection{
 				appId,
-				"MacBook Pro (Retina, Mid 2012)",
-				"OS X 10.10.3",
-				"0.0.1",
+				"Unknown",
+				runtime.GOOS + "/" + runtime.GOARCH,
+				"0.0.2",
 				"en",
 				TL_help_getConfig{},
 			},
@@ -138,6 +142,7 @@ func (m *MTProto) Connect() error {
 		return fmt.Errorf("Got: %T", x)
 	}
 
+	// start keepalive pinging
 	m.startPing()
 
 	return nil
@@ -331,11 +336,12 @@ func (m *MTProto) Process(msgId int64, seqNo int32, data interface{}) interface{
 	case TL_bad_server_salt:
 		data := data.(TL_bad_server_salt)
 		m.setSalt(data.new_server_salt)
-		// TODO: mutex here
+		m.mutex.Lock()
 		for k, v := range m.msgsIdToAck {
 			delete(m.msgsIdToAck, k)
 			m.queueSend <- v
 		}
+		m.mutex.Unlock()
 
 	case TL_new_session_created:
 		data := data.(TL_new_session_created)
@@ -350,15 +356,16 @@ func (m *MTProto) Process(msgId int64, seqNo int32, data interface{}) interface{
 
 	case TL_msgs_ack:
 		data := data.(TL_msgs_ack)
-		// TODO: mutex here
+		m.mutex.Lock()
 		for _, v := range data.msgIds {
 			delete(m.msgsIdToAck, v)
 		}
+		m.mutex.Unlock()
 
 	case TL_rpc_result:
 		data := data.(TL_rpc_result)
 		x := m.Process(msgId, seqNo, data.obj)
-		// TODO: mutex here
+		m.mutex.Lock()
 		v, ok := m.msgsIdToResp[data.req_msg_id]
 		if ok {
 			v <- x.(TL)
@@ -366,6 +373,7 @@ func (m *MTProto) Process(msgId int64, seqNo int32, data interface{}) interface{
 			delete(m.msgsIdToResp, data.req_msg_id)
 		}
 		delete(m.msgsIdToAck, data.req_msg_id)
+		m.mutex.Unlock()
 
 	default:
 		return data
@@ -379,6 +387,7 @@ func (m *MTProto) Process(msgId int64, seqNo int32, data interface{}) interface{
 	return nil
 }
 
+// TODO: rewrite to EncodeBuf
 func (m *MTProto) setGAB(g_ab *big.Int) {
 	m.encrypted = true
 	m.authKey = g_ab.Bytes()
