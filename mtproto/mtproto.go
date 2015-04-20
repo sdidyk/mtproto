@@ -31,7 +31,7 @@ type MTProto struct {
 	sessionId   int64
 
 	lastSeqNo    int32
-	msgsIdToAck  map[int64]bool
+	msgsIdToAck  map[int64]packetToSend
 	msgsIdToResp map[int64]chan TL
 	seqNo        int32
 	msgId        int64
@@ -103,7 +103,7 @@ func (m *MTProto) Connect() error {
 	m.queueSend = make(chan packetToSend, 64)
 	m.stopRead = make(chan struct{}, 1)
 	m.stopPing = make(chan struct{}, 1)
-	m.msgsIdToAck = make(map[int64]bool)
+	m.msgsIdToAck = make(map[int64]packetToSend)
 	m.msgsIdToResp = make(map[int64]chan TL)
 	go m.SendRoutine()
 	go m.ReadRoutine(m.stopRead)
@@ -297,12 +297,7 @@ func (m *MTProto) startPing() {
 
 func (m *MTProto) SendRoutine() {
 	for x := range m.queueSend {
-		needAck := true
-		switch x.msg.(type) {
-		case TL_ping, TL_msgs_ack:
-			needAck = false
-		}
-		err := m.SendPacket(x.msg, needAck, x.resp)
+		err := m.SendPacket(x.msg, x.resp)
 		if err != nil {
 			fmt.Println("SendRoutine:", err)
 			os.Exit(2)
@@ -337,7 +332,11 @@ func (m *MTProto) Process(msgId int64, seqNo int32, data interface{}) interface{
 	case TL_bad_server_salt:
 		data := data.(TL_bad_server_salt)
 		m.setSalt(data.new_server_salt)
-		// TODO: resend messages
+		// TODO: mutex here
+		for k, v := range m.msgsIdToAck {
+			delete(m.msgsIdToAck, k)
+			m.queueSend <- v
+		}
 
 	case TL_new_session_created:
 		data := data.(TL_new_session_created)
@@ -352,6 +351,7 @@ func (m *MTProto) Process(msgId int64, seqNo int32, data interface{}) interface{
 
 	case TL_msgs_ack:
 		data := data.(TL_msgs_ack)
+		// TODO: mutex here
 		for _, v := range data.msgIds {
 			delete(m.msgsIdToAck, v)
 		}
@@ -359,6 +359,7 @@ func (m *MTProto) Process(msgId int64, seqNo int32, data interface{}) interface{
 	case TL_rpc_result:
 		data := data.(TL_rpc_result)
 		x := m.Process(msgId, seqNo, data.obj)
+		// TODO: mutex here
 		v, ok := m.msgsIdToResp[data.req_msg_id]
 		if ok {
 			v <- x.(TL)
@@ -373,7 +374,7 @@ func (m *MTProto) Process(msgId int64, seqNo int32, data interface{}) interface{
 	}
 
 	if (seqNo & 1) == 1 {
-		m.SendPacket(TL_msgs_ack{[]int64{msgId}}, false, nil)
+		m.SendPacket(TL_msgs_ack{[]int64{msgId}}, nil)
 	}
 
 	return nil

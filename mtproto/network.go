@@ -8,8 +8,8 @@ import (
 	"time"
 )
 
-func (m *MTProto) SendPacket(obj TL, needAck bool, resp chan TL) error {
-	msg := obj.encode()
+func (m *MTProto) SendPacket(msg TL, resp chan TL) error {
+	obj := msg.encode()
 
 	x := NewEncodeBuf(256)
 
@@ -17,6 +17,11 @@ func (m *MTProto) SendPacket(obj TL, needAck bool, resp chan TL) error {
 	x.Int(0)
 
 	if m.encrypted {
+		needAck := true
+		switch msg.(type) {
+		case TL_ping, TL_msgs_ack:
+			needAck = false
+		}
 		z := NewEncodeBuf(256)
 		newMsgId := GenerateMessageId()
 		z.Bytes(m.serverSalt)
@@ -27,13 +32,13 @@ func (m *MTProto) SendPacket(obj TL, needAck bool, resp chan TL) error {
 		} else {
 			z.Int(m.lastSeqNo)
 		}
-		z.Int(int32(len(msg)))
-		z.Bytes(msg)
+		z.Int(int32(len(obj)))
+		z.Bytes(obj)
 
 		msgKey := sha1(z.buf)[4:20]
 		aesKey, aesIV := generateAES(msgKey, m.authKey, false)
 
-		y := make([]byte, len(z.buf)+((16-(len(msg)%16))&15))
+		y := make([]byte, len(z.buf)+((16-(len(obj)%16))&15))
 		copy(y, z.buf)
 		encryptedData, err := AES256IGE_encrypt(y, aesKey, aesIV)
 		if err != nil {
@@ -42,7 +47,8 @@ func (m *MTProto) SendPacket(obj TL, needAck bool, resp chan TL) error {
 
 		m.lastSeqNo += 2
 		if needAck {
-			m.msgsIdToAck[newMsgId] = true
+			// TODO: mutex here
+			m.msgsIdToAck[newMsgId] = packetToSend{msg, resp}
 		}
 
 		x.Bytes(m.authKeyHash)
@@ -50,14 +56,15 @@ func (m *MTProto) SendPacket(obj TL, needAck bool, resp chan TL) error {
 		x.Bytes(encryptedData)
 
 		if resp != nil {
+			// TODO: mutex here
 			m.msgsIdToResp[newMsgId] = resp
 		}
 
 	} else {
 		x.Long(0)
 		x.Long(GenerateMessageId())
-		x.Int(int32(len(msg)))
-		x.Bytes(msg)
+		x.Int(int32(len(obj)))
+		x.Bytes(obj)
 
 	}
 
@@ -181,7 +188,7 @@ func (m *MTProto) makeAuthKey() error {
 
 	// (send) req_pq
 	nonceFirst := GenerateNonce(16)
-	err = m.SendPacket(TL_req_pq{nonceFirst}, false, nil)
+	err = m.SendPacket(TL_req_pq{nonceFirst}, nil)
 	if err != nil {
 		return err
 	}
@@ -221,7 +228,7 @@ func (m *MTProto) makeAuthKey() error {
 	encryptedData1 := RSA_encrypt(x)
 
 	// (send) req_DH_params
-	err = m.SendPacket(TL_req_DH_params{nonceFirst, nonceServer, p, q, telegramPublicKey_FP, encryptedData1}, false, nil)
+	err = m.SendPacket(TL_req_DH_params{nonceFirst, nonceServer, p, q, telegramPublicKey_FP, encryptedData1}, nil)
 	if err != nil {
 		return err
 	}
@@ -309,7 +316,7 @@ func (m *MTProto) makeAuthKey() error {
 	encryptedData2, err := AES256IGE_encrypt(x, tmpAESKey, tmpAESIV)
 
 	// (send) set_client_DH_params
-	err = m.SendPacket(TL_set_client_DH_params{nonceFirst, nonceServer, encryptedData2}, false, nil)
+	err = m.SendPacket(TL_set_client_DH_params{nonceFirst, nonceServer, encryptedData2}, nil)
 	if err != nil {
 		return err
 	}
