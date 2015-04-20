@@ -1,6 +1,8 @@
 package mtproto
 
 import (
+	"bytes"
+	"compress/gzip"
 	"encoding/binary"
 	"encoding/hex"
 	"errors"
@@ -293,25 +295,25 @@ func (m *DecodeBuf) Object() (r TL) {
 	switch constructor {
 
 	case crc_resPQ:
-		r = &TL_resPQ{m.Bytes(16), m.Bytes(16), m.BigInt(), m.VectorLong()}
+		r = TL_resPQ{m.Bytes(16), m.Bytes(16), m.BigInt(), m.VectorLong()}
 
 	case crc_server_DH_params_ok:
-		r = &TL_server_DH_params_ok{m.Bytes(16), m.Bytes(16), m.StringBytes()}
+		r = TL_server_DH_params_ok{m.Bytes(16), m.Bytes(16), m.StringBytes()}
 
 	case crc_server_DH_inner_data:
-		r = &TL_server_DH_inner_data{
+		r = TL_server_DH_inner_data{
 			m.Bytes(16), m.Bytes(16), m.Int(),
 			m.BigInt(), m.BigInt(), m.Int(),
 		}
 
 	case crc_dh_gen_ok:
-		r = &TL_dh_gen_ok{m.Bytes(16), m.Bytes(16), m.Bytes(16)}
+		r = TL_dh_gen_ok{m.Bytes(16), m.Bytes(16), m.Bytes(16)}
 
 	case crc_ping:
-		r = &TL_ping{m.Long()}
+		r = TL_ping{m.Long()}
 
 	case crc_pong:
-		r = &TL_pong{m.Long(), m.Long()}
+		r = TL_pong{m.Long(), m.Long()}
 
 	case crc_msg_container:
 		size := m.Int()
@@ -322,25 +324,43 @@ func (m *DecodeBuf) Object() (r TL) {
 				return nil
 			}
 		}
-		r = &TL_msg_container{arr}
+		r = TL_msg_container{arr}
 
 	case crc_rpc_result:
-		r = &TL_rpc_result{m.Long(), m.Object()}
+		r = TL_rpc_result{m.Long(), m.Object()}
 
 	case crc_rpc_error:
-		r = &TL_rpc_error{m.Int(), m.String()}
+		r = TL_rpc_error{m.Int(), m.String()}
 
 	case crc_new_session_created:
-		r = &TL_new_session_created{m.Long(), m.Long(), m.Bytes(8)}
+		r = TL_new_session_created{m.Long(), m.Long(), m.Bytes(8)}
 
 	case crc_bad_server_salt:
-		r = &TL_bad_server_salt{m.Long(), m.Int(), m.Int(), m.Bytes(8)}
+		r = TL_bad_server_salt{m.Long(), m.Int(), m.Int(), m.Bytes(8)}
 
 	case crc_bad_msg_notification:
-		r = &TL_crc_bad_msg_notification{m.Long(), m.Int(), m.Int()}
+		r = TL_crc_bad_msg_notification{m.Long(), m.Int(), m.Int()}
 
 	case crc_msgs_ack:
-		r = &TL_msgs_ack{m.VectorLong()}
+		r = TL_msgs_ack{m.VectorLong()}
+
+	case crc_gzip_packed:
+		obj := make([]byte, 0, 1024)
+
+		var buf bytes.Buffer
+		buf.Write(m.StringBytes())
+		gz, _ := gzip.NewReader(&buf)
+
+		b := make([]byte, 1024)
+		for true {
+			n, _ := gz.Read(b)
+			obj = append(obj, b...)
+			if n <= 0 {
+				break
+			}
+		}
+		d := NewDecodeBuf(obj)
+		r = d.Object()
 
 	default:
 		r = m.ObjectGenerated(constructor)
@@ -356,4 +376,9 @@ func (m *DecodeBuf) Object() (r TL) {
 
 func (d *DecodeBuf) dump() {
 	fmt.Println(hex.Dump(d.buf[d.off:d.size]))
+}
+
+func toBool(x TL) bool {
+	_, ok := x.(TL_boolTrue)
+	return ok
 }

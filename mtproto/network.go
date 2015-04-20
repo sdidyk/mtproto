@@ -190,7 +190,7 @@ func (m *MTProto) makeAuthKey() error {
 
 	// (send) req_pq
 	nonceFirst := GenerateNonce(16)
-	err = m.SendPacket(&TL_req_pq{nonceFirst}, false, nil)
+	err = m.SendPacket(TL_req_pq{nonceFirst}, false, nil)
 	if err != nil {
 		return err
 	}
@@ -200,7 +200,7 @@ func (m *MTProto) makeAuthKey() error {
 	if err != nil {
 		return err
 	}
-	res, ok := data.(*TL_resPQ)
+	res, ok := data.(TL_resPQ)
 	if !ok {
 		return errors.New("Handshake: Need resPQ")
 	}
@@ -222,7 +222,7 @@ func (m *MTProto) makeAuthKey() error {
 	p, q := SplitPQ(res.pq)
 	nonceSecond := GenerateNonce(32)
 	nonceServer := res.server_nonce
-	innerData1 := (&TL_p_q_inner_data{res.pq, p, q, nonceFirst, nonceServer, nonceSecond}).encode()
+	innerData1 := (TL_p_q_inner_data{res.pq, p, q, nonceFirst, nonceServer, nonceSecond}).encode()
 
 	x = make([]byte, 255)
 	copy(x[0:], sha1(innerData1))
@@ -230,7 +230,7 @@ func (m *MTProto) makeAuthKey() error {
 	encryptedData1 := RSA_encrypt(x)
 
 	// (send) req_DH_params
-	err = m.SendPacket(&TL_req_DH_params{nonceFirst, nonceServer, p, q, telegramPublicKey_FP, encryptedData1}, false, nil)
+	err = m.SendPacket(TL_req_DH_params{nonceFirst, nonceServer, p, q, telegramPublicKey_FP, encryptedData1}, false, nil)
 	if err != nil {
 		return err
 	}
@@ -240,7 +240,7 @@ func (m *MTProto) makeAuthKey() error {
 	if err != nil {
 		return err
 	}
-	dh, ok := data.(*TL_server_DH_params_ok)
+	dh, ok := data.(TL_server_DH_params_ok)
 	if !ok {
 		return errors.New("Handshake: Need server_DH_params_ok")
 	}
@@ -285,7 +285,7 @@ func (m *MTProto) makeAuthKey() error {
 	if innerbuf.err != nil {
 		return innerbuf.err
 	}
-	dhi, ok := data.(*TL_server_DH_inner_data)
+	dhi, ok := data.(TL_server_DH_inner_data)
 	if !ok {
 		return errors.New("Handshake: Need server_DH_inner_data")
 	}
@@ -311,14 +311,14 @@ func (m *MTProto) makeAuthKey() error {
 	xor(serverSalt, nonceServer[:8])
 
 	// (encoding) client_DH_inner_data
-	innerData2 := (&TL_client_DH_inner_data{nonceFirst, nonceServer, 0, g_b}).encode()
+	innerData2 := (TL_client_DH_inner_data{nonceFirst, nonceServer, 0, g_b}).encode()
 	x = make([]byte, 20+len(innerData2)+(16-((20+len(innerData2))%16))&15)
 	copy(x[0:], sha1(innerData2))
 	copy(x[20:], innerData2)
 	encryptedData2, err := AES256IGE_encrypt(x, tmpAESKey, tmpAESIV)
 
 	// (send) set_client_DH_params
-	err = m.SendPacket(&TL_set_client_DH_params{nonceFirst, nonceServer, encryptedData2}, false, nil)
+	err = m.SendPacket(TL_set_client_DH_params{nonceFirst, nonceServer, encryptedData2}, false, nil)
 	if err != nil {
 		return err
 	}
@@ -328,7 +328,7 @@ func (m *MTProto) makeAuthKey() error {
 	if err != nil {
 		return err
 	}
-	dhg, ok := data.(*TL_dh_gen_ok)
+	dhg, ok := data.(TL_dh_gen_ok)
 	if !ok {
 		return errors.New("Handshake: Need dh_gen_ok")
 	}

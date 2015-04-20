@@ -2518,19 +2518,19 @@ type TL_account_updateDeviceLocked struct {
 	period int32
 }
 
-func (e *TL_boolFalse) encode() []byte {
+func (e TL_boolFalse) encode() []byte {
 	x := NewEncodeBuf(512)
 	x.UInt(crc_boolFalse)
 	return x.buf
 }
 
-func (e *TL_boolTrue) encode() []byte {
+func (e TL_boolTrue) encode() []byte {
 	x := NewEncodeBuf(512)
 	x.UInt(crc_boolTrue)
 	return x.buf
 }
 
-func (e *TL_error) encode() []byte {
+func (e TL_error) encode() []byte {
 	x := NewEncodeBuf(512)
 	x.UInt(crc_error)
 	x.Int(e.code)
@@ -2538,32 +2538,32 @@ func (e *TL_error) encode() []byte {
 	return x.buf
 }
 
-func (e *TL_null) encode() []byte {
+func (e TL_null) encode() []byte {
 	x := NewEncodeBuf(512)
 	x.UInt(crc_null)
 	return x.buf
 }
 
-func (e *TL_inputPeerEmpty) encode() []byte {
+func (e TL_inputPeerEmpty) encode() []byte {
 	x := NewEncodeBuf(512)
 	x.UInt(crc_inputPeerEmpty)
 	return x.buf
 }
 
-func (e *TL_inputPeerSelf) encode() []byte {
+func (e TL_inputPeerSelf) encode() []byte {
 	x := NewEncodeBuf(512)
 	x.UInt(crc_inputPeerSelf)
 	return x.buf
 }
 
-func (e *TL_inputPeerContact) encode() []byte {
+func (e TL_inputPeerContact) encode() []byte {
 	x := NewEncodeBuf(512)
 	x.UInt(crc_inputPeerContact)
 	x.Int(e.user_id)
 	return x.buf
 }
 
-func (e *TL_inputPeerForeign) encode() []byte {
+func (e TL_inputPeerForeign) encode() []byte {
 	x := NewEncodeBuf(512)
 	x.UInt(crc_inputPeerForeign)
 	x.Int(e.user_id)
@@ -2571,33 +2571,33 @@ func (e *TL_inputPeerForeign) encode() []byte {
 	return x.buf
 }
 
-func (e *TL_inputPeerChat) encode() []byte {
+func (e TL_inputPeerChat) encode() []byte {
 	x := NewEncodeBuf(512)
 	x.UInt(crc_inputPeerChat)
 	x.Int(e.chat_id)
 	return x.buf
 }
 
-func (e *TL_inputUserEmpty) encode() []byte {
+func (e TL_inputUserEmpty) encode() []byte {
 	x := NewEncodeBuf(512)
 	x.UInt(crc_inputUserEmpty)
 	return x.buf
 }
 
-func (e *TL_inputUserSelf) encode() []byte {
+func (e TL_inputUserSelf) encode() []byte {
 	x := NewEncodeBuf(512)
 	x.UInt(crc_inputUserSelf)
 	return x.buf
 }
 
-func (e *TL_inputUserContact) encode() []byte {
+func (e TL_inputUserContact) encode() []byte {
 	x := NewEncodeBuf(512)
 	x.UInt(crc_inputUserContact)
 	x.Int(e.user_id)
 	return x.buf
 }
 
-func (e *TL_inputUserForeign) encode() []byte {
+func (e TL_inputUserForeign) encode() []byte {
 	x := NewEncodeBuf(512)
 	x.UInt(crc_inputUserForeign)
 	x.Int(e.user_id)
@@ -2605,7 +2605,7 @@ func (e *TL_inputUserForeign) encode() []byte {
 	return x.buf
 }
 
-func (e *TL_inputPhoneContact) encode() []byte {
+func (e TL_inputPhoneContact) encode() []byte {
 	x := NewEncodeBuf(512)
 	x.UInt(crc_inputPhoneContact)
 	x.Long(e.client_id)
@@ -2615,7 +2615,7 @@ func (e *TL_inputPhoneContact) encode() []byte {
 	return x.buf
 }
 
-func (e *TL_inputFile) encode() []byte {
+func (e TL_inputFile) encode() []byte {
 	x := NewEncodeBuf(512)
 	x.UInt(crc_inputFile)
 	x.Long(e.id)
@@ -2625,34 +2625,34 @@ func (e *TL_inputFile) encode() []byte {
 	return x.buf
 }
 
-func (e *TL_inputMediaEmpty) encode() []byte {
+func (e TL_inputMediaEmpty) encode() []byte {
 	x := NewEncodeBuf(512)
 	x.UInt(crc_inputMediaEmpty)
 	return x.buf
 }
 
-func (e *TL_inputMediaUploadedPhoto) encode() []byte {
+func (e TL_inputMediaUploadedPhoto) encode() []byte {
 	x := NewEncodeBuf(512)
 	x.UInt(crc_inputMediaUploadedPhoto)
 	x.Bytes(e.file.encode())
 	return x.buf
 }
 
-func (e *TL_inputMediaPhoto) encode() []byte {
+func (e TL_inputMediaPhoto) encode() []byte {
 	x := NewEncodeBuf(512)
 	x.UInt(crc_inputMediaPhoto)
 	x.Bytes(e.id.encode())
 	return x.buf
 }
 
-func (e *TL_inputMediaGeoPoint) encode() []byte {
+func (e TL_inputMediaGeoPoint) encode() []byte {
 	x := NewEncodeBuf(512)
 	x.UInt(crc_inputMediaGeoPoint)
 	x.Bytes(e.geo_point.encode())
 	return x.buf
 }
 
-func (e *TL_inputMediaContact) encode() []byte {
+func (e TL_inputMediaContact) encode() []byte {
 	x := NewEncodeBuf(512)
 	x.UInt(crc_inputMediaContact)
 	x.String(e.phone_number)
@@ -2661,7 +2661,7 @@ func (e *TL_inputMediaContact) encode() []byte {
 	return x.buf
 }
 
-func (e *TL_inputMediaUploadedVideo) encode() []byte {
+func (e TL_inputMediaUploadedVideo) encode() []byte {
 	x := NewEncodeBuf(512)
 	x.UInt(crc_inputMediaUploadedVideo)
 	x.Bytes(e.file.encode())
@@ -2672,7 +2672,7 @@ func (e *TL_inputMediaUploadedVideo) encode() []byte {
 	return x.buf
 }
 
-func (e *TL_inputMediaUploadedThumbVideo) encode() []byte {
+func (e TL_inputMediaUploadedThumbVideo) encode() []byte {
 	x := NewEncodeBuf(512)
 	x.UInt(crc_inputMediaUploadedThumbVideo)
 	x.Bytes(e.file.encode())
@@ -2684,20 +2684,20 @@ func (e *TL_inputMediaUploadedThumbVideo) encode() []byte {
 	return x.buf
 }
 
-func (e *TL_inputMediaVideo) encode() []byte {
+func (e TL_inputMediaVideo) encode() []byte {
 	x := NewEncodeBuf(512)
 	x.UInt(crc_inputMediaVideo)
 	x.Bytes(e.id.encode())
 	return x.buf
 }
 
-func (e *TL_inputChatPhotoEmpty) encode() []byte {
+func (e TL_inputChatPhotoEmpty) encode() []byte {
 	x := NewEncodeBuf(512)
 	x.UInt(crc_inputChatPhotoEmpty)
 	return x.buf
 }
 
-func (e *TL_inputChatUploadedPhoto) encode() []byte {
+func (e TL_inputChatUploadedPhoto) encode() []byte {
 	x := NewEncodeBuf(512)
 	x.UInt(crc_inputChatUploadedPhoto)
 	x.Bytes(e.file.encode())
@@ -2705,7 +2705,7 @@ func (e *TL_inputChatUploadedPhoto) encode() []byte {
 	return x.buf
 }
 
-func (e *TL_inputChatPhoto) encode() []byte {
+func (e TL_inputChatPhoto) encode() []byte {
 	x := NewEncodeBuf(512)
 	x.UInt(crc_inputChatPhoto)
 	x.Bytes(e.id.encode())
@@ -2713,13 +2713,13 @@ func (e *TL_inputChatPhoto) encode() []byte {
 	return x.buf
 }
 
-func (e *TL_inputGeoPointEmpty) encode() []byte {
+func (e TL_inputGeoPointEmpty) encode() []byte {
 	x := NewEncodeBuf(512)
 	x.UInt(crc_inputGeoPointEmpty)
 	return x.buf
 }
 
-func (e *TL_inputGeoPoint) encode() []byte {
+func (e TL_inputGeoPoint) encode() []byte {
 	x := NewEncodeBuf(512)
 	x.UInt(crc_inputGeoPoint)
 	x.Double(e.lat)
@@ -2727,13 +2727,13 @@ func (e *TL_inputGeoPoint) encode() []byte {
 	return x.buf
 }
 
-func (e *TL_inputPhotoEmpty) encode() []byte {
+func (e TL_inputPhotoEmpty) encode() []byte {
 	x := NewEncodeBuf(512)
 	x.UInt(crc_inputPhotoEmpty)
 	return x.buf
 }
 
-func (e *TL_inputPhoto) encode() []byte {
+func (e TL_inputPhoto) encode() []byte {
 	x := NewEncodeBuf(512)
 	x.UInt(crc_inputPhoto)
 	x.Long(e.id)
@@ -2741,13 +2741,13 @@ func (e *TL_inputPhoto) encode() []byte {
 	return x.buf
 }
 
-func (e *TL_inputVideoEmpty) encode() []byte {
+func (e TL_inputVideoEmpty) encode() []byte {
 	x := NewEncodeBuf(512)
 	x.UInt(crc_inputVideoEmpty)
 	return x.buf
 }
 
-func (e *TL_inputVideo) encode() []byte {
+func (e TL_inputVideo) encode() []byte {
 	x := NewEncodeBuf(512)
 	x.UInt(crc_inputVideo)
 	x.Long(e.id)
@@ -2755,7 +2755,7 @@ func (e *TL_inputVideo) encode() []byte {
 	return x.buf
 }
 
-func (e *TL_inputFileLocation) encode() []byte {
+func (e TL_inputFileLocation) encode() []byte {
 	x := NewEncodeBuf(512)
 	x.UInt(crc_inputFileLocation)
 	x.Long(e.volume_id)
@@ -2764,7 +2764,7 @@ func (e *TL_inputFileLocation) encode() []byte {
 	return x.buf
 }
 
-func (e *TL_inputVideoFileLocation) encode() []byte {
+func (e TL_inputVideoFileLocation) encode() []byte {
 	x := NewEncodeBuf(512)
 	x.UInt(crc_inputVideoFileLocation)
 	x.Long(e.id)
@@ -2772,13 +2772,13 @@ func (e *TL_inputVideoFileLocation) encode() []byte {
 	return x.buf
 }
 
-func (e *TL_inputPhotoCropAuto) encode() []byte {
+func (e TL_inputPhotoCropAuto) encode() []byte {
 	x := NewEncodeBuf(512)
 	x.UInt(crc_inputPhotoCropAuto)
 	return x.buf
 }
 
-func (e *TL_inputPhotoCrop) encode() []byte {
+func (e TL_inputPhotoCrop) encode() []byte {
 	x := NewEncodeBuf(512)
 	x.UInt(crc_inputPhotoCrop)
 	x.Double(e.crop_left)
@@ -2787,7 +2787,7 @@ func (e *TL_inputPhotoCrop) encode() []byte {
 	return x.buf
 }
 
-func (e *TL_inputAppEvent) encode() []byte {
+func (e TL_inputAppEvent) encode() []byte {
 	x := NewEncodeBuf(512)
 	x.UInt(crc_inputAppEvent)
 	x.Double(e.time)
@@ -2797,81 +2797,81 @@ func (e *TL_inputAppEvent) encode() []byte {
 	return x.buf
 }
 
-func (e *TL_peerUser) encode() []byte {
+func (e TL_peerUser) encode() []byte {
 	x := NewEncodeBuf(512)
 	x.UInt(crc_peerUser)
 	x.Int(e.user_id)
 	return x.buf
 }
 
-func (e *TL_peerChat) encode() []byte {
+func (e TL_peerChat) encode() []byte {
 	x := NewEncodeBuf(512)
 	x.UInt(crc_peerChat)
 	x.Int(e.chat_id)
 	return x.buf
 }
 
-func (e *TL_storage_fileUnknown) encode() []byte {
+func (e TL_storage_fileUnknown) encode() []byte {
 	x := NewEncodeBuf(512)
 	x.UInt(crc_storage_fileUnknown)
 	return x.buf
 }
 
-func (e *TL_storage_fileJpeg) encode() []byte {
+func (e TL_storage_fileJpeg) encode() []byte {
 	x := NewEncodeBuf(512)
 	x.UInt(crc_storage_fileJpeg)
 	return x.buf
 }
 
-func (e *TL_storage_fileGif) encode() []byte {
+func (e TL_storage_fileGif) encode() []byte {
 	x := NewEncodeBuf(512)
 	x.UInt(crc_storage_fileGif)
 	return x.buf
 }
 
-func (e *TL_storage_filePng) encode() []byte {
+func (e TL_storage_filePng) encode() []byte {
 	x := NewEncodeBuf(512)
 	x.UInt(crc_storage_filePng)
 	return x.buf
 }
 
-func (e *TL_storage_filePdf) encode() []byte {
+func (e TL_storage_filePdf) encode() []byte {
 	x := NewEncodeBuf(512)
 	x.UInt(crc_storage_filePdf)
 	return x.buf
 }
 
-func (e *TL_storage_fileMp3) encode() []byte {
+func (e TL_storage_fileMp3) encode() []byte {
 	x := NewEncodeBuf(512)
 	x.UInt(crc_storage_fileMp3)
 	return x.buf
 }
 
-func (e *TL_storage_fileMov) encode() []byte {
+func (e TL_storage_fileMov) encode() []byte {
 	x := NewEncodeBuf(512)
 	x.UInt(crc_storage_fileMov)
 	return x.buf
 }
 
-func (e *TL_storage_filePartial) encode() []byte {
+func (e TL_storage_filePartial) encode() []byte {
 	x := NewEncodeBuf(512)
 	x.UInt(crc_storage_filePartial)
 	return x.buf
 }
 
-func (e *TL_storage_fileMp4) encode() []byte {
+func (e TL_storage_fileMp4) encode() []byte {
 	x := NewEncodeBuf(512)
 	x.UInt(crc_storage_fileMp4)
 	return x.buf
 }
 
-func (e *TL_storage_fileWebp) encode() []byte {
+func (e TL_storage_fileWebp) encode() []byte {
 	x := NewEncodeBuf(512)
 	x.UInt(crc_storage_fileWebp)
 	return x.buf
 }
 
-func (e *TL_fileLocationUnavailable) encode() []byte {
+func (e TL_fileLocationUnavailable) encode() []byte {
 	x := NewEncodeBuf(512)
 	x.UInt(crc_fileLocationUnavailable)
 	x.Long(e.volume_id)
@@ -2880,7 +2880,7 @@ func (e *TL_fileLocationUnavailable) encode() []byte {
 	return x.buf
 }
 
-func (e *TL_fileLocation) encode() []byte {
+func (e TL_fileLocation) encode() []byte {
 	x := NewEncodeBuf(512)
 	x.UInt(crc_fileLocation)
 	x.Int(e.dc_id)
@@ -2890,14 +2890,14 @@ func (e *TL_fileLocation) encode() []byte {
 	return x.buf
 }
 
-func (e *TL_userEmpty) encode() []byte {
+func (e TL_userEmpty) encode() []byte {
 	x := NewEncodeBuf(512)
 	x.UInt(crc_userEmpty)
 	x.Int(e.id)
 	return x.buf
 }
 
-func (e *TL_userSelf) encode() []byte {
+func (e TL_userSelf) encode() []byte {
 	x := NewEncodeBuf(512)
 	x.UInt(crc_userSelf)
 	x.Int(e.id)
@@ -2911,7 +2911,7 @@ func (e *TL_userSelf) encode() []byte {
 	return x.buf
 }
 
-func (e *TL_userContact) encode() []byte {
+func (e TL_userContact) encode() []byte {
 	x := NewEncodeBuf(512)
 	x.UInt(crc_userContact)
 	x.Int(e.id)
@@ -2925,7 +2925,7 @@ func (e *TL_userContact) encode() []byte {
 	return x.buf
 }
 
-func (e *TL_userRequest) encode() []byte {
+func (e TL_userRequest) encode() []byte {
 	x := NewEncodeBuf(512)
 	x.UInt(crc_userRequest)
 	x.Int(e.id)
@@ -2939,7 +2939,7 @@ func (e *TL_userRequest) encode() []byte {
 	return x.buf
 }
 
-func (e *TL_userForeign) encode() []byte {
+func (e TL_userForeign) encode() []byte {
 	x := NewEncodeBuf(512)
 	x.UInt(crc_userForeign)
 	x.Int(e.id)
@@ -2952,7 +2952,7 @@ func (e *TL_userForeign) encode() []byte {
 	return x.buf
 }
 
-func (e *TL_userDeleted) encode() []byte {
+func (e TL_userDeleted) encode() []byte {
 	x := NewEncodeBuf(512)
 	x.UInt(crc_userDeleted)
 	x.Int(e.id)
@@ -2962,13 +2962,13 @@ func (e *TL_userDeleted) encode() []byte {
 	return x.buf
 }
 
-func (e *TL_userProfilePhotoEmpty) encode() []byte {
+func (e TL_userProfilePhotoEmpty) encode() []byte {
 	x := NewEncodeBuf(512)
 	x.UInt(crc_userProfilePhotoEmpty)
 	return x.buf
 }
 
-func (e *TL_userProfilePhoto) encode() []byte {
+func (e TL_userProfilePhoto) encode() []byte {
 	x := NewEncodeBuf(512)
 	x.UInt(crc_userProfilePhoto)
 	x.Long(e.photo_id)
@@ -2977,34 +2977,34 @@ func (e *TL_userProfilePhoto) encode() []byte {
 	return x.buf
 }
 
-func (e *TL_userStatusEmpty) encode() []byte {
+func (e TL_userStatusEmpty) encode() []byte {
 	x := NewEncodeBuf(512)
 	x.UInt(crc_userStatusEmpty)
 	return x.buf
 }
 
-func (e *TL_userStatusOnline) encode() []byte {
+func (e TL_userStatusOnline) encode() []byte {
 	x := NewEncodeBuf(512)
 	x.UInt(crc_userStatusOnline)
 	x.Int(e.expires)
 	return x.buf
 }
 
-func (e *TL_userStatusOffline) encode() []byte {
+func (e TL_userStatusOffline) encode() []byte {
 	x := NewEncodeBuf(512)
 	x.UInt(crc_userStatusOffline)
 	x.Int(e.was_online)
 	return x.buf
 }
 
-func (e *TL_chatEmpty) encode() []byte {
+func (e TL_chatEmpty) encode() []byte {
 	x := NewEncodeBuf(512)
 	x.UInt(crc_chatEmpty)
 	x.Int(e.id)
 	return x.buf
 }
 
-func (e *TL_chat) encode() []byte {
+func (e TL_chat) encode() []byte {
 	x := NewEncodeBuf(512)
 	x.UInt(crc_chat)
 	x.Int(e.id)
@@ -3017,7 +3017,7 @@ func (e *TL_chat) encode() []byte {
 	return x.buf
 }
 
-func (e *TL_chatForbidden) encode() []byte {
+func (e TL_chatForbidden) encode() []byte {
 	x := NewEncodeBuf(512)
 	x.UInt(crc_chatForbidden)
 	x.Int(e.id)
@@ -3026,7 +3026,7 @@ func (e *TL_chatForbidden) encode() []byte {
 	return x.buf
 }
 
-func (e *TL_chatFull) encode() []byte {
+func (e TL_chatFull) encode() []byte {
 	x := NewEncodeBuf(512)
 	x.UInt(crc_chatFull)
 	x.Int(e.id)
@@ -3036,7 +3036,7 @@ func (e *TL_chatFull) encode() []byte {
 	return x.buf
 }
 
-func (e *TL_chatParticipant) encode() []byte {
+func (e TL_chatParticipant) encode() []byte {
 	x := NewEncodeBuf(512)
 	x.UInt(crc_chatParticipant)
 	x.Int(e.user_id)
@@ -3045,14 +3045,14 @@ func (e *TL_chatParticipant) encode() []byte {
 	return x.buf
 }
 
-func (e *TL_chatParticipantsForbidden) encode() []byte {
+func (e TL_chatParticipantsForbidden) encode() []byte {
 	x := NewEncodeBuf(512)
 	x.UInt(crc_chatParticipantsForbidden)
 	x.Int(e.chat_id)
 	return x.buf
 }
 
-func (e *TL_chatParticipants) encode() []byte {
+func (e TL_chatParticipants) encode() []byte {
 	x := NewEncodeBuf(512)
 	x.UInt(crc_chatParticipants)
 	x.Int(e.chat_id)
@@ -3062,13 +3062,13 @@ func (e *TL_chatParticipants) encode() []byte {
 	return x.buf
 }
 
-func (e *TL_chatPhotoEmpty) encode() []byte {
+func (e TL_chatPhotoEmpty) encode() []byte {
 	x := NewEncodeBuf(512)
 	x.UInt(crc_chatPhotoEmpty)
 	return x.buf
 }
 
-func (e *TL_chatPhoto) encode() []byte {
+func (e TL_chatPhoto) encode() []byte {
 	x := NewEncodeBuf(512)
 	x.UInt(crc_chatPhoto)
 	x.Bytes(e.photo_small.encode())
@@ -3076,14 +3076,14 @@ func (e *TL_chatPhoto) encode() []byte {
 	return x.buf
 }
 
-func (e *TL_messageEmpty) encode() []byte {
+func (e TL_messageEmpty) encode() []byte {
 	x := NewEncodeBuf(512)
 	x.UInt(crc_messageEmpty)
 	x.Int(e.id)
 	return x.buf
 }
 
-func (e *TL_message) encode() []byte {
+func (e TL_message) encode() []byte {
 	x := NewEncodeBuf(512)
 	x.UInt(crc_message)
 	x.Int(e.flags)
@@ -3096,7 +3096,7 @@ func (e *TL_message) encode() []byte {
 	return x.buf
 }
 
-func (e *TL_messageForwarded) encode() []byte {
+func (e TL_messageForwarded) encode() []byte {
 	x := NewEncodeBuf(512)
 	x.UInt(crc_messageForwarded)
 	x.Int(e.flags)
@@ -3111,7 +3111,7 @@ func (e *TL_messageForwarded) encode() []byte {
 	return x.buf
 }
 
-func (e *TL_messageService) encode() []byte {
+func (e TL_messageService) encode() []byte {
 	x := NewEncodeBuf(512)
 	x.UInt(crc_messageService)
 	x.Int(e.flags)
@@ -3123,34 +3123,34 @@ func (e *TL_messageService) encode() []byte {
 	return x.buf
 }
 
-func (e *TL_messageMediaEmpty) encode() []byte {
+func (e TL_messageMediaEmpty) encode() []byte {
 	x := NewEncodeBuf(512)
 	x.UInt(crc_messageMediaEmpty)
 	return x.buf
 }
 
-func (e *TL_messageMediaPhoto) encode() []byte {
+func (e TL_messageMediaPhoto) encode() []byte {
 	x := NewEncodeBuf(512)
 	x.UInt(crc_messageMediaPhoto)
 	x.Bytes(e.photo.encode())
 	return x.buf
 }
 
-func (e *TL_messageMediaVideo) encode() []byte {
+func (e TL_messageMediaVideo) encode() []byte {
 	x := NewEncodeBuf(512)
 	x.UInt(crc_messageMediaVideo)
 	x.Bytes(e.video.encode())
 	return x.buf
 }
 
-func (e *TL_messageMediaGeo) encode() []byte {
+func (e TL_messageMediaGeo) encode() []byte {
 	x := NewEncodeBuf(512)
 	x.UInt(crc_messageMediaGeo)
 	x.Bytes(e.geo.encode())
 	return x.buf
 }
 
-func (e *TL_messageMediaContact) encode() []byte {
+func (e TL_messageMediaContact) encode() []byte {
 	x := NewEncodeBuf(512)
 	x.UInt(crc_messageMediaContact)
 	x.String(e.phone_number)
@@ -3160,20 +3160,20 @@ func (e *TL_messageMediaContact) encode() []byte {
 	return x.buf
 }
 
-func (e *TL_messageMediaUnsupported) encode() []byte {
+func (e TL_messageMediaUnsupported) encode() []byte {
 	x := NewEncodeBuf(512)
 	x.UInt(crc_messageMediaUnsupported)
 	x.StringBytes(e.bytes)
 	return x.buf
 }
 
-func (e *TL_messageActionEmpty) encode() []byte {
+func (e TL_messageActionEmpty) encode() []byte {
 	x := NewEncodeBuf(512)
 	x.UInt(crc_messageActionEmpty)
 	return x.buf
 }
 
-func (e *TL_messageActionChatCreate) encode() []byte {
+func (e TL_messageActionChatCreate) encode() []byte {
 	x := NewEncodeBuf(512)
 	x.UInt(crc_messageActionChatCreate)
 	x.String(e.title)
@@ -3181,41 +3181,41 @@ func (e *TL_messageActionChatCreate) encode() []byte {
 	return x.buf
 }
 
-func (e *TL_messageActionChatEditTitle) encode() []byte {
+func (e TL_messageActionChatEditTitle) encode() []byte {
 	x := NewEncodeBuf(512)
 	x.UInt(crc_messageActionChatEditTitle)
 	x.String(e.title)
 	return x.buf
 }
 
-func (e *TL_messageActionChatEditPhoto) encode() []byte {
+func (e TL_messageActionChatEditPhoto) encode() []byte {
 	x := NewEncodeBuf(512)
 	x.UInt(crc_messageActionChatEditPhoto)
 	x.Bytes(e.photo.encode())
 	return x.buf
 }
 
-func (e *TL_messageActionChatDeletePhoto) encode() []byte {
+func (e TL_messageActionChatDeletePhoto) encode() []byte {
 	x := NewEncodeBuf(512)
 	x.UInt(crc_messageActionChatDeletePhoto)
 	return x.buf
 }
 
-func (e *TL_messageActionChatAddUser) encode() []byte {
+func (e TL_messageActionChatAddUser) encode() []byte {
 	x := NewEncodeBuf(512)
 	x.UInt(crc_messageActionChatAddUser)
 	x.Int(e.user_id)
 	return x.buf
 }
 
-func (e *TL_messageActionChatDeleteUser) encode() []byte {
+func (e TL_messageActionChatDeleteUser) encode() []byte {
 	x := NewEncodeBuf(512)
 	x.UInt(crc_messageActionChatDeleteUser)
 	x.Int(e.user_id)
 	return x.buf
 }
 
-func (e *TL_dialog) encode() []byte {
+func (e TL_dialog) encode() []byte {
 	x := NewEncodeBuf(512)
 	x.UInt(crc_dialog)
 	x.Bytes(e.peer.encode())
@@ -3225,14 +3225,14 @@ func (e *TL_dialog) encode() []byte {
 	return x.buf
 }
 
-func (e *TL_photoEmpty) encode() []byte {
+func (e TL_photoEmpty) encode() []byte {
 	x := NewEncodeBuf(512)
 	x.UInt(crc_photoEmpty)
 	x.Long(e.id)
 	return x.buf
 }
 
-func (e *TL_photo) encode() []byte {
+func (e TL_photo) encode() []byte {
 	x := NewEncodeBuf(512)
 	x.UInt(crc_photo)
 	x.Long(e.id)
@@ -3245,14 +3245,14 @@ func (e *TL_photo) encode() []byte {
 	return x.buf
 }
 
-func (e *TL_photoSizeEmpty) encode() []byte {
+func (e TL_photoSizeEmpty) encode() []byte {
 	x := NewEncodeBuf(512)
 	x.UInt(crc_photoSizeEmpty)
 	x.String(e._type)
 	return x.buf
 }
 
-func (e *TL_photoSize) encode() []byte {
+func (e TL_photoSize) encode() []byte {
 	x := NewEncodeBuf(512)
 	x.UInt(crc_photoSize)
 	x.String(e._type)
@@ -3263,7 +3263,7 @@ func (e *TL_photoSize) encode() []byte {
 	return x.buf
 }
 
-func (e *TL_photoCachedSize) encode() []byte {
+func (e TL_photoCachedSize) encode() []byte {
 	x := NewEncodeBuf(512)
 	x.UInt(crc_photoCachedSize)
 	x.String(e._type)
@@ -3274,14 +3274,14 @@ func (e *TL_photoCachedSize) encode() []byte {
 	return x.buf
 }
 
-func (e *TL_videoEmpty) encode() []byte {
+func (e TL_videoEmpty) encode() []byte {
 	x := NewEncodeBuf(512)
 	x.UInt(crc_videoEmpty)
 	x.Long(e.id)
 	return x.buf
 }
 
-func (e *TL_video) encode() []byte {
+func (e TL_video) encode() []byte {
 	x := NewEncodeBuf(512)
 	x.UInt(crc_video)
 	x.Long(e.id)
@@ -3299,13 +3299,13 @@ func (e *TL_video) encode() []byte {
 	return x.buf
 }
 
-func (e *TL_geoPointEmpty) encode() []byte {
+func (e TL_geoPointEmpty) encode() []byte {
 	x := NewEncodeBuf(512)
 	x.UInt(crc_geoPointEmpty)
 	return x.buf
 }
 
-func (e *TL_geoPoint) encode() []byte {
+func (e TL_geoPoint) encode() []byte {
 	x := NewEncodeBuf(512)
 	x.UInt(crc_geoPoint)
 	x.Double(e.long)
@@ -3313,7 +3313,7 @@ func (e *TL_geoPoint) encode() []byte {
 	return x.buf
 }
 
-func (e *TL_auth_checkedPhone) encode() []byte {
+func (e TL_auth_checkedPhone) encode() []byte {
 	x := NewEncodeBuf(512)
 	x.UInt(crc_auth_checkedPhone)
 	x.Bytes(e.phone_registered.encode())
@@ -3321,7 +3321,7 @@ func (e *TL_auth_checkedPhone) encode() []byte {
 	return x.buf
 }
 
-func (e *TL_auth_sentCode) encode() []byte {
+func (e TL_auth_sentCode) encode() []byte {
 	x := NewEncodeBuf(512)
 	x.UInt(crc_auth_sentCode)
 	x.Bytes(e.phone_registered.encode())
@@ -3331,7 +3331,7 @@ func (e *TL_auth_sentCode) encode() []byte {
 	return x.buf
 }
 
-func (e *TL_auth_authorization) encode() []byte {
+func (e TL_auth_authorization) encode() []byte {
 	x := NewEncodeBuf(512)
 	x.UInt(crc_auth_authorization)
 	x.Int(e.expires)
@@ -3339,7 +3339,7 @@ func (e *TL_auth_authorization) encode() []byte {
 	return x.buf
 }
 
-func (e *TL_auth_exportedAuthorization) encode() []byte {
+func (e TL_auth_exportedAuthorization) encode() []byte {
 	x := NewEncodeBuf(512)
 	x.UInt(crc_auth_exportedAuthorization)
 	x.Int(e.id)
@@ -3347,44 +3347,44 @@ func (e *TL_auth_exportedAuthorization) encode() []byte {
 	return x.buf
 }
 
-func (e *TL_inputNotifyPeer) encode() []byte {
+func (e TL_inputNotifyPeer) encode() []byte {
 	x := NewEncodeBuf(512)
 	x.UInt(crc_inputNotifyPeer)
 	x.Bytes(e.peer.encode())
 	return x.buf
 }
 
-func (e *TL_inputNotifyUsers) encode() []byte {
+func (e TL_inputNotifyUsers) encode() []byte {
 	x := NewEncodeBuf(512)
 	x.UInt(crc_inputNotifyUsers)
 	return x.buf
 }
 
-func (e *TL_inputNotifyChats) encode() []byte {
+func (e TL_inputNotifyChats) encode() []byte {
 	x := NewEncodeBuf(512)
 	x.UInt(crc_inputNotifyChats)
 	return x.buf
 }
 
-func (e *TL_inputNotifyAll) encode() []byte {
+func (e TL_inputNotifyAll) encode() []byte {
 	x := NewEncodeBuf(512)
 	x.UInt(crc_inputNotifyAll)
 	return x.buf
 }
 
-func (e *TL_inputPeerNotifyEventsEmpty) encode() []byte {
+func (e TL_inputPeerNotifyEventsEmpty) encode() []byte {
 	x := NewEncodeBuf(512)
 	x.UInt(crc_inputPeerNotifyEventsEmpty)
 	return x.buf
 }
 
-func (e *TL_inputPeerNotifyEventsAll) encode() []byte {
+func (e TL_inputPeerNotifyEventsAll) encode() []byte {
 	x := NewEncodeBuf(512)
 	x.UInt(crc_inputPeerNotifyEventsAll)
 	return x.buf
 }
 
-func (e *TL_inputPeerNotifySettings) encode() []byte {
+func (e TL_inputPeerNotifySettings) encode() []byte {
 	x := NewEncodeBuf(512)
 	x.UInt(crc_inputPeerNotifySettings)
 	x.Int(e.mute_until)
@@ -3394,25 +3394,25 @@ func (e *TL_inputPeerNotifySettings) encode() []byte {
 	return x.buf
 }
 
-func (e *TL_peerNotifyEventsEmpty) encode() []byte {
+func (e TL_peerNotifyEventsEmpty) encode() []byte {
 	x := NewEncodeBuf(512)
 	x.UInt(crc_peerNotifyEventsEmpty)
 	return x.buf
 }
 
-func (e *TL_peerNotifyEventsAll) encode() []byte {
+func (e TL_peerNotifyEventsAll) encode() []byte {
 	x := NewEncodeBuf(512)
 	x.UInt(crc_peerNotifyEventsAll)
 	return x.buf
 }
 
-func (e *TL_peerNotifySettingsEmpty) encode() []byte {
+func (e TL_peerNotifySettingsEmpty) encode() []byte {
 	x := NewEncodeBuf(512)
 	x.UInt(crc_peerNotifySettingsEmpty)
 	return x.buf
 }
 
-func (e *TL_peerNotifySettings) encode() []byte {
+func (e TL_peerNotifySettings) encode() []byte {
 	x := NewEncodeBuf(512)
 	x.UInt(crc_peerNotifySettings)
 	x.Int(e.mute_until)
@@ -3422,7 +3422,7 @@ func (e *TL_peerNotifySettings) encode() []byte {
 	return x.buf
 }
 
-func (e *TL_wallPaper) encode() []byte {
+func (e TL_wallPaper) encode() []byte {
 	x := NewEncodeBuf(512)
 	x.UInt(crc_wallPaper)
 	x.Int(e.id)
@@ -3432,7 +3432,7 @@ func (e *TL_wallPaper) encode() []byte {
 	return x.buf
 }
 
-func (e *TL_userFull) encode() []byte {
+func (e TL_userFull) encode() []byte {
 	x := NewEncodeBuf(512)
 	x.UInt(crc_userFull)
 	x.Bytes(e.user.encode())
@@ -3445,7 +3445,7 @@ func (e *TL_userFull) encode() []byte {
 	return x.buf
 }
 
-func (e *TL_contact) encode() []byte {
+func (e TL_contact) encode() []byte {
 	x := NewEncodeBuf(512)
 	x.UInt(crc_contact)
 	x.Int(e.user_id)
@@ -3453,7 +3453,7 @@ func (e *TL_contact) encode() []byte {
 	return x.buf
 }
 
-func (e *TL_importedContact) encode() []byte {
+func (e TL_importedContact) encode() []byte {
 	x := NewEncodeBuf(512)
 	x.UInt(crc_importedContact)
 	x.Int(e.user_id)
@@ -3461,7 +3461,7 @@ func (e *TL_importedContact) encode() []byte {
 	return x.buf
 }
 
-func (e *TL_contactBlocked) encode() []byte {
+func (e TL_contactBlocked) encode() []byte {
 	x := NewEncodeBuf(512)
 	x.UInt(crc_contactBlocked)
 	x.Int(e.user_id)
@@ -3469,7 +3469,7 @@ func (e *TL_contactBlocked) encode() []byte {
 	return x.buf
 }
 
-func (e *TL_contactSuggested) encode() []byte {
+func (e TL_contactSuggested) encode() []byte {
 	x := NewEncodeBuf(512)
 	x.UInt(crc_contactSuggested)
 	x.Int(e.user_id)
@@ -3477,7 +3477,7 @@ func (e *TL_contactSuggested) encode() []byte {
 	return x.buf
 }
 
-func (e *TL_contactStatus) encode() []byte {
+func (e TL_contactStatus) encode() []byte {
 	x := NewEncodeBuf(512)
 	x.UInt(crc_contactStatus)
 	x.Int(e.user_id)
@@ -3485,7 +3485,7 @@ func (e *TL_contactStatus) encode() []byte {
 	return x.buf
 }
 
-func (e *TL_chatLocated) encode() []byte {
+func (e TL_chatLocated) encode() []byte {
 	x := NewEncodeBuf(512)
 	x.UInt(crc_chatLocated)
 	x.Int(e.chat_id)
@@ -3493,45 +3493,45 @@ func (e *TL_chatLocated) encode() []byte {
 	return x.buf
 }
 
-func (e *TL_contacts_foreignLinkUnknown) encode() []byte {
+func (e TL_contacts_foreignLinkUnknown) encode() []byte {
 	x := NewEncodeBuf(512)
 	x.UInt(crc_contacts_foreignLinkUnknown)
 	return x.buf
 }
 
-func (e *TL_contacts_foreignLinkRequested) encode() []byte {
+func (e TL_contacts_foreignLinkRequested) encode() []byte {
 	x := NewEncodeBuf(512)
 	x.UInt(crc_contacts_foreignLinkRequested)
 	x.Bytes(e.has_phone.encode())
 	return x.buf
 }
 
-func (e *TL_contacts_foreignLinkMutual) encode() []byte {
+func (e TL_contacts_foreignLinkMutual) encode() []byte {
 	x := NewEncodeBuf(512)
 	x.UInt(crc_contacts_foreignLinkMutual)
 	return x.buf
 }
 
-func (e *TL_contacts_myLinkEmpty) encode() []byte {
+func (e TL_contacts_myLinkEmpty) encode() []byte {
 	x := NewEncodeBuf(512)
 	x.UInt(crc_contacts_myLinkEmpty)
 	return x.buf
 }
 
-func (e *TL_contacts_myLinkRequested) encode() []byte {
+func (e TL_contacts_myLinkRequested) encode() []byte {
 	x := NewEncodeBuf(512)
 	x.UInt(crc_contacts_myLinkRequested)
 	x.Bytes(e.contact.encode())
 	return x.buf
 }
 
-func (e *TL_contacts_myLinkContact) encode() []byte {
+func (e TL_contacts_myLinkContact) encode() []byte {
 	x := NewEncodeBuf(512)
 	x.UInt(crc_contacts_myLinkContact)
 	return x.buf
 }
 
-func (e *TL_contacts_link) encode() []byte {
+func (e TL_contacts_link) encode() []byte {
 	x := NewEncodeBuf(512)
 	x.UInt(crc_contacts_link)
 	x.Bytes(e.my_link.encode())
@@ -3540,13 +3540,13 @@ func (e *TL_contacts_link) encode() []byte {
 	return x.buf
 }
 
-func (e *TL_contacts_contactsNotModified) encode() []byte {
+func (e TL_contacts_contactsNotModified) encode() []byte {
 	x := NewEncodeBuf(512)
 	x.UInt(crc_contacts_contactsNotModified)
 	return x.buf
 }
 
-func (e *TL_contacts_contacts) encode() []byte {
+func (e TL_contacts_contacts) encode() []byte {
 	x := NewEncodeBuf(512)
 	x.UInt(crc_contacts_contacts)
 	x.Vector(e.contacts)
@@ -3554,7 +3554,7 @@ func (e *TL_contacts_contacts) encode() []byte {
 	return x.buf
 }
 
-func (e *TL_contacts_importedContacts) encode() []byte {
+func (e TL_contacts_importedContacts) encode() []byte {
 	x := NewEncodeBuf(512)
 	x.UInt(crc_contacts_importedContacts)
 	x.Vector(e.imported)
@@ -3563,7 +3563,7 @@ func (e *TL_contacts_importedContacts) encode() []byte {
 	return x.buf
 }
 
-func (e *TL_contacts_blocked) encode() []byte {
+func (e TL_contacts_blocked) encode() []byte {
 	x := NewEncodeBuf(512)
 	x.UInt(crc_contacts_blocked)
 	x.Vector(e.blocked)
@@ -3571,7 +3571,7 @@ func (e *TL_contacts_blocked) encode() []byte {
 	return x.buf
 }
 
-func (e *TL_contacts_blockedSlice) encode() []byte {
+func (e TL_contacts_blockedSlice) encode() []byte {
 	x := NewEncodeBuf(512)
 	x.UInt(crc_contacts_blockedSlice)
 	x.Int(e.count)
@@ -3580,7 +3580,7 @@ func (e *TL_contacts_blockedSlice) encode() []byte {
 	return x.buf
 }
 
-func (e *TL_contacts_suggested) encode() []byte {
+func (e TL_contacts_suggested) encode() []byte {
 	x := NewEncodeBuf(512)
 	x.UInt(crc_contacts_suggested)
 	x.Vector(e.results)
@@ -3588,7 +3588,7 @@ func (e *TL_contacts_suggested) encode() []byte {
 	return x.buf
 }
 
-func (e *TL_messages_dialogs) encode() []byte {
+func (e TL_messages_dialogs) encode() []byte {
 	x := NewEncodeBuf(512)
 	x.UInt(crc_messages_dialogs)
 	x.Vector(e.dialogs)
@@ -3598,7 +3598,7 @@ func (e *TL_messages_dialogs) encode() []byte {
 	return x.buf
 }
 
-func (e *TL_messages_dialogsSlice) encode() []byte {
+func (e TL_messages_dialogsSlice) encode() []byte {
 	x := NewEncodeBuf(512)
 	x.UInt(crc_messages_dialogsSlice)
 	x.Int(e.count)
@@ -3609,7 +3609,7 @@ func (e *TL_messages_dialogsSlice) encode() []byte {
 	return x.buf
 }
 
-func (e *TL_messages_messages) encode() []byte {
+func (e TL_messages_messages) encode() []byte {
 	x := NewEncodeBuf(512)
 	x.UInt(crc_messages_messages)
 	x.Vector(e.messages)
@@ -3618,7 +3618,7 @@ func (e *TL_messages_messages) encode() []byte {
 	return x.buf
 }
 
-func (e *TL_messages_messagesSlice) encode() []byte {
+func (e TL_messages_messagesSlice) encode() []byte {
 	x := NewEncodeBuf(512)
 	x.UInt(crc_messages_messagesSlice)
 	x.Int(e.count)
@@ -3628,13 +3628,13 @@ func (e *TL_messages_messagesSlice) encode() []byte {
 	return x.buf
 }
 
-func (e *TL_messages_messageEmpty) encode() []byte {
+func (e TL_messages_messageEmpty) encode() []byte {
 	x := NewEncodeBuf(512)
 	x.UInt(crc_messages_messageEmpty)
 	return x.buf
 }
 
-func (e *TL_messages_statedMessages) encode() []byte {
+func (e TL_messages_statedMessages) encode() []byte {
 	x := NewEncodeBuf(512)
 	x.UInt(crc_messages_statedMessages)
 	x.Vector(e.messages)
@@ -3645,7 +3645,7 @@ func (e *TL_messages_statedMessages) encode() []byte {
 	return x.buf
 }
 
-func (e *TL_messages_statedMessage) encode() []byte {
+func (e TL_messages_statedMessage) encode() []byte {
 	x := NewEncodeBuf(512)
 	x.UInt(crc_messages_statedMessage)
 	x.Bytes(e.message.encode())
@@ -3656,7 +3656,7 @@ func (e *TL_messages_statedMessage) encode() []byte {
 	return x.buf
 }
 
-func (e *TL_messages_sentMessage) encode() []byte {
+func (e TL_messages_sentMessage) encode() []byte {
 	x := NewEncodeBuf(512)
 	x.UInt(crc_messages_sentMessage)
 	x.Int(e.id)
@@ -3666,7 +3666,7 @@ func (e *TL_messages_sentMessage) encode() []byte {
 	return x.buf
 }
 
-func (e *TL_messages_chats) encode() []byte {
+func (e TL_messages_chats) encode() []byte {
 	x := NewEncodeBuf(512)
 	x.UInt(crc_messages_chats)
 	x.Vector(e.chats)
@@ -3674,7 +3674,7 @@ func (e *TL_messages_chats) encode() []byte {
 	return x.buf
 }
 
-func (e *TL_messages_chatFull) encode() []byte {
+func (e TL_messages_chatFull) encode() []byte {
 	x := NewEncodeBuf(512)
 	x.UInt(crc_messages_chatFull)
 	x.Bytes(e.full_chat.encode())
@@ -3683,7 +3683,7 @@ func (e *TL_messages_chatFull) encode() []byte {
 	return x.buf
 }
 
-func (e *TL_messages_affectedHistory) encode() []byte {
+func (e TL_messages_affectedHistory) encode() []byte {
 	x := NewEncodeBuf(512)
 	x.UInt(crc_messages_affectedHistory)
 	x.Int(e.pts)
@@ -3692,49 +3692,49 @@ func (e *TL_messages_affectedHistory) encode() []byte {
 	return x.buf
 }
 
-func (e *TL_inputMessagesFilterEmpty) encode() []byte {
+func (e TL_inputMessagesFilterEmpty) encode() []byte {
 	x := NewEncodeBuf(512)
 	x.UInt(crc_inputMessagesFilterEmpty)
 	return x.buf
 }
 
-func (e *TL_inputMessagesFilterPhotos) encode() []byte {
+func (e TL_inputMessagesFilterPhotos) encode() []byte {
 	x := NewEncodeBuf(512)
 	x.UInt(crc_inputMessagesFilterPhotos)
 	return x.buf
 }
 
-func (e *TL_inputMessagesFilterVideo) encode() []byte {
+func (e TL_inputMessagesFilterVideo) encode() []byte {
 	x := NewEncodeBuf(512)
 	x.UInt(crc_inputMessagesFilterVideo)
 	return x.buf
 }
 
-func (e *TL_inputMessagesFilterPhotoVideo) encode() []byte {
+func (e TL_inputMessagesFilterPhotoVideo) encode() []byte {
 	x := NewEncodeBuf(512)
 	x.UInt(crc_inputMessagesFilterPhotoVideo)
 	return x.buf
 }
 
-func (e *TL_inputMessagesFilterPhotoVideoDocuments) encode() []byte {
+func (e TL_inputMessagesFilterPhotoVideoDocuments) encode() []byte {
 	x := NewEncodeBuf(512)
 	x.UInt(crc_inputMessagesFilterPhotoVideoDocuments)
 	return x.buf
 }
 
-func (e *TL_inputMessagesFilterDocument) encode() []byte {
+func (e TL_inputMessagesFilterDocument) encode() []byte {
 	x := NewEncodeBuf(512)
 	x.UInt(crc_inputMessagesFilterDocument)
 	return x.buf
 }
 
-func (e *TL_inputMessagesFilterAudio) encode() []byte {
+func (e TL_inputMessagesFilterAudio) encode() []byte {
 	x := NewEncodeBuf(512)
 	x.UInt(crc_inputMessagesFilterAudio)
 	return x.buf
 }
 
-func (e *TL_updateNewMessage) encode() []byte {
+func (e TL_updateNewMessage) encode() []byte {
 	x := NewEncodeBuf(512)
 	x.UInt(crc_updateNewMessage)
 	x.Bytes(e.message.encode())
@@ -3742,7 +3742,7 @@ func (e *TL_updateNewMessage) encode() []byte {
 	return x.buf
 }
 
-func (e *TL_updateMessageID) encode() []byte {
+func (e TL_updateMessageID) encode() []byte {
 	x := NewEncodeBuf(512)
 	x.UInt(crc_updateMessageID)
 	x.Int(e.id)
@@ -3750,7 +3750,7 @@ func (e *TL_updateMessageID) encode() []byte {
 	return x.buf
 }
 
-func (e *TL_updateReadMessages) encode() []byte {
+func (e TL_updateReadMessages) encode() []byte {
 	x := NewEncodeBuf(512)
 	x.UInt(crc_updateReadMessages)
 	x.VectorInt(e.messages)
@@ -3758,7 +3758,7 @@ func (e *TL_updateReadMessages) encode() []byte {
 	return x.buf
 }
 
-func (e *TL_updateDeleteMessages) encode() []byte {
+func (e TL_updateDeleteMessages) encode() []byte {
 	x := NewEncodeBuf(512)
 	x.UInt(crc_updateDeleteMessages)
 	x.VectorInt(e.messages)
@@ -3766,7 +3766,7 @@ func (e *TL_updateDeleteMessages) encode() []byte {
 	return x.buf
 }
 
-func (e *TL_updateUserTyping) encode() []byte {
+func (e TL_updateUserTyping) encode() []byte {
 	x := NewEncodeBuf(512)
 	x.UInt(crc_updateUserTyping)
 	x.Int(e.user_id)
@@ -3774,7 +3774,7 @@ func (e *TL_updateUserTyping) encode() []byte {
 	return x.buf
 }
 
-func (e *TL_updateChatUserTyping) encode() []byte {
+func (e TL_updateChatUserTyping) encode() []byte {
 	x := NewEncodeBuf(512)
 	x.UInt(crc_updateChatUserTyping)
 	x.Int(e.chat_id)
@@ -3783,14 +3783,14 @@ func (e *TL_updateChatUserTyping) encode() []byte {
 	return x.buf
 }
 
-func (e *TL_updateChatParticipants) encode() []byte {
+func (e TL_updateChatParticipants) encode() []byte {
 	x := NewEncodeBuf(512)
 	x.UInt(crc_updateChatParticipants)
 	x.Bytes(e.participants.encode())
 	return x.buf
 }
 
-func (e *TL_updateUserStatus) encode() []byte {
+func (e TL_updateUserStatus) encode() []byte {
 	x := NewEncodeBuf(512)
 	x.UInt(crc_updateUserStatus)
 	x.Int(e.user_id)
@@ -3798,7 +3798,7 @@ func (e *TL_updateUserStatus) encode() []byte {
 	return x.buf
 }
 
-func (e *TL_updateUserName) encode() []byte {
+func (e TL_updateUserName) encode() []byte {
 	x := NewEncodeBuf(512)
 	x.UInt(crc_updateUserName)
 	x.Int(e.user_id)
@@ -3808,7 +3808,7 @@ func (e *TL_updateUserName) encode() []byte {
 	return x.buf
 }
 
-func (e *TL_updateUserPhoto) encode() []byte {
+func (e TL_updateUserPhoto) encode() []byte {
 	x := NewEncodeBuf(512)
 	x.UInt(crc_updateUserPhoto)
 	x.Int(e.user_id)
@@ -3818,7 +3818,7 @@ func (e *TL_updateUserPhoto) encode() []byte {
 	return x.buf
 }
 
-func (e *TL_updateContactRegistered) encode() []byte {
+func (e TL_updateContactRegistered) encode() []byte {
 	x := NewEncodeBuf(512)
 	x.UInt(crc_updateContactRegistered)
 	x.Int(e.user_id)
@@ -3826,7 +3826,7 @@ func (e *TL_updateContactRegistered) encode() []byte {
 	return x.buf
 }
 
-func (e *TL_updateContactLink) encode() []byte {
+func (e TL_updateContactLink) encode() []byte {
 	x := NewEncodeBuf(512)
 	x.UInt(crc_updateContactLink)
 	x.Int(e.user_id)
@@ -3835,7 +3835,7 @@ func (e *TL_updateContactLink) encode() []byte {
 	return x.buf
 }
 
-func (e *TL_updateNewAuthorization) encode() []byte {
+func (e TL_updateNewAuthorization) encode() []byte {
 	x := NewEncodeBuf(512)
 	x.UInt(crc_updateNewAuthorization)
 	x.Long(e.auth_key_id)
@@ -3845,7 +3845,7 @@ func (e *TL_updateNewAuthorization) encode() []byte {
 	return x.buf
 }
 
-func (e *TL_updates_state) encode() []byte {
+func (e TL_updates_state) encode() []byte {
 	x := NewEncodeBuf(512)
 	x.UInt(crc_updates_state)
 	x.Int(e.pts)
@@ -3856,7 +3856,7 @@ func (e *TL_updates_state) encode() []byte {
 	return x.buf
 }
 
-func (e *TL_updates_differenceEmpty) encode() []byte {
+func (e TL_updates_differenceEmpty) encode() []byte {
 	x := NewEncodeBuf(512)
 	x.UInt(crc_updates_differenceEmpty)
 	x.Int(e.date)
@@ -3864,7 +3864,7 @@ func (e *TL_updates_differenceEmpty) encode() []byte {
 	return x.buf
 }
 
-func (e *TL_updates_difference) encode() []byte {
+func (e TL_updates_difference) encode() []byte {
 	x := NewEncodeBuf(512)
 	x.UInt(crc_updates_difference)
 	x.Vector(e.new_messages)
@@ -3876,7 +3876,7 @@ func (e *TL_updates_difference) encode() []byte {
 	return x.buf
 }
 
-func (e *TL_updates_differenceSlice) encode() []byte {
+func (e TL_updates_differenceSlice) encode() []byte {
 	x := NewEncodeBuf(512)
 	x.UInt(crc_updates_differenceSlice)
 	x.Vector(e.new_messages)
@@ -3888,13 +3888,13 @@ func (e *TL_updates_differenceSlice) encode() []byte {
 	return x.buf
 }
 
-func (e *TL_updatesTooLong) encode() []byte {
+func (e TL_updatesTooLong) encode() []byte {
 	x := NewEncodeBuf(512)
 	x.UInt(crc_updatesTooLong)
 	return x.buf
 }
 
-func (e *TL_updateShortMessage) encode() []byte {
+func (e TL_updateShortMessage) encode() []byte {
 	x := NewEncodeBuf(512)
 	x.UInt(crc_updateShortMessage)
 	x.Int(e.id)
@@ -3906,7 +3906,7 @@ func (e *TL_updateShortMessage) encode() []byte {
 	return x.buf
 }
 
-func (e *TL_updateShortChatMessage) encode() []byte {
+func (e TL_updateShortChatMessage) encode() []byte {
 	x := NewEncodeBuf(512)
 	x.UInt(crc_updateShortChatMessage)
 	x.Int(e.id)
@@ -3919,7 +3919,7 @@ func (e *TL_updateShortChatMessage) encode() []byte {
 	return x.buf
 }
 
-func (e *TL_updateShort) encode() []byte {
+func (e TL_updateShort) encode() []byte {
 	x := NewEncodeBuf(512)
 	x.UInt(crc_updateShort)
 	x.Bytes(e.update.encode())
@@ -3927,7 +3927,7 @@ func (e *TL_updateShort) encode() []byte {
 	return x.buf
 }
 
-func (e *TL_updatesCombined) encode() []byte {
+func (e TL_updatesCombined) encode() []byte {
 	x := NewEncodeBuf(512)
 	x.UInt(crc_updatesCombined)
 	x.Vector(e.updates)
@@ -3939,7 +3939,7 @@ func (e *TL_updatesCombined) encode() []byte {
 	return x.buf
 }
 
-func (e *TL_updates) encode() []byte {
+func (e TL_updates) encode() []byte {
 	x := NewEncodeBuf(512)
 	x.UInt(crc_updates)
 	x.Vector(e.updates)
@@ -3950,7 +3950,7 @@ func (e *TL_updates) encode() []byte {
 	return x.buf
 }
 
-func (e *TL_photos_photos) encode() []byte {
+func (e TL_photos_photos) encode() []byte {
 	x := NewEncodeBuf(512)
 	x.UInt(crc_photos_photos)
 	x.Vector(e.photos)
@@ -3958,7 +3958,7 @@ func (e *TL_photos_photos) encode() []byte {
 	return x.buf
 }
 
-func (e *TL_photos_photosSlice) encode() []byte {
+func (e TL_photos_photosSlice) encode() []byte {
 	x := NewEncodeBuf(512)
 	x.UInt(crc_photos_photosSlice)
 	x.Int(e.count)
@@ -3967,7 +3967,7 @@ func (e *TL_photos_photosSlice) encode() []byte {
 	return x.buf
 }
 
-func (e *TL_photos_photo) encode() []byte {
+func (e TL_photos_photo) encode() []byte {
 	x := NewEncodeBuf(512)
 	x.UInt(crc_photos_photo)
 	x.Bytes(e.photo.encode())
@@ -3975,7 +3975,7 @@ func (e *TL_photos_photo) encode() []byte {
 	return x.buf
 }
 
-func (e *TL_upload_file) encode() []byte {
+func (e TL_upload_file) encode() []byte {
 	x := NewEncodeBuf(512)
 	x.UInt(crc_upload_file)
 	x.Bytes(e._type.encode())
@@ -3984,7 +3984,7 @@ func (e *TL_upload_file) encode() []byte {
 	return x.buf
 }
 
-func (e *TL_dcOption) encode() []byte {
+func (e TL_dcOption) encode() []byte {
 	x := NewEncodeBuf(512)
 	x.UInt(crc_dcOption)
 	x.Int(e.id)
@@ -3994,7 +3994,7 @@ func (e *TL_dcOption) encode() []byte {
 	return x.buf
 }
 
-func (e *TL_config) encode() []byte {
+func (e TL_config) encode() []byte {
 	x := NewEncodeBuf(512)
 	x.UInt(crc_config)
 	x.Int(e.date)
@@ -4009,7 +4009,7 @@ func (e *TL_config) encode() []byte {
 	return x.buf
 }
 
-func (e *TL_nearestDc) encode() []byte {
+func (e TL_nearestDc) encode() []byte {
 	x := NewEncodeBuf(512)
 	x.UInt(crc_nearestDc)
 	x.String(e.country)
@@ -4018,7 +4018,7 @@ func (e *TL_nearestDc) encode() []byte {
 	return x.buf
 }
 
-func (e *TL_help_appUpdate) encode() []byte {
+func (e TL_help_appUpdate) encode() []byte {
 	x := NewEncodeBuf(512)
 	x.UInt(crc_help_appUpdate)
 	x.Int(e.id)
@@ -4028,20 +4028,20 @@ func (e *TL_help_appUpdate) encode() []byte {
 	return x.buf
 }
 
-func (e *TL_help_noAppUpdate) encode() []byte {
+func (e TL_help_noAppUpdate) encode() []byte {
 	x := NewEncodeBuf(512)
 	x.UInt(crc_help_noAppUpdate)
 	return x.buf
 }
 
-func (e *TL_help_inviteText) encode() []byte {
+func (e TL_help_inviteText) encode() []byte {
 	x := NewEncodeBuf(512)
 	x.UInt(crc_help_inviteText)
 	x.String(e.message)
 	return x.buf
 }
 
-func (e *TL_messages_statedMessagesLinks) encode() []byte {
+func (e TL_messages_statedMessagesLinks) encode() []byte {
 	x := NewEncodeBuf(512)
 	x.UInt(crc_messages_statedMessagesLinks)
 	x.Vector(e.messages)
@@ -4053,7 +4053,7 @@ func (e *TL_messages_statedMessagesLinks) encode() []byte {
 	return x.buf
 }
 
-func (e *TL_messages_statedMessageLink) encode() []byte {
+func (e TL_messages_statedMessageLink) encode() []byte {
 	x := NewEncodeBuf(512)
 	x.UInt(crc_messages_statedMessageLink)
 	x.Bytes(e.message.encode())
@@ -4065,7 +4065,7 @@ func (e *TL_messages_statedMessageLink) encode() []byte {
 	return x.buf
 }
 
-func (e *TL_messages_sentMessageLink) encode() []byte {
+func (e TL_messages_sentMessageLink) encode() []byte {
 	x := NewEncodeBuf(512)
 	x.UInt(crc_messages_sentMessageLink)
 	x.Int(e.id)
@@ -4076,7 +4076,7 @@ func (e *TL_messages_sentMessageLink) encode() []byte {
 	return x.buf
 }
 
-func (e *TL_inputGeoChat) encode() []byte {
+func (e TL_inputGeoChat) encode() []byte {
 	x := NewEncodeBuf(512)
 	x.UInt(crc_inputGeoChat)
 	x.Int(e.chat_id)
@@ -4084,14 +4084,14 @@ func (e *TL_inputGeoChat) encode() []byte {
 	return x.buf
 }
 
-func (e *TL_inputNotifyGeoChatPeer) encode() []byte {
+func (e TL_inputNotifyGeoChatPeer) encode() []byte {
 	x := NewEncodeBuf(512)
 	x.UInt(crc_inputNotifyGeoChatPeer)
 	x.Bytes(e.peer.encode())
 	return x.buf
 }
 
-func (e *TL_geoChat) encode() []byte {
+func (e TL_geoChat) encode() []byte {
 	x := NewEncodeBuf(512)
 	x.UInt(crc_geoChat)
 	x.Int(e.id)
@@ -4108,7 +4108,7 @@ func (e *TL_geoChat) encode() []byte {
 	return x.buf
 }
 
-func (e *TL_geoChatMessageEmpty) encode() []byte {
+func (e TL_geoChatMessageEmpty) encode() []byte {
 	x := NewEncodeBuf(512)
 	x.UInt(crc_geoChatMessageEmpty)
 	x.Int(e.chat_id)
@@ -4116,7 +4116,7 @@ func (e *TL_geoChatMessageEmpty) encode() []byte {
 	return x.buf
 }
 
-func (e *TL_geoChatMessage) encode() []byte {
+func (e TL_geoChatMessage) encode() []byte {
 	x := NewEncodeBuf(512)
 	x.UInt(crc_geoChatMessage)
 	x.Int(e.chat_id)
@@ -4128,7 +4128,7 @@ func (e *TL_geoChatMessage) encode() []byte {
 	return x.buf
 }
 
-func (e *TL_geoChatMessageService) encode() []byte {
+func (e TL_geoChatMessageService) encode() []byte {
 	x := NewEncodeBuf(512)
 	x.UInt(crc_geoChatMessageService)
 	x.Int(e.chat_id)
@@ -4139,7 +4139,7 @@ func (e *TL_geoChatMessageService) encode() []byte {
 	return x.buf
 }
 
-func (e *TL_geochats_statedMessage) encode() []byte {
+func (e TL_geochats_statedMessage) encode() []byte {
 	x := NewEncodeBuf(512)
 	x.UInt(crc_geochats_statedMessage)
 	x.Bytes(e.message.encode())
@@ -4149,7 +4149,7 @@ func (e *TL_geochats_statedMessage) encode() []byte {
 	return x.buf
 }
 
-func (e *TL_geochats_located) encode() []byte {
+func (e TL_geochats_located) encode() []byte {
 	x := NewEncodeBuf(512)
 	x.UInt(crc_geochats_located)
 	x.Vector(e.results)
@@ -4159,7 +4159,7 @@ func (e *TL_geochats_located) encode() []byte {
 	return x.buf
 }
 
-func (e *TL_geochats_messages) encode() []byte {
+func (e TL_geochats_messages) encode() []byte {
 	x := NewEncodeBuf(512)
 	x.UInt(crc_geochats_messages)
 	x.Vector(e.messages)
@@ -4168,7 +4168,7 @@ func (e *TL_geochats_messages) encode() []byte {
 	return x.buf
 }
 
-func (e *TL_geochats_messagesSlice) encode() []byte {
+func (e TL_geochats_messagesSlice) encode() []byte {
 	x := NewEncodeBuf(512)
 	x.UInt(crc_geochats_messagesSlice)
 	x.Int(e.count)
@@ -4178,7 +4178,7 @@ func (e *TL_geochats_messagesSlice) encode() []byte {
 	return x.buf
 }
 
-func (e *TL_messageActionGeoChatCreate) encode() []byte {
+func (e TL_messageActionGeoChatCreate) encode() []byte {
 	x := NewEncodeBuf(512)
 	x.UInt(crc_messageActionGeoChatCreate)
 	x.String(e.title)
@@ -4186,20 +4186,20 @@ func (e *TL_messageActionGeoChatCreate) encode() []byte {
 	return x.buf
 }
 
-func (e *TL_messageActionGeoChatCheckin) encode() []byte {
+func (e TL_messageActionGeoChatCheckin) encode() []byte {
 	x := NewEncodeBuf(512)
 	x.UInt(crc_messageActionGeoChatCheckin)
 	return x.buf
 }
 
-func (e *TL_updateNewGeoChatMessage) encode() []byte {
+func (e TL_updateNewGeoChatMessage) encode() []byte {
 	x := NewEncodeBuf(512)
 	x.UInt(crc_updateNewGeoChatMessage)
 	x.Bytes(e.message.encode())
 	return x.buf
 }
 
-func (e *TL_wallPaperSolid) encode() []byte {
+func (e TL_wallPaperSolid) encode() []byte {
 	x := NewEncodeBuf(512)
 	x.UInt(crc_wallPaperSolid)
 	x.Int(e.id)
@@ -4209,7 +4209,7 @@ func (e *TL_wallPaperSolid) encode() []byte {
 	return x.buf
 }
 
-func (e *TL_updateNewEncryptedMessage) encode() []byte {
+func (e TL_updateNewEncryptedMessage) encode() []byte {
 	x := NewEncodeBuf(512)
 	x.UInt(crc_updateNewEncryptedMessage)
 	x.Bytes(e.message.encode())
@@ -4217,14 +4217,14 @@ func (e *TL_updateNewEncryptedMessage) encode() []byte {
 	return x.buf
 }
 
-func (e *TL_updateEncryptedChatTyping) encode() []byte {
+func (e TL_updateEncryptedChatTyping) encode() []byte {
 	x := NewEncodeBuf(512)
 	x.UInt(crc_updateEncryptedChatTyping)
 	x.Int(e.chat_id)
 	return x.buf
 }
 
-func (e *TL_updateEncryption) encode() []byte {
+func (e TL_updateEncryption) encode() []byte {
 	x := NewEncodeBuf(512)
 	x.UInt(crc_updateEncryption)
 	x.Bytes(e.chat.encode())
@@ -4232,7 +4232,7 @@ func (e *TL_updateEncryption) encode() []byte {
 	return x.buf
 }
 
-func (e *TL_updateEncryptedMessagesRead) encode() []byte {
+func (e TL_updateEncryptedMessagesRead) encode() []byte {
 	x := NewEncodeBuf(512)
 	x.UInt(crc_updateEncryptedMessagesRead)
 	x.Int(e.chat_id)
@@ -4241,14 +4241,14 @@ func (e *TL_updateEncryptedMessagesRead) encode() []byte {
 	return x.buf
 }
 
-func (e *TL_encryptedChatEmpty) encode() []byte {
+func (e TL_encryptedChatEmpty) encode() []byte {
 	x := NewEncodeBuf(512)
 	x.UInt(crc_encryptedChatEmpty)
 	x.Int(e.id)
 	return x.buf
 }
 
-func (e *TL_encryptedChatWaiting) encode() []byte {
+func (e TL_encryptedChatWaiting) encode() []byte {
 	x := NewEncodeBuf(512)
 	x.UInt(crc_encryptedChatWaiting)
 	x.Int(e.id)
@@ -4259,7 +4259,7 @@ func (e *TL_encryptedChatWaiting) encode() []byte {
 	return x.buf
 }
 
-func (e *TL_encryptedChatRequested) encode() []byte {
+func (e TL_encryptedChatRequested) encode() []byte {
 	x := NewEncodeBuf(512)
 	x.UInt(crc_encryptedChatRequested)
 	x.Int(e.id)
@@ -4271,7 +4271,7 @@ func (e *TL_encryptedChatRequested) encode() []byte {
 	return x.buf
 }
 
-func (e *TL_encryptedChat) encode() []byte {
+func (e TL_encryptedChat) encode() []byte {
 	x := NewEncodeBuf(512)
 	x.UInt(crc_encryptedChat)
 	x.Int(e.id)
@@ -4284,14 +4284,14 @@ func (e *TL_encryptedChat) encode() []byte {
 	return x.buf
 }
 
-func (e *TL_encryptedChatDiscarded) encode() []byte {
+func (e TL_encryptedChatDiscarded) encode() []byte {
 	x := NewEncodeBuf(512)
 	x.UInt(crc_encryptedChatDiscarded)
 	x.Int(e.id)
 	return x.buf
 }
 
-func (e *TL_inputEncryptedChat) encode() []byte {
+func (e TL_inputEncryptedChat) encode() []byte {
 	x := NewEncodeBuf(512)
 	x.UInt(crc_inputEncryptedChat)
 	x.Int(e.chat_id)
@@ -4299,13 +4299,13 @@ func (e *TL_inputEncryptedChat) encode() []byte {
 	return x.buf
 }
 
-func (e *TL_encryptedFileEmpty) encode() []byte {
+func (e TL_encryptedFileEmpty) encode() []byte {
 	x := NewEncodeBuf(512)
 	x.UInt(crc_encryptedFileEmpty)
 	return x.buf
 }
 
-func (e *TL_encryptedFile) encode() []byte {
+func (e TL_encryptedFile) encode() []byte {
 	x := NewEncodeBuf(512)
 	x.UInt(crc_encryptedFile)
 	x.Long(e.id)
@@ -4316,13 +4316,13 @@ func (e *TL_encryptedFile) encode() []byte {
 	return x.buf
 }
 
-func (e *TL_inputEncryptedFileEmpty) encode() []byte {
+func (e TL_inputEncryptedFileEmpty) encode() []byte {
 	x := NewEncodeBuf(512)
 	x.UInt(crc_inputEncryptedFileEmpty)
 	return x.buf
 }
 
-func (e *TL_inputEncryptedFileUploaded) encode() []byte {
+func (e TL_inputEncryptedFileUploaded) encode() []byte {
 	x := NewEncodeBuf(512)
 	x.UInt(crc_inputEncryptedFileUploaded)
 	x.Long(e.id)
@@ -4332,7 +4332,7 @@ func (e *TL_inputEncryptedFileUploaded) encode() []byte {
 	return x.buf
 }
 
-func (e *TL_inputEncryptedFile) encode() []byte {
+func (e TL_inputEncryptedFile) encode() []byte {
 	x := NewEncodeBuf(512)
 	x.UInt(crc_inputEncryptedFile)
 	x.Long(e.id)
@@ -4340,7 +4340,7 @@ func (e *TL_inputEncryptedFile) encode() []byte {
 	return x.buf
 }
 
-func (e *TL_inputEncryptedFileLocation) encode() []byte {
+func (e TL_inputEncryptedFileLocation) encode() []byte {
 	x := NewEncodeBuf(512)
 	x.UInt(crc_inputEncryptedFileLocation)
 	x.Long(e.id)
@@ -4348,7 +4348,7 @@ func (e *TL_inputEncryptedFileLocation) encode() []byte {
 	return x.buf
 }
 
-func (e *TL_encryptedMessage) encode() []byte {
+func (e TL_encryptedMessage) encode() []byte {
 	x := NewEncodeBuf(512)
 	x.UInt(crc_encryptedMessage)
 	x.Long(e.random_id)
@@ -4359,7 +4359,7 @@ func (e *TL_encryptedMessage) encode() []byte {
 	return x.buf
 }
 
-func (e *TL_encryptedMessageService) encode() []byte {
+func (e TL_encryptedMessageService) encode() []byte {
 	x := NewEncodeBuf(512)
 	x.UInt(crc_encryptedMessageService)
 	x.Long(e.random_id)
@@ -4369,14 +4369,14 @@ func (e *TL_encryptedMessageService) encode() []byte {
 	return x.buf
 }
 
-func (e *TL_messages_dhConfigNotModified) encode() []byte {
+func (e TL_messages_dhConfigNotModified) encode() []byte {
 	x := NewEncodeBuf(512)
 	x.UInt(crc_messages_dhConfigNotModified)
 	x.StringBytes(e.random)
 	return x.buf
 }
 
-func (e *TL_messages_dhConfig) encode() []byte {
+func (e TL_messages_dhConfig) encode() []byte {
 	x := NewEncodeBuf(512)
 	x.UInt(crc_messages_dhConfig)
 	x.Int(e.g)
@@ -4386,14 +4386,14 @@ func (e *TL_messages_dhConfig) encode() []byte {
 	return x.buf
 }
 
-func (e *TL_messages_sentEncryptedMessage) encode() []byte {
+func (e TL_messages_sentEncryptedMessage) encode() []byte {
 	x := NewEncodeBuf(512)
 	x.UInt(crc_messages_sentEncryptedMessage)
 	x.Int(e.date)
 	return x.buf
 }
 
-func (e *TL_messages_sentEncryptedFile) encode() []byte {
+func (e TL_messages_sentEncryptedFile) encode() []byte {
 	x := NewEncodeBuf(512)
 	x.UInt(crc_messages_sentEncryptedFile)
 	x.Int(e.date)
@@ -4401,7 +4401,7 @@ func (e *TL_messages_sentEncryptedFile) encode() []byte {
 	return x.buf
 }
 
-func (e *TL_inputFileBig) encode() []byte {
+func (e TL_inputFileBig) encode() []byte {
 	x := NewEncodeBuf(512)
 	x.UInt(crc_inputFileBig)
 	x.Long(e.id)
@@ -4410,7 +4410,7 @@ func (e *TL_inputFileBig) encode() []byte {
 	return x.buf
 }
 
-func (e *TL_inputEncryptedFileBigUploaded) encode() []byte {
+func (e TL_inputEncryptedFileBigUploaded) encode() []byte {
 	x := NewEncodeBuf(512)
 	x.UInt(crc_inputEncryptedFileBigUploaded)
 	x.Long(e.id)
@@ -4419,7 +4419,7 @@ func (e *TL_inputEncryptedFileBigUploaded) encode() []byte {
 	return x.buf
 }
 
-func (e *TL_updateChatParticipantAdd) encode() []byte {
+func (e TL_updateChatParticipantAdd) encode() []byte {
 	x := NewEncodeBuf(512)
 	x.UInt(crc_updateChatParticipantAdd)
 	x.Int(e.chat_id)
@@ -4429,7 +4429,7 @@ func (e *TL_updateChatParticipantAdd) encode() []byte {
 	return x.buf
 }
 
-func (e *TL_updateChatParticipantDelete) encode() []byte {
+func (e TL_updateChatParticipantDelete) encode() []byte {
 	x := NewEncodeBuf(512)
 	x.UInt(crc_updateChatParticipantDelete)
 	x.Int(e.chat_id)
@@ -4438,14 +4438,14 @@ func (e *TL_updateChatParticipantDelete) encode() []byte {
 	return x.buf
 }
 
-func (e *TL_updateDcOptions) encode() []byte {
+func (e TL_updateDcOptions) encode() []byte {
 	x := NewEncodeBuf(512)
 	x.UInt(crc_updateDcOptions)
 	x.Vector(e.dc_options)
 	return x.buf
 }
 
-func (e *TL_inputMediaUploadedAudio) encode() []byte {
+func (e TL_inputMediaUploadedAudio) encode() []byte {
 	x := NewEncodeBuf(512)
 	x.UInt(crc_inputMediaUploadedAudio)
 	x.Bytes(e.file.encode())
@@ -4454,14 +4454,14 @@ func (e *TL_inputMediaUploadedAudio) encode() []byte {
 	return x.buf
 }
 
-func (e *TL_inputMediaAudio) encode() []byte {
+func (e TL_inputMediaAudio) encode() []byte {
 	x := NewEncodeBuf(512)
 	x.UInt(crc_inputMediaAudio)
 	x.Bytes(e.id.encode())
 	return x.buf
 }
 
-func (e *TL_inputMediaUploadedDocument) encode() []byte {
+func (e TL_inputMediaUploadedDocument) encode() []byte {
 	x := NewEncodeBuf(512)
 	x.UInt(crc_inputMediaUploadedDocument)
 	x.Bytes(e.file.encode())
@@ -4470,7 +4470,7 @@ func (e *TL_inputMediaUploadedDocument) encode() []byte {
 	return x.buf
 }
 
-func (e *TL_inputMediaUploadedThumbDocument) encode() []byte {
+func (e TL_inputMediaUploadedThumbDocument) encode() []byte {
 	x := NewEncodeBuf(512)
 	x.UInt(crc_inputMediaUploadedThumbDocument)
 	x.Bytes(e.file.encode())
@@ -4480,34 +4480,34 @@ func (e *TL_inputMediaUploadedThumbDocument) encode() []byte {
 	return x.buf
 }
 
-func (e *TL_inputMediaDocument) encode() []byte {
+func (e TL_inputMediaDocument) encode() []byte {
 	x := NewEncodeBuf(512)
 	x.UInt(crc_inputMediaDocument)
 	x.Bytes(e.id.encode())
 	return x.buf
 }
 
-func (e *TL_messageMediaDocument) encode() []byte {
+func (e TL_messageMediaDocument) encode() []byte {
 	x := NewEncodeBuf(512)
 	x.UInt(crc_messageMediaDocument)
 	x.Bytes(e.document.encode())
 	return x.buf
 }
 
-func (e *TL_messageMediaAudio) encode() []byte {
+func (e TL_messageMediaAudio) encode() []byte {
 	x := NewEncodeBuf(512)
 	x.UInt(crc_messageMediaAudio)
 	x.Bytes(e.audio.encode())
 	return x.buf
 }
 
-func (e *TL_inputAudioEmpty) encode() []byte {
+func (e TL_inputAudioEmpty) encode() []byte {
 	x := NewEncodeBuf(512)
 	x.UInt(crc_inputAudioEmpty)
 	return x.buf
 }
 
-func (e *TL_inputAudio) encode() []byte {
+func (e TL_inputAudio) encode() []byte {
 	x := NewEncodeBuf(512)
 	x.UInt(crc_inputAudio)
 	x.Long(e.id)
@@ -4515,13 +4515,13 @@ func (e *TL_inputAudio) encode() []byte {
 	return x.buf
 }
 
-func (e *TL_inputDocumentEmpty) encode() []byte {
+func (e TL_inputDocumentEmpty) encode() []byte {
 	x := NewEncodeBuf(512)
 	x.UInt(crc_inputDocumentEmpty)
 	return x.buf
 }
 
-func (e *TL_inputDocument) encode() []byte {
+func (e TL_inputDocument) encode() []byte {
 	x := NewEncodeBuf(512)
 	x.UInt(crc_inputDocument)
 	x.Long(e.id)
@@ -4529,7 +4529,7 @@ func (e *TL_inputDocument) encode() []byte {
 	return x.buf
 }
 
-func (e *TL_inputAudioFileLocation) encode() []byte {
+func (e TL_inputAudioFileLocation) encode() []byte {
 	x := NewEncodeBuf(512)
 	x.UInt(crc_inputAudioFileLocation)
 	x.Long(e.id)
@@ -4537,7 +4537,7 @@ func (e *TL_inputAudioFileLocation) encode() []byte {
 	return x.buf
 }
 
-func (e *TL_inputDocumentFileLocation) encode() []byte {
+func (e TL_inputDocumentFileLocation) encode() []byte {
 	x := NewEncodeBuf(512)
 	x.UInt(crc_inputDocumentFileLocation)
 	x.Long(e.id)
@@ -4545,14 +4545,14 @@ func (e *TL_inputDocumentFileLocation) encode() []byte {
 	return x.buf
 }
 
-func (e *TL_audioEmpty) encode() []byte {
+func (e TL_audioEmpty) encode() []byte {
 	x := NewEncodeBuf(512)
 	x.UInt(crc_audioEmpty)
 	x.Long(e.id)
 	return x.buf
 }
 
-func (e *TL_audio) encode() []byte {
+func (e TL_audio) encode() []byte {
 	x := NewEncodeBuf(512)
 	x.UInt(crc_audio)
 	x.Long(e.id)
@@ -4566,14 +4566,14 @@ func (e *TL_audio) encode() []byte {
 	return x.buf
 }
 
-func (e *TL_documentEmpty) encode() []byte {
+func (e TL_documentEmpty) encode() []byte {
 	x := NewEncodeBuf(512)
 	x.UInt(crc_documentEmpty)
 	x.Long(e.id)
 	return x.buf
 }
 
-func (e *TL_document) encode() []byte {
+func (e TL_document) encode() []byte {
 	x := NewEncodeBuf(512)
 	x.UInt(crc_document)
 	x.Long(e.id)
@@ -4587,7 +4587,7 @@ func (e *TL_document) encode() []byte {
 	return x.buf
 }
 
-func (e *TL_help_support) encode() []byte {
+func (e TL_help_support) encode() []byte {
 	x := NewEncodeBuf(512)
 	x.UInt(crc_help_support)
 	x.String(e.phone_number)
@@ -4595,32 +4595,32 @@ func (e *TL_help_support) encode() []byte {
 	return x.buf
 }
 
-func (e *TL_notifyPeer) encode() []byte {
+func (e TL_notifyPeer) encode() []byte {
 	x := NewEncodeBuf(512)
 	x.UInt(crc_notifyPeer)
 	x.Bytes(e.peer.encode())
 	return x.buf
 }
 
-func (e *TL_notifyUsers) encode() []byte {
+func (e TL_notifyUsers) encode() []byte {
 	x := NewEncodeBuf(512)
 	x.UInt(crc_notifyUsers)
 	return x.buf
 }
 
-func (e *TL_notifyChats) encode() []byte {
+func (e TL_notifyChats) encode() []byte {
 	x := NewEncodeBuf(512)
 	x.UInt(crc_notifyChats)
 	return x.buf
 }
 
-func (e *TL_notifyAll) encode() []byte {
+func (e TL_notifyAll) encode() []byte {
 	x := NewEncodeBuf(512)
 	x.UInt(crc_notifyAll)
 	return x.buf
 }
 
-func (e *TL_updateUserBlocked) encode() []byte {
+func (e TL_updateUserBlocked) encode() []byte {
 	x := NewEncodeBuf(512)
 	x.UInt(crc_updateUserBlocked)
 	x.Int(e.user_id)
@@ -4628,7 +4628,7 @@ func (e *TL_updateUserBlocked) encode() []byte {
 	return x.buf
 }
 
-func (e *TL_updateNotifySettings) encode() []byte {
+func (e TL_updateNotifySettings) encode() []byte {
 	x := NewEncodeBuf(512)
 	x.UInt(crc_updateNotifySettings)
 	x.Bytes(e.peer.encode())
@@ -4636,7 +4636,7 @@ func (e *TL_updateNotifySettings) encode() []byte {
 	return x.buf
 }
 
-func (e *TL_auth_sentAppCode) encode() []byte {
+func (e TL_auth_sentAppCode) encode() []byte {
 	x := NewEncodeBuf(512)
 	x.UInt(crc_auth_sentAppCode)
 	x.Bytes(e.phone_registered.encode())
@@ -4646,74 +4646,74 @@ func (e *TL_auth_sentAppCode) encode() []byte {
 	return x.buf
 }
 
-func (e *TL_sendMessageTypingAction) encode() []byte {
+func (e TL_sendMessageTypingAction) encode() []byte {
 	x := NewEncodeBuf(512)
 	x.UInt(crc_sendMessageTypingAction)
 	return x.buf
 }
 
-func (e *TL_sendMessageCancelAction) encode() []byte {
+func (e TL_sendMessageCancelAction) encode() []byte {
 	x := NewEncodeBuf(512)
 	x.UInt(crc_sendMessageCancelAction)
 	return x.buf
 }
 
-func (e *TL_sendMessageRecordVideoAction) encode() []byte {
+func (e TL_sendMessageRecordVideoAction) encode() []byte {
 	x := NewEncodeBuf(512)
 	x.UInt(crc_sendMessageRecordVideoAction)
 	return x.buf
 }
 
-func (e *TL_sendMessageUploadVideoAction) encode() []byte {
+func (e TL_sendMessageUploadVideoAction) encode() []byte {
 	x := NewEncodeBuf(512)
 	x.UInt(crc_sendMessageUploadVideoAction)
 	return x.buf
 }
 
-func (e *TL_sendMessageRecordAudioAction) encode() []byte {
+func (e TL_sendMessageRecordAudioAction) encode() []byte {
 	x := NewEncodeBuf(512)
 	x.UInt(crc_sendMessageRecordAudioAction)
 	return x.buf
 }
 
-func (e *TL_sendMessageUploadAudioAction) encode() []byte {
+func (e TL_sendMessageUploadAudioAction) encode() []byte {
 	x := NewEncodeBuf(512)
 	x.UInt(crc_sendMessageUploadAudioAction)
 	return x.buf
 }
 
-func (e *TL_sendMessageUploadPhotoAction) encode() []byte {
+func (e TL_sendMessageUploadPhotoAction) encode() []byte {
 	x := NewEncodeBuf(512)
 	x.UInt(crc_sendMessageUploadPhotoAction)
 	return x.buf
 }
 
-func (e *TL_sendMessageUploadDocumentAction) encode() []byte {
+func (e TL_sendMessageUploadDocumentAction) encode() []byte {
 	x := NewEncodeBuf(512)
 	x.UInt(crc_sendMessageUploadDocumentAction)
 	return x.buf
 }
 
-func (e *TL_sendMessageGeoLocationAction) encode() []byte {
+func (e TL_sendMessageGeoLocationAction) encode() []byte {
 	x := NewEncodeBuf(512)
 	x.UInt(crc_sendMessageGeoLocationAction)
 	return x.buf
 }
 
-func (e *TL_sendMessageChooseContactAction) encode() []byte {
+func (e TL_sendMessageChooseContactAction) encode() []byte {
 	x := NewEncodeBuf(512)
 	x.UInt(crc_sendMessageChooseContactAction)
 	return x.buf
 }
 
-func (e *TL_contactFound) encode() []byte {
+func (e TL_contactFound) encode() []byte {
 	x := NewEncodeBuf(512)
 	x.UInt(crc_contactFound)
 	x.Int(e.user_id)
 	return x.buf
 }
 
-func (e *TL_contacts_found) encode() []byte {
+func (e TL_contacts_found) encode() []byte {
 	x := NewEncodeBuf(512)
 	x.UInt(crc_contacts_found)
 	x.Vector(e.results)
@@ -4721,7 +4721,7 @@ func (e *TL_contacts_found) encode() []byte {
 	return x.buf
 }
 
-func (e *TL_updateServiceNotification) encode() []byte {
+func (e TL_updateServiceNotification) encode() []byte {
 	x := NewEncodeBuf(512)
 	x.UInt(crc_updateServiceNotification)
 	x.String(e._type)
@@ -4731,25 +4731,25 @@ func (e *TL_updateServiceNotification) encode() []byte {
 	return x.buf
 }
 
-func (e *TL_userStatusRecently) encode() []byte {
+func (e TL_userStatusRecently) encode() []byte {
 	x := NewEncodeBuf(512)
 	x.UInt(crc_userStatusRecently)
 	return x.buf
 }
 
-func (e *TL_userStatusLastWeek) encode() []byte {
+func (e TL_userStatusLastWeek) encode() []byte {
 	x := NewEncodeBuf(512)
 	x.UInt(crc_userStatusLastWeek)
 	return x.buf
 }
 
-func (e *TL_userStatusLastMonth) encode() []byte {
+func (e TL_userStatusLastMonth) encode() []byte {
 	x := NewEncodeBuf(512)
 	x.UInt(crc_userStatusLastMonth)
 	return x.buf
 }
 
-func (e *TL_updatePrivacy) encode() []byte {
+func (e TL_updatePrivacy) encode() []byte {
 	x := NewEncodeBuf(512)
 	x.UInt(crc_updatePrivacy)
 	x.Bytes(e.key.encode())
@@ -4757,95 +4757,95 @@ func (e *TL_updatePrivacy) encode() []byte {
 	return x.buf
 }
 
-func (e *TL_inputPrivacyKeyStatusTimestamp) encode() []byte {
+func (e TL_inputPrivacyKeyStatusTimestamp) encode() []byte {
 	x := NewEncodeBuf(512)
 	x.UInt(crc_inputPrivacyKeyStatusTimestamp)
 	return x.buf
 }
 
-func (e *TL_privacyKeyStatusTimestamp) encode() []byte {
+func (e TL_privacyKeyStatusTimestamp) encode() []byte {
 	x := NewEncodeBuf(512)
 	x.UInt(crc_privacyKeyStatusTimestamp)
 	return x.buf
 }
 
-func (e *TL_inputPrivacyValueAllowContacts) encode() []byte {
+func (e TL_inputPrivacyValueAllowContacts) encode() []byte {
 	x := NewEncodeBuf(512)
 	x.UInt(crc_inputPrivacyValueAllowContacts)
 	return x.buf
 }
 
-func (e *TL_inputPrivacyValueAllowAll) encode() []byte {
+func (e TL_inputPrivacyValueAllowAll) encode() []byte {
 	x := NewEncodeBuf(512)
 	x.UInt(crc_inputPrivacyValueAllowAll)
 	return x.buf
 }
 
-func (e *TL_inputPrivacyValueAllowUsers) encode() []byte {
+func (e TL_inputPrivacyValueAllowUsers) encode() []byte {
 	x := NewEncodeBuf(512)
 	x.UInt(crc_inputPrivacyValueAllowUsers)
 	x.Vector(e.users)
 	return x.buf
 }
 
-func (e *TL_inputPrivacyValueDisallowContacts) encode() []byte {
+func (e TL_inputPrivacyValueDisallowContacts) encode() []byte {
 	x := NewEncodeBuf(512)
 	x.UInt(crc_inputPrivacyValueDisallowContacts)
 	return x.buf
 }
 
-func (e *TL_inputPrivacyValueDisallowAll) encode() []byte {
+func (e TL_inputPrivacyValueDisallowAll) encode() []byte {
 	x := NewEncodeBuf(512)
 	x.UInt(crc_inputPrivacyValueDisallowAll)
 	return x.buf
 }
 
-func (e *TL_inputPrivacyValueDisallowUsers) encode() []byte {
+func (e TL_inputPrivacyValueDisallowUsers) encode() []byte {
 	x := NewEncodeBuf(512)
 	x.UInt(crc_inputPrivacyValueDisallowUsers)
 	x.Vector(e.users)
 	return x.buf
 }
 
-func (e *TL_privacyValueAllowContacts) encode() []byte {
+func (e TL_privacyValueAllowContacts) encode() []byte {
 	x := NewEncodeBuf(512)
 	x.UInt(crc_privacyValueAllowContacts)
 	return x.buf
 }
 
-func (e *TL_privacyValueAllowAll) encode() []byte {
+func (e TL_privacyValueAllowAll) encode() []byte {
 	x := NewEncodeBuf(512)
 	x.UInt(crc_privacyValueAllowAll)
 	return x.buf
 }
 
-func (e *TL_privacyValueAllowUsers) encode() []byte {
+func (e TL_privacyValueAllowUsers) encode() []byte {
 	x := NewEncodeBuf(512)
 	x.UInt(crc_privacyValueAllowUsers)
 	x.VectorInt(e.users)
 	return x.buf
 }
 
-func (e *TL_privacyValueDisallowContacts) encode() []byte {
+func (e TL_privacyValueDisallowContacts) encode() []byte {
 	x := NewEncodeBuf(512)
 	x.UInt(crc_privacyValueDisallowContacts)
 	return x.buf
 }
 
-func (e *TL_privacyValueDisallowAll) encode() []byte {
+func (e TL_privacyValueDisallowAll) encode() []byte {
 	x := NewEncodeBuf(512)
 	x.UInt(crc_privacyValueDisallowAll)
 	return x.buf
 }
 
-func (e *TL_privacyValueDisallowUsers) encode() []byte {
+func (e TL_privacyValueDisallowUsers) encode() []byte {
 	x := NewEncodeBuf(512)
 	x.UInt(crc_privacyValueDisallowUsers)
 	x.VectorInt(e.users)
 	return x.buf
 }
 
-func (e *TL_account_privacyRules) encode() []byte {
+func (e TL_account_privacyRules) encode() []byte {
 	x := NewEncodeBuf(512)
 	x.UInt(crc_account_privacyRules)
 	x.Vector(e.rules)
@@ -4853,14 +4853,14 @@ func (e *TL_account_privacyRules) encode() []byte {
 	return x.buf
 }
 
-func (e *TL_accountDaysTTL) encode() []byte {
+func (e TL_accountDaysTTL) encode() []byte {
 	x := NewEncodeBuf(512)
 	x.UInt(crc_accountDaysTTL)
 	x.Int(e.days)
 	return x.buf
 }
 
-func (e *TL_account_sentChangePhoneCode) encode() []byte {
+func (e TL_account_sentChangePhoneCode) encode() []byte {
 	x := NewEncodeBuf(512)
 	x.UInt(crc_account_sentChangePhoneCode)
 	x.String(e.phone_code_hash)
@@ -4868,7 +4868,7 @@ func (e *TL_account_sentChangePhoneCode) encode() []byte {
 	return x.buf
 }
 
-func (e *TL_updateUserPhone) encode() []byte {
+func (e TL_updateUserPhone) encode() []byte {
 	x := NewEncodeBuf(512)
 	x.UInt(crc_updateUserPhone)
 	x.Int(e.user_id)
@@ -4876,7 +4876,7 @@ func (e *TL_updateUserPhone) encode() []byte {
 	return x.buf
 }
 
-func (e *TL_documentAttributeImageSize) encode() []byte {
+func (e TL_documentAttributeImageSize) encode() []byte {
 	x := NewEncodeBuf(512)
 	x.UInt(crc_documentAttributeImageSize)
 	x.Int(e.w)
@@ -4884,19 +4884,19 @@ func (e *TL_documentAttributeImageSize) encode() []byte {
 	return x.buf
 }
 
-func (e *TL_documentAttributeAnimated) encode() []byte {
+func (e TL_documentAttributeAnimated) encode() []byte {
 	x := NewEncodeBuf(512)
 	x.UInt(crc_documentAttributeAnimated)
 	return x.buf
 }
 
-func (e *TL_documentAttributeSticker) encode() []byte {
+func (e TL_documentAttributeSticker) encode() []byte {
 	x := NewEncodeBuf(512)
 	x.UInt(crc_documentAttributeSticker)
 	return x.buf
 }
 
-func (e *TL_documentAttributeVideo) encode() []byte {
+func (e TL_documentAttributeVideo) encode() []byte {
 	x := NewEncodeBuf(512)
 	x.UInt(crc_documentAttributeVideo)
 	x.Int(e.duration)
@@ -4905,27 +4905,27 @@ func (e *TL_documentAttributeVideo) encode() []byte {
 	return x.buf
 }
 
-func (e *TL_documentAttributeAudio) encode() []byte {
+func (e TL_documentAttributeAudio) encode() []byte {
 	x := NewEncodeBuf(512)
 	x.UInt(crc_documentAttributeAudio)
 	x.Int(e.duration)
 	return x.buf
 }
 
-func (e *TL_documentAttributeFilename) encode() []byte {
+func (e TL_documentAttributeFilename) encode() []byte {
 	x := NewEncodeBuf(512)
 	x.UInt(crc_documentAttributeFilename)
 	x.String(e.file_name)
 	return x.buf
 }
 
-func (e *TL_messages_stickersNotModified) encode() []byte {
+func (e TL_messages_stickersNotModified) encode() []byte {
 	x := NewEncodeBuf(512)
 	x.UInt(crc_messages_stickersNotModified)
 	return x.buf
 }
 
-func (e *TL_messages_stickers) encode() []byte {
+func (e TL_messages_stickers) encode() []byte {
 	x := NewEncodeBuf(512)
 	x.UInt(crc_messages_stickers)
 	x.String(e.hash)
@@ -4933,7 +4933,7 @@ func (e *TL_messages_stickers) encode() []byte {
 	return x.buf
 }
 
-func (e *TL_stickerPack) encode() []byte {
+func (e TL_stickerPack) encode() []byte {
 	x := NewEncodeBuf(512)
 	x.UInt(crc_stickerPack)
 	x.String(e.emoticon)
@@ -4941,13 +4941,13 @@ func (e *TL_stickerPack) encode() []byte {
 	return x.buf
 }
 
-func (e *TL_messages_allStickersNotModified) encode() []byte {
+func (e TL_messages_allStickersNotModified) encode() []byte {
 	x := NewEncodeBuf(512)
 	x.UInt(crc_messages_allStickersNotModified)
 	return x.buf
 }
 
-func (e *TL_messages_allStickers) encode() []byte {
+func (e TL_messages_allStickers) encode() []byte {
 	x := NewEncodeBuf(512)
 	x.UInt(crc_messages_allStickers)
 	x.String(e.hash)
@@ -4956,7 +4956,7 @@ func (e *TL_messages_allStickers) encode() []byte {
 	return x.buf
 }
 
-func (e *TL_disabledFeature) encode() []byte {
+func (e TL_disabledFeature) encode() []byte {
 	x := NewEncodeBuf(512)
 	x.UInt(crc_disabledFeature)
 	x.String(e.feature)
@@ -4964,7 +4964,7 @@ func (e *TL_disabledFeature) encode() []byte {
 	return x.buf
 }
 
-func (e *TL_invokeAfterMsg) encode() []byte {
+func (e TL_invokeAfterMsg) encode() []byte {
 	x := NewEncodeBuf(512)
 	x.UInt(crc_invokeAfterMsg)
 	x.Long(e.msg_id)
@@ -4972,7 +4972,7 @@ func (e *TL_invokeAfterMsg) encode() []byte {
 	return x.buf
 }
 
-func (e *TL_invokeAfterMsgs) encode() []byte {
+func (e TL_invokeAfterMsgs) encode() []byte {
 	x := NewEncodeBuf(512)
 	x.UInt(crc_invokeAfterMsgs)
 	x.VectorLong(e.msg_ids)
@@ -4980,14 +4980,14 @@ func (e *TL_invokeAfterMsgs) encode() []byte {
 	return x.buf
 }
 
-func (e *TL_auth_checkPhone) encode() []byte {
+func (e TL_auth_checkPhone) encode() []byte {
 	x := NewEncodeBuf(512)
 	x.UInt(crc_auth_checkPhone)
 	x.String(e.phone_number)
 	return x.buf
 }
 
-func (e *TL_auth_sendCode) encode() []byte {
+func (e TL_auth_sendCode) encode() []byte {
 	x := NewEncodeBuf(512)
 	x.UInt(crc_auth_sendCode)
 	x.String(e.phone_number)
@@ -4998,7 +4998,7 @@ func (e *TL_auth_sendCode) encode() []byte {
 	return x.buf
 }
 
-func (e *TL_auth_sendCall) encode() []byte {
+func (e TL_auth_sendCall) encode() []byte {
 	x := NewEncodeBuf(512)
 	x.UInt(crc_auth_sendCall)
 	x.String(e.phone_number)
@@ -5006,7 +5006,7 @@ func (e *TL_auth_sendCall) encode() []byte {
 	return x.buf
 }
 
-func (e *TL_auth_signUp) encode() []byte {
+func (e TL_auth_signUp) encode() []byte {
 	x := NewEncodeBuf(512)
 	x.UInt(crc_auth_signUp)
 	x.String(e.phone_number)
@@ -5017,7 +5017,7 @@ func (e *TL_auth_signUp) encode() []byte {
 	return x.buf
 }
 
-func (e *TL_auth_signIn) encode() []byte {
+func (e TL_auth_signIn) encode() []byte {
 	x := NewEncodeBuf(512)
 	x.UInt(crc_auth_signIn)
 	x.String(e.phone_number)
@@ -5026,19 +5026,19 @@ func (e *TL_auth_signIn) encode() []byte {
 	return x.buf
 }
 
-func (e *TL_auth_logOut) encode() []byte {
+func (e TL_auth_logOut) encode() []byte {
 	x := NewEncodeBuf(512)
 	x.UInt(crc_auth_logOut)
 	return x.buf
 }
 
-func (e *TL_auth_resetAuthorizations) encode() []byte {
+func (e TL_auth_resetAuthorizations) encode() []byte {
 	x := NewEncodeBuf(512)
 	x.UInt(crc_auth_resetAuthorizations)
 	return x.buf
 }
 
-func (e *TL_auth_sendInvites) encode() []byte {
+func (e TL_auth_sendInvites) encode() []byte {
 	x := NewEncodeBuf(512)
 	x.UInt(crc_auth_sendInvites)
 	x.VectorString(e.phone_numbers)
@@ -5046,14 +5046,14 @@ func (e *TL_auth_sendInvites) encode() []byte {
 	return x.buf
 }
 
-func (e *TL_auth_exportAuthorization) encode() []byte {
+func (e TL_auth_exportAuthorization) encode() []byte {
 	x := NewEncodeBuf(512)
 	x.UInt(crc_auth_exportAuthorization)
 	x.Int(e.dc_id)
 	return x.buf
 }
 
-func (e *TL_auth_importAuthorization) encode() []byte {
+func (e TL_auth_importAuthorization) encode() []byte {
 	x := NewEncodeBuf(512)
 	x.UInt(crc_auth_importAuthorization)
 	x.Int(e.id)
@@ -5061,7 +5061,7 @@ func (e *TL_auth_importAuthorization) encode() []byte {
 	return x.buf
 }
 
-func (e *TL_auth_bindTempAuthKey) encode() []byte {
+func (e TL_auth_bindTempAuthKey) encode() []byte {
 	x := NewEncodeBuf(512)
 	x.UInt(crc_auth_bindTempAuthKey)
 	x.Long(e.perm_auth_key_id)
@@ -5071,7 +5071,7 @@ func (e *TL_auth_bindTempAuthKey) encode() []byte {
 	return x.buf
 }
 
-func (e *TL_account_registerDevice) encode() []byte {
+func (e TL_account_registerDevice) encode() []byte {
 	x := NewEncodeBuf(512)
 	x.UInt(crc_account_registerDevice)
 	x.Int(e.token_type)
@@ -5084,7 +5084,7 @@ func (e *TL_account_registerDevice) encode() []byte {
 	return x.buf
 }
 
-func (e *TL_account_unregisterDevice) encode() []byte {
+func (e TL_account_unregisterDevice) encode() []byte {
 	x := NewEncodeBuf(512)
 	x.UInt(crc_account_unregisterDevice)
 	x.Int(e.token_type)
@@ -5092,7 +5092,7 @@ func (e *TL_account_unregisterDevice) encode() []byte {
 	return x.buf
 }
 
-func (e *TL_account_updateNotifySettings) encode() []byte {
+func (e TL_account_updateNotifySettings) encode() []byte {
 	x := NewEncodeBuf(512)
 	x.UInt(crc_account_updateNotifySettings)
 	x.Bytes(e.peer.encode())
@@ -5100,20 +5100,20 @@ func (e *TL_account_updateNotifySettings) encode() []byte {
 	return x.buf
 }
 
-func (e *TL_account_getNotifySettings) encode() []byte {
+func (e TL_account_getNotifySettings) encode() []byte {
 	x := NewEncodeBuf(512)
 	x.UInt(crc_account_getNotifySettings)
 	x.Bytes(e.peer.encode())
 	return x.buf
 }
 
-func (e *TL_account_resetNotifySettings) encode() []byte {
+func (e TL_account_resetNotifySettings) encode() []byte {
 	x := NewEncodeBuf(512)
 	x.UInt(crc_account_resetNotifySettings)
 	return x.buf
 }
 
-func (e *TL_account_updateProfile) encode() []byte {
+func (e TL_account_updateProfile) encode() []byte {
 	x := NewEncodeBuf(512)
 	x.UInt(crc_account_updateProfile)
 	x.String(e.first_name)
@@ -5121,47 +5121,47 @@ func (e *TL_account_updateProfile) encode() []byte {
 	return x.buf
 }
 
-func (e *TL_account_updateStatus) encode() []byte {
+func (e TL_account_updateStatus) encode() []byte {
 	x := NewEncodeBuf(512)
 	x.UInt(crc_account_updateStatus)
 	x.Bytes(e.offline.encode())
 	return x.buf
 }
 
-func (e *TL_account_getWallPapers) encode() []byte {
+func (e TL_account_getWallPapers) encode() []byte {
 	x := NewEncodeBuf(512)
 	x.UInt(crc_account_getWallPapers)
 	return x.buf
 }
 
-func (e *TL_users_getUsers) encode() []byte {
+func (e TL_users_getUsers) encode() []byte {
 	x := NewEncodeBuf(512)
 	x.UInt(crc_users_getUsers)
 	x.Vector(e.id)
 	return x.buf
 }
 
-func (e *TL_users_getFullUser) encode() []byte {
+func (e TL_users_getFullUser) encode() []byte {
 	x := NewEncodeBuf(512)
 	x.UInt(crc_users_getFullUser)
 	x.Bytes(e.id.encode())
 	return x.buf
 }
 
-func (e *TL_contacts_getStatuses) encode() []byte {
+func (e TL_contacts_getStatuses) encode() []byte {
 	x := NewEncodeBuf(512)
 	x.UInt(crc_contacts_getStatuses)
 	return x.buf
 }
 
-func (e *TL_contacts_getContacts) encode() []byte {
+func (e TL_contacts_getContacts) encode() []byte {
 	x := NewEncodeBuf(512)
 	x.UInt(crc_contacts_getContacts)
 	x.String(e.hash)
 	return x.buf
 }
 
-func (e *TL_contacts_importContacts) encode() []byte {
+func (e TL_contacts_importContacts) encode() []byte {
 	x := NewEncodeBuf(512)
 	x.UInt(crc_contacts_importContacts)
 	x.Vector(e.contacts)
@@ -5169,42 +5169,42 @@ func (e *TL_contacts_importContacts) encode() []byte {
 	return x.buf
 }
 
-func (e *TL_contacts_getSuggested) encode() []byte {
+func (e TL_contacts_getSuggested) encode() []byte {
 	x := NewEncodeBuf(512)
 	x.UInt(crc_contacts_getSuggested)
 	x.Int(e.limit)
 	return x.buf
 }
 
-func (e *TL_contacts_deleteContact) encode() []byte {
+func (e TL_contacts_deleteContact) encode() []byte {
 	x := NewEncodeBuf(512)
 	x.UInt(crc_contacts_deleteContact)
 	x.Bytes(e.id.encode())
 	return x.buf
 }
 
-func (e *TL_contacts_deleteContacts) encode() []byte {
+func (e TL_contacts_deleteContacts) encode() []byte {
 	x := NewEncodeBuf(512)
 	x.UInt(crc_contacts_deleteContacts)
 	x.Vector(e.id)
 	return x.buf
 }
 
-func (e *TL_contacts_block) encode() []byte {
+func (e TL_contacts_block) encode() []byte {
 	x := NewEncodeBuf(512)
 	x.UInt(crc_contacts_block)
 	x.Bytes(e.id.encode())
 	return x.buf
 }
 
-func (e *TL_contacts_unblock) encode() []byte {
+func (e TL_contacts_unblock) encode() []byte {
 	x := NewEncodeBuf(512)
 	x.UInt(crc_contacts_unblock)
 	x.Bytes(e.id.encode())
 	return x.buf
 }
 
-func (e *TL_contacts_getBlocked) encode() []byte {
+func (e TL_contacts_getBlocked) encode() []byte {
 	x := NewEncodeBuf(512)
 	x.UInt(crc_contacts_getBlocked)
 	x.Int(e.offset)
@@ -5212,27 +5212,27 @@ func (e *TL_contacts_getBlocked) encode() []byte {
 	return x.buf
 }
 
-func (e *TL_contacts_exportCard) encode() []byte {
+func (e TL_contacts_exportCard) encode() []byte {
 	x := NewEncodeBuf(512)
 	x.UInt(crc_contacts_exportCard)
 	return x.buf
 }
 
-func (e *TL_contacts_importCard) encode() []byte {
+func (e TL_contacts_importCard) encode() []byte {
 	x := NewEncodeBuf(512)
 	x.UInt(crc_contacts_importCard)
 	x.VectorInt(e.export_card)
 	return x.buf
 }
 
-func (e *TL_messages_getMessages) encode() []byte {
+func (e TL_messages_getMessages) encode() []byte {
 	x := NewEncodeBuf(512)
 	x.UInt(crc_messages_getMessages)
 	x.VectorInt(e.id)
 	return x.buf
 }
 
-func (e *TL_messages_getDialogs) encode() []byte {
+func (e TL_messages_getDialogs) encode() []byte {
 	x := NewEncodeBuf(512)
 	x.UInt(crc_messages_getDialogs)
 	x.Int(e.offset)
@@ -5241,7 +5241,7 @@ func (e *TL_messages_getDialogs) encode() []byte {
 	return x.buf
 }
 
-func (e *TL_messages_getHistory) encode() []byte {
+func (e TL_messages_getHistory) encode() []byte {
 	x := NewEncodeBuf(512)
 	x.UInt(crc_messages_getHistory)
 	x.Bytes(e.peer.encode())
@@ -5251,7 +5251,7 @@ func (e *TL_messages_getHistory) encode() []byte {
 	return x.buf
 }
 
-func (e *TL_messages_search) encode() []byte {
+func (e TL_messages_search) encode() []byte {
 	x := NewEncodeBuf(512)
 	x.UInt(crc_messages_search)
 	x.Bytes(e.peer.encode())
@@ -5265,7 +5265,7 @@ func (e *TL_messages_search) encode() []byte {
 	return x.buf
 }
 
-func (e *TL_messages_readHistory) encode() []byte {
+func (e TL_messages_readHistory) encode() []byte {
 	x := NewEncodeBuf(512)
 	x.UInt(crc_messages_readHistory)
 	x.Bytes(e.peer.encode())
@@ -5275,7 +5275,7 @@ func (e *TL_messages_readHistory) encode() []byte {
 	return x.buf
 }
 
-func (e *TL_messages_deleteHistory) encode() []byte {
+func (e TL_messages_deleteHistory) encode() []byte {
 	x := NewEncodeBuf(512)
 	x.UInt(crc_messages_deleteHistory)
 	x.Bytes(e.peer.encode())
@@ -5283,21 +5283,21 @@ func (e *TL_messages_deleteHistory) encode() []byte {
 	return x.buf
 }
 
-func (e *TL_messages_deleteMessages) encode() []byte {
+func (e TL_messages_deleteMessages) encode() []byte {
 	x := NewEncodeBuf(512)
 	x.UInt(crc_messages_deleteMessages)
 	x.VectorInt(e.id)
 	return x.buf
 }
 
-func (e *TL_messages_receivedMessages) encode() []byte {
+func (e TL_messages_receivedMessages) encode() []byte {
 	x := NewEncodeBuf(512)
 	x.UInt(crc_messages_receivedMessages)
 	x.Int(e.max_id)
 	return x.buf
 }
 
-func (e *TL_messages_setTyping) encode() []byte {
+func (e TL_messages_setTyping) encode() []byte {
 	x := NewEncodeBuf(512)
 	x.UInt(crc_messages_setTyping)
 	x.Bytes(e.peer.encode())
@@ -5305,7 +5305,7 @@ func (e *TL_messages_setTyping) encode() []byte {
 	return x.buf
 }
 
-func (e *TL_messages_sendMessage) encode() []byte {
+func (e TL_messages_sendMessage) encode() []byte {
 	x := NewEncodeBuf(512)
 	x.UInt(crc_messages_sendMessage)
 	x.Bytes(e.peer.encode())
@@ -5314,7 +5314,7 @@ func (e *TL_messages_sendMessage) encode() []byte {
 	return x.buf
 }
 
-func (e *TL_messages_sendMedia) encode() []byte {
+func (e TL_messages_sendMedia) encode() []byte {
 	x := NewEncodeBuf(512)
 	x.UInt(crc_messages_sendMedia)
 	x.Bytes(e.peer.encode())
@@ -5323,7 +5323,7 @@ func (e *TL_messages_sendMedia) encode() []byte {
 	return x.buf
 }
 
-func (e *TL_messages_forwardMessages) encode() []byte {
+func (e TL_messages_forwardMessages) encode() []byte {
 	x := NewEncodeBuf(512)
 	x.UInt(crc_messages_forwardMessages)
 	x.Bytes(e.peer.encode())
@@ -5331,21 +5331,21 @@ func (e *TL_messages_forwardMessages) encode() []byte {
 	return x.buf
 }
 
-func (e *TL_messages_getChats) encode() []byte {
+func (e TL_messages_getChats) encode() []byte {
 	x := NewEncodeBuf(512)
 	x.UInt(crc_messages_getChats)
 	x.VectorInt(e.id)
 	return x.buf
 }
 
-func (e *TL_messages_getFullChat) encode() []byte {
+func (e TL_messages_getFullChat) encode() []byte {
 	x := NewEncodeBuf(512)
 	x.UInt(crc_messages_getFullChat)
 	x.Int(e.chat_id)
 	return x.buf
 }
 
-func (e *TL_messages_editChatTitle) encode() []byte {
+func (e TL_messages_editChatTitle) encode() []byte {
 	x := NewEncodeBuf(512)
 	x.UInt(crc_messages_editChatTitle)
 	x.Int(e.chat_id)
@@ -5353,7 +5353,7 @@ func (e *TL_messages_editChatTitle) encode() []byte {
 	return x.buf
 }
 
-func (e *TL_messages_editChatPhoto) encode() []byte {
+func (e TL_messages_editChatPhoto) encode() []byte {
 	x := NewEncodeBuf(512)
 	x.UInt(crc_messages_editChatPhoto)
 	x.Int(e.chat_id)
@@ -5361,7 +5361,7 @@ func (e *TL_messages_editChatPhoto) encode() []byte {
 	return x.buf
 }
 
-func (e *TL_messages_addChatUser) encode() []byte {
+func (e TL_messages_addChatUser) encode() []byte {
 	x := NewEncodeBuf(512)
 	x.UInt(crc_messages_addChatUser)
 	x.Int(e.chat_id)
@@ -5370,7 +5370,7 @@ func (e *TL_messages_addChatUser) encode() []byte {
 	return x.buf
 }
 
-func (e *TL_messages_deleteChatUser) encode() []byte {
+func (e TL_messages_deleteChatUser) encode() []byte {
 	x := NewEncodeBuf(512)
 	x.UInt(crc_messages_deleteChatUser)
 	x.Int(e.chat_id)
@@ -5378,7 +5378,7 @@ func (e *TL_messages_deleteChatUser) encode() []byte {
 	return x.buf
 }
 
-func (e *TL_messages_createChat) encode() []byte {
+func (e TL_messages_createChat) encode() []byte {
 	x := NewEncodeBuf(512)
 	x.UInt(crc_messages_createChat)
 	x.Vector(e.users)
@@ -5386,13 +5386,13 @@ func (e *TL_messages_createChat) encode() []byte {
 	return x.buf
 }
 
-func (e *TL_updates_getState) encode() []byte {
+func (e TL_updates_getState) encode() []byte {
 	x := NewEncodeBuf(512)
 	x.UInt(crc_updates_getState)
 	return x.buf
 }
 
-func (e *TL_updates_getDifference) encode() []byte {
+func (e TL_updates_getDifference) encode() []byte {
 	x := NewEncodeBuf(512)
 	x.UInt(crc_updates_getDifference)
 	x.Int(e.pts)
@@ -5401,7 +5401,7 @@ func (e *TL_updates_getDifference) encode() []byte {
 	return x.buf
 }
 
-func (e *TL_photos_updateProfilePhoto) encode() []byte {
+func (e TL_photos_updateProfilePhoto) encode() []byte {
 	x := NewEncodeBuf(512)
 	x.UInt(crc_photos_updateProfilePhoto)
 	x.Bytes(e.id.encode())
@@ -5409,7 +5409,7 @@ func (e *TL_photos_updateProfilePhoto) encode() []byte {
 	return x.buf
 }
 
-func (e *TL_photos_uploadProfilePhoto) encode() []byte {
+func (e TL_photos_uploadProfilePhoto) encode() []byte {
 	x := NewEncodeBuf(512)
 	x.UInt(crc_photos_uploadProfilePhoto)
 	x.Bytes(e.file.encode())
@@ -5419,14 +5419,14 @@ func (e *TL_photos_uploadProfilePhoto) encode() []byte {
 	return x.buf
 }
 
-func (e *TL_photos_deletePhotos) encode() []byte {
+func (e TL_photos_deletePhotos) encode() []byte {
 	x := NewEncodeBuf(512)
 	x.UInt(crc_photos_deletePhotos)
 	x.Vector(e.id)
 	return x.buf
 }
 
-func (e *TL_upload_saveFilePart) encode() []byte {
+func (e TL_upload_saveFilePart) encode() []byte {
 	x := NewEncodeBuf(512)
 	x.UInt(crc_upload_saveFilePart)
 	x.Long(e.file_id)
@@ -5435,7 +5435,7 @@ func (e *TL_upload_saveFilePart) encode() []byte {
 	return x.buf
 }
 
-func (e *TL_upload_getFile) encode() []byte {
+func (e TL_upload_getFile) encode() []byte {
 	x := NewEncodeBuf(512)
 	x.UInt(crc_upload_getFile)
 	x.Bytes(e.location.encode())
@@ -5444,19 +5444,19 @@ func (e *TL_upload_getFile) encode() []byte {
 	return x.buf
 }
 
-func (e *TL_help_getConfig) encode() []byte {
+func (e TL_help_getConfig) encode() []byte {
 	x := NewEncodeBuf(512)
 	x.UInt(crc_help_getConfig)
 	return x.buf
 }
 
-func (e *TL_help_getNearestDc) encode() []byte {
+func (e TL_help_getNearestDc) encode() []byte {
 	x := NewEncodeBuf(512)
 	x.UInt(crc_help_getNearestDc)
 	return x.buf
 }
 
-func (e *TL_help_getAppUpdate) encode() []byte {
+func (e TL_help_getAppUpdate) encode() []byte {
 	x := NewEncodeBuf(512)
 	x.UInt(crc_help_getAppUpdate)
 	x.String(e.device_model)
@@ -5466,21 +5466,21 @@ func (e *TL_help_getAppUpdate) encode() []byte {
 	return x.buf
 }
 
-func (e *TL_help_saveAppLog) encode() []byte {
+func (e TL_help_saveAppLog) encode() []byte {
 	x := NewEncodeBuf(512)
 	x.UInt(crc_help_saveAppLog)
 	x.Vector(e.events)
 	return x.buf
 }
 
-func (e *TL_help_getInviteText) encode() []byte {
+func (e TL_help_getInviteText) encode() []byte {
 	x := NewEncodeBuf(512)
 	x.UInt(crc_help_getInviteText)
 	x.String(e.lang_code)
 	return x.buf
 }
 
-func (e *TL_photos_getUserPhotos) encode() []byte {
+func (e TL_photos_getUserPhotos) encode() []byte {
 	x := NewEncodeBuf(512)
 	x.UInt(crc_photos_getUserPhotos)
 	x.Bytes(e.user_id.encode())
@@ -5490,7 +5490,7 @@ func (e *TL_photos_getUserPhotos) encode() []byte {
 	return x.buf
 }
 
-func (e *TL_messages_forwardMessage) encode() []byte {
+func (e TL_messages_forwardMessage) encode() []byte {
 	x := NewEncodeBuf(512)
 	x.UInt(crc_messages_forwardMessage)
 	x.Bytes(e.peer.encode())
@@ -5499,7 +5499,7 @@ func (e *TL_messages_forwardMessage) encode() []byte {
 	return x.buf
 }
 
-func (e *TL_messages_sendBroadcast) encode() []byte {
+func (e TL_messages_sendBroadcast) encode() []byte {
 	x := NewEncodeBuf(512)
 	x.UInt(crc_messages_sendBroadcast)
 	x.Vector(e.contacts)
@@ -5508,7 +5508,7 @@ func (e *TL_messages_sendBroadcast) encode() []byte {
 	return x.buf
 }
 
-func (e *TL_geochats_getLocated) encode() []byte {
+func (e TL_geochats_getLocated) encode() []byte {
 	x := NewEncodeBuf(512)
 	x.UInt(crc_geochats_getLocated)
 	x.Bytes(e.geo_point.encode())
@@ -5517,7 +5517,7 @@ func (e *TL_geochats_getLocated) encode() []byte {
 	return x.buf
 }
 
-func (e *TL_geochats_getRecents) encode() []byte {
+func (e TL_geochats_getRecents) encode() []byte {
 	x := NewEncodeBuf(512)
 	x.UInt(crc_geochats_getRecents)
 	x.Int(e.offset)
@@ -5525,21 +5525,21 @@ func (e *TL_geochats_getRecents) encode() []byte {
 	return x.buf
 }
 
-func (e *TL_geochats_checkin) encode() []byte {
+func (e TL_geochats_checkin) encode() []byte {
 	x := NewEncodeBuf(512)
 	x.UInt(crc_geochats_checkin)
 	x.Bytes(e.peer.encode())
 	return x.buf
 }
 
-func (e *TL_geochats_getFullChat) encode() []byte {
+func (e TL_geochats_getFullChat) encode() []byte {
 	x := NewEncodeBuf(512)
 	x.UInt(crc_geochats_getFullChat)
 	x.Bytes(e.peer.encode())
 	return x.buf
 }
 
-func (e *TL_geochats_editChatTitle) encode() []byte {
+func (e TL_geochats_editChatTitle) encode() []byte {
 	x := NewEncodeBuf(512)
 	x.UInt(crc_geochats_editChatTitle)
 	x.Bytes(e.peer.encode())
@@ -5548,7 +5548,7 @@ func (e *TL_geochats_editChatTitle) encode() []byte {
 	return x.buf
 }
 
-func (e *TL_geochats_editChatPhoto) encode() []byte {
+func (e TL_geochats_editChatPhoto) encode() []byte {
 	x := NewEncodeBuf(512)
 	x.UInt(crc_geochats_editChatPhoto)
 	x.Bytes(e.peer.encode())
@@ -5556,7 +5556,7 @@ func (e *TL_geochats_editChatPhoto) encode() []byte {
 	return x.buf
 }
 
-func (e *TL_geochats_search) encode() []byte {
+func (e TL_geochats_search) encode() []byte {
 	x := NewEncodeBuf(512)
 	x.UInt(crc_geochats_search)
 	x.Bytes(e.peer.encode())
@@ -5570,7 +5570,7 @@ func (e *TL_geochats_search) encode() []byte {
 	return x.buf
 }
 
-func (e *TL_geochats_getHistory) encode() []byte {
+func (e TL_geochats_getHistory) encode() []byte {
 	x := NewEncodeBuf(512)
 	x.UInt(crc_geochats_getHistory)
 	x.Bytes(e.peer.encode())
@@ -5580,7 +5580,7 @@ func (e *TL_geochats_getHistory) encode() []byte {
 	return x.buf
 }
 
-func (e *TL_geochats_setTyping) encode() []byte {
+func (e TL_geochats_setTyping) encode() []byte {
 	x := NewEncodeBuf(512)
 	x.UInt(crc_geochats_setTyping)
 	x.Bytes(e.peer.encode())
@@ -5588,7 +5588,7 @@ func (e *TL_geochats_setTyping) encode() []byte {
 	return x.buf
 }
 
-func (e *TL_geochats_sendMessage) encode() []byte {
+func (e TL_geochats_sendMessage) encode() []byte {
 	x := NewEncodeBuf(512)
 	x.UInt(crc_geochats_sendMessage)
 	x.Bytes(e.peer.encode())
@@ -5597,7 +5597,7 @@ func (e *TL_geochats_sendMessage) encode() []byte {
 	return x.buf
 }
 
-func (e *TL_geochats_sendMedia) encode() []byte {
+func (e TL_geochats_sendMedia) encode() []byte {
 	x := NewEncodeBuf(512)
 	x.UInt(crc_geochats_sendMedia)
 	x.Bytes(e.peer.encode())
@@ -5606,7 +5606,7 @@ func (e *TL_geochats_sendMedia) encode() []byte {
 	return x.buf
 }
 
-func (e *TL_geochats_createGeoChat) encode() []byte {
+func (e TL_geochats_createGeoChat) encode() []byte {
 	x := NewEncodeBuf(512)
 	x.UInt(crc_geochats_createGeoChat)
 	x.String(e.title)
@@ -5616,7 +5616,7 @@ func (e *TL_geochats_createGeoChat) encode() []byte {
 	return x.buf
 }
 
-func (e *TL_messages_getDhConfig) encode() []byte {
+func (e TL_messages_getDhConfig) encode() []byte {
 	x := NewEncodeBuf(512)
 	x.UInt(crc_messages_getDhConfig)
 	x.Int(e.version)
@@ -5624,7 +5624,7 @@ func (e *TL_messages_getDhConfig) encode() []byte {
 	return x.buf
 }
 
-func (e *TL_messages_requestEncryption) encode() []byte {
+func (e TL_messages_requestEncryption) encode() []byte {
 	x := NewEncodeBuf(512)
 	x.UInt(crc_messages_requestEncryption)
 	x.Bytes(e.user_id.encode())
@@ -5633,7 +5633,7 @@ func (e *TL_messages_requestEncryption) encode() []byte {
 	return x.buf
 }
 
-func (e *TL_messages_acceptEncryption) encode() []byte {
+func (e TL_messages_acceptEncryption) encode() []byte {
 	x := NewEncodeBuf(512)
 	x.UInt(crc_messages_acceptEncryption)
 	x.Bytes(e.peer.encode())
@@ -5642,14 +5642,14 @@ func (e *TL_messages_acceptEncryption) encode() []byte {
 	return x.buf
 }
 
-func (e *TL_messages_discardEncryption) encode() []byte {
+func (e TL_messages_discardEncryption) encode() []byte {
 	x := NewEncodeBuf(512)
 	x.UInt(crc_messages_discardEncryption)
 	x.Int(e.chat_id)
 	return x.buf
 }
 
-func (e *TL_messages_setEncryptedTyping) encode() []byte {
+func (e TL_messages_setEncryptedTyping) encode() []byte {
 	x := NewEncodeBuf(512)
 	x.UInt(crc_messages_setEncryptedTyping)
 	x.Bytes(e.peer.encode())
@@ -5657,7 +5657,7 @@ func (e *TL_messages_setEncryptedTyping) encode() []byte {
 	return x.buf
 }
 
-func (e *TL_messages_readEncryptedHistory) encode() []byte {
+func (e TL_messages_readEncryptedHistory) encode() []byte {
 	x := NewEncodeBuf(512)
 	x.UInt(crc_messages_readEncryptedHistory)
 	x.Bytes(e.peer.encode())
@@ -5665,7 +5665,7 @@ func (e *TL_messages_readEncryptedHistory) encode() []byte {
 	return x.buf
 }
 
-func (e *TL_messages_sendEncrypted) encode() []byte {
+func (e TL_messages_sendEncrypted) encode() []byte {
 	x := NewEncodeBuf(512)
 	x.UInt(crc_messages_sendEncrypted)
 	x.Bytes(e.peer.encode())
@@ -5674,7 +5674,7 @@ func (e *TL_messages_sendEncrypted) encode() []byte {
 	return x.buf
 }
 
-func (e *TL_messages_sendEncryptedFile) encode() []byte {
+func (e TL_messages_sendEncryptedFile) encode() []byte {
 	x := NewEncodeBuf(512)
 	x.UInt(crc_messages_sendEncryptedFile)
 	x.Bytes(e.peer.encode())
@@ -5684,7 +5684,7 @@ func (e *TL_messages_sendEncryptedFile) encode() []byte {
 	return x.buf
 }
 
-func (e *TL_messages_sendEncryptedService) encode() []byte {
+func (e TL_messages_sendEncryptedService) encode() []byte {
 	x := NewEncodeBuf(512)
 	x.UInt(crc_messages_sendEncryptedService)
 	x.Bytes(e.peer.encode())
@@ -5693,14 +5693,14 @@ func (e *TL_messages_sendEncryptedService) encode() []byte {
 	return x.buf
 }
 
-func (e *TL_messages_receivedQueue) encode() []byte {
+func (e TL_messages_receivedQueue) encode() []byte {
 	x := NewEncodeBuf(512)
 	x.UInt(crc_messages_receivedQueue)
 	x.Int(e.max_qts)
 	return x.buf
 }
 
-func (e *TL_upload_saveBigFilePart) encode() []byte {
+func (e TL_upload_saveBigFilePart) encode() []byte {
 	x := NewEncodeBuf(512)
 	x.UInt(crc_upload_saveBigFilePart)
 	x.Long(e.file_id)
@@ -5710,7 +5710,7 @@ func (e *TL_upload_saveBigFilePart) encode() []byte {
 	return x.buf
 }
 
-func (e *TL_initConnection) encode() []byte {
+func (e TL_initConnection) encode() []byte {
 	x := NewEncodeBuf(512)
 	x.UInt(crc_initConnection)
 	x.Int(e.api_id)
@@ -5722,13 +5722,13 @@ func (e *TL_initConnection) encode() []byte {
 	return x.buf
 }
 
-func (e *TL_help_getSupport) encode() []byte {
+func (e TL_help_getSupport) encode() []byte {
 	x := NewEncodeBuf(512)
 	x.UInt(crc_help_getSupport)
 	return x.buf
 }
 
-func (e *TL_auth_sendSms) encode() []byte {
+func (e TL_auth_sendSms) encode() []byte {
 	x := NewEncodeBuf(512)
 	x.UInt(crc_auth_sendSms)
 	x.String(e.phone_number)
@@ -5736,28 +5736,28 @@ func (e *TL_auth_sendSms) encode() []byte {
 	return x.buf
 }
 
-func (e *TL_messages_readMessageContents) encode() []byte {
+func (e TL_messages_readMessageContents) encode() []byte {
 	x := NewEncodeBuf(512)
 	x.UInt(crc_messages_readMessageContents)
 	x.VectorInt(e.id)
 	return x.buf
 }
 
-func (e *TL_account_checkUsername) encode() []byte {
+func (e TL_account_checkUsername) encode() []byte {
 	x := NewEncodeBuf(512)
 	x.UInt(crc_account_checkUsername)
 	x.String(e.username)
 	return x.buf
 }
 
-func (e *TL_account_updateUsername) encode() []byte {
+func (e TL_account_updateUsername) encode() []byte {
 	x := NewEncodeBuf(512)
 	x.UInt(crc_account_updateUsername)
 	x.String(e.username)
 	return x.buf
 }
 
-func (e *TL_contacts_search) encode() []byte {
+func (e TL_contacts_search) encode() []byte {
 	x := NewEncodeBuf(512)
 	x.UInt(crc_contacts_search)
 	x.String(e.q)
@@ -5765,14 +5765,14 @@ func (e *TL_contacts_search) encode() []byte {
 	return x.buf
 }
 
-func (e *TL_account_getPrivacy) encode() []byte {
+func (e TL_account_getPrivacy) encode() []byte {
 	x := NewEncodeBuf(512)
 	x.UInt(crc_account_getPrivacy)
 	x.Bytes(e.key.encode())
 	return x.buf
 }
 
-func (e *TL_account_setPrivacy) encode() []byte {
+func (e TL_account_setPrivacy) encode() []byte {
 	x := NewEncodeBuf(512)
 	x.UInt(crc_account_setPrivacy)
 	x.Bytes(e.key.encode())
@@ -5780,27 +5780,27 @@ func (e *TL_account_setPrivacy) encode() []byte {
 	return x.buf
 }
 
-func (e *TL_account_deleteAccount) encode() []byte {
+func (e TL_account_deleteAccount) encode() []byte {
 	x := NewEncodeBuf(512)
 	x.UInt(crc_account_deleteAccount)
 	x.String(e.reason)
 	return x.buf
 }
 
-func (e *TL_account_getAccountTTL) encode() []byte {
+func (e TL_account_getAccountTTL) encode() []byte {
 	x := NewEncodeBuf(512)
 	x.UInt(crc_account_getAccountTTL)
 	return x.buf
 }
 
-func (e *TL_account_setAccountTTL) encode() []byte {
+func (e TL_account_setAccountTTL) encode() []byte {
 	x := NewEncodeBuf(512)
 	x.UInt(crc_account_setAccountTTL)
 	x.Bytes(e.ttl.encode())
 	return x.buf
 }
 
-func (e *TL_invokeWithLayer) encode() []byte {
+func (e TL_invokeWithLayer) encode() []byte {
 	x := NewEncodeBuf(512)
 	x.UInt(crc_invokeWithLayer)
 	x.Int(e.layer)
@@ -5808,21 +5808,21 @@ func (e *TL_invokeWithLayer) encode() []byte {
 	return x.buf
 }
 
-func (e *TL_contacts_resolveUsername) encode() []byte {
+func (e TL_contacts_resolveUsername) encode() []byte {
 	x := NewEncodeBuf(512)
 	x.UInt(crc_contacts_resolveUsername)
 	x.String(e.username)
 	return x.buf
 }
 
-func (e *TL_account_sendChangePhoneCode) encode() []byte {
+func (e TL_account_sendChangePhoneCode) encode() []byte {
 	x := NewEncodeBuf(512)
 	x.UInt(crc_account_sendChangePhoneCode)
 	x.String(e.phone_number)
 	return x.buf
 }
 
-func (e *TL_account_changePhone) encode() []byte {
+func (e TL_account_changePhone) encode() []byte {
 	x := NewEncodeBuf(512)
 	x.UInt(crc_account_changePhone)
 	x.String(e.phone_number)
@@ -5831,7 +5831,7 @@ func (e *TL_account_changePhone) encode() []byte {
 	return x.buf
 }
 
-func (e *TL_messages_getStickers) encode() []byte {
+func (e TL_messages_getStickers) encode() []byte {
 	x := NewEncodeBuf(512)
 	x.UInt(crc_messages_getStickers)
 	x.String(e.emoticon)
@@ -5839,14 +5839,14 @@ func (e *TL_messages_getStickers) encode() []byte {
 	return x.buf
 }
 
-func (e *TL_messages_getAllStickers) encode() []byte {
+func (e TL_messages_getAllStickers) encode() []byte {
 	x := NewEncodeBuf(512)
 	x.UInt(crc_messages_getAllStickers)
 	x.String(e.hash)
 	return x.buf
 }
 
-func (e *TL_account_updateDeviceLocked) encode() []byte {
+func (e TL_account_updateDeviceLocked) encode() []byte {
 	x := NewEncodeBuf(512)
 	x.UInt(crc_account_updateDeviceLocked)
 	x.Int(e.period)
@@ -5856,61 +5856,61 @@ func (e *TL_account_updateDeviceLocked) encode() []byte {
 func (m *DecodeBuf) ObjectGenerated(constructor uint32) (r TL) {
 	switch constructor {
 	case crc_boolFalse:
-		r = &TL_boolFalse{}
+		r = TL_boolFalse{}
 
 	case crc_boolTrue:
-		r = &TL_boolTrue{}
+		r = TL_boolTrue{}
 
 	case crc_error:
-		r = &TL_error{
+		r = TL_error{
 			m.Int(),
 			m.String(),
 		}
 
 	case crc_null:
-		r = &TL_null{}
+		r = TL_null{}
 
 	case crc_inputPeerEmpty:
-		r = &TL_inputPeerEmpty{}
+		r = TL_inputPeerEmpty{}
 
 	case crc_inputPeerSelf:
-		r = &TL_inputPeerSelf{}
+		r = TL_inputPeerSelf{}
 
 	case crc_inputPeerContact:
-		r = &TL_inputPeerContact{
+		r = TL_inputPeerContact{
 			m.Int(),
 		}
 
 	case crc_inputPeerForeign:
-		r = &TL_inputPeerForeign{
+		r = TL_inputPeerForeign{
 			m.Int(),
 			m.Long(),
 		}
 
 	case crc_inputPeerChat:
-		r = &TL_inputPeerChat{
+		r = TL_inputPeerChat{
 			m.Int(),
 		}
 
 	case crc_inputUserEmpty:
-		r = &TL_inputUserEmpty{}
+		r = TL_inputUserEmpty{}
 
 	case crc_inputUserSelf:
-		r = &TL_inputUserSelf{}
+		r = TL_inputUserSelf{}
 
 	case crc_inputUserContact:
-		r = &TL_inputUserContact{
+		r = TL_inputUserContact{
 			m.Int(),
 		}
 
 	case crc_inputUserForeign:
-		r = &TL_inputUserForeign{
+		r = TL_inputUserForeign{
 			m.Int(),
 			m.Long(),
 		}
 
 	case crc_inputPhoneContact:
-		r = &TL_inputPhoneContact{
+		r = TL_inputPhoneContact{
 			m.Long(),
 			m.String(),
 			m.String(),
@@ -5918,7 +5918,7 @@ func (m *DecodeBuf) ObjectGenerated(constructor uint32) (r TL) {
 		}
 
 	case crc_inputFile:
-		r = &TL_inputFile{
+		r = TL_inputFile{
 			m.Long(),
 			m.Int(),
 			m.String(),
@@ -5926,32 +5926,32 @@ func (m *DecodeBuf) ObjectGenerated(constructor uint32) (r TL) {
 		}
 
 	case crc_inputMediaEmpty:
-		r = &TL_inputMediaEmpty{}
+		r = TL_inputMediaEmpty{}
 
 	case crc_inputMediaUploadedPhoto:
-		r = &TL_inputMediaUploadedPhoto{
+		r = TL_inputMediaUploadedPhoto{
 			m.Object(),
 		}
 
 	case crc_inputMediaPhoto:
-		r = &TL_inputMediaPhoto{
+		r = TL_inputMediaPhoto{
 			m.Object(),
 		}
 
 	case crc_inputMediaGeoPoint:
-		r = &TL_inputMediaGeoPoint{
+		r = TL_inputMediaGeoPoint{
 			m.Object(),
 		}
 
 	case crc_inputMediaContact:
-		r = &TL_inputMediaContact{
+		r = TL_inputMediaContact{
 			m.String(),
 			m.String(),
 			m.String(),
 		}
 
 	case crc_inputMediaUploadedVideo:
-		r = &TL_inputMediaUploadedVideo{
+		r = TL_inputMediaUploadedVideo{
 			m.Object(),
 			m.Int(),
 			m.Int(),
@@ -5960,7 +5960,7 @@ func (m *DecodeBuf) ObjectGenerated(constructor uint32) (r TL) {
 		}
 
 	case crc_inputMediaUploadedThumbVideo:
-		r = &TL_inputMediaUploadedThumbVideo{
+		r = TL_inputMediaUploadedThumbVideo{
 			m.Object(),
 			m.Object(),
 			m.Int(),
@@ -5970,77 +5970,77 @@ func (m *DecodeBuf) ObjectGenerated(constructor uint32) (r TL) {
 		}
 
 	case crc_inputMediaVideo:
-		r = &TL_inputMediaVideo{
+		r = TL_inputMediaVideo{
 			m.Object(),
 		}
 
 	case crc_inputChatPhotoEmpty:
-		r = &TL_inputChatPhotoEmpty{}
+		r = TL_inputChatPhotoEmpty{}
 
 	case crc_inputChatUploadedPhoto:
-		r = &TL_inputChatUploadedPhoto{
+		r = TL_inputChatUploadedPhoto{
 			m.Object(),
 			m.Object(),
 		}
 
 	case crc_inputChatPhoto:
-		r = &TL_inputChatPhoto{
+		r = TL_inputChatPhoto{
 			m.Object(),
 			m.Object(),
 		}
 
 	case crc_inputGeoPointEmpty:
-		r = &TL_inputGeoPointEmpty{}
+		r = TL_inputGeoPointEmpty{}
 
 	case crc_inputGeoPoint:
-		r = &TL_inputGeoPoint{
+		r = TL_inputGeoPoint{
 			m.Double(),
 			m.Double(),
 		}
 
 	case crc_inputPhotoEmpty:
-		r = &TL_inputPhotoEmpty{}
+		r = TL_inputPhotoEmpty{}
 
 	case crc_inputPhoto:
-		r = &TL_inputPhoto{
+		r = TL_inputPhoto{
 			m.Long(),
 			m.Long(),
 		}
 
 	case crc_inputVideoEmpty:
-		r = &TL_inputVideoEmpty{}
+		r = TL_inputVideoEmpty{}
 
 	case crc_inputVideo:
-		r = &TL_inputVideo{
+		r = TL_inputVideo{
 			m.Long(),
 			m.Long(),
 		}
 
 	case crc_inputFileLocation:
-		r = &TL_inputFileLocation{
+		r = TL_inputFileLocation{
 			m.Long(),
 			m.Int(),
 			m.Long(),
 		}
 
 	case crc_inputVideoFileLocation:
-		r = &TL_inputVideoFileLocation{
+		r = TL_inputVideoFileLocation{
 			m.Long(),
 			m.Long(),
 		}
 
 	case crc_inputPhotoCropAuto:
-		r = &TL_inputPhotoCropAuto{}
+		r = TL_inputPhotoCropAuto{}
 
 	case crc_inputPhotoCrop:
-		r = &TL_inputPhotoCrop{
+		r = TL_inputPhotoCrop{
 			m.Double(),
 			m.Double(),
 			m.Double(),
 		}
 
 	case crc_inputAppEvent:
-		r = &TL_inputAppEvent{
+		r = TL_inputAppEvent{
 			m.Double(),
 			m.String(),
 			m.Long(),
@@ -6048,54 +6048,54 @@ func (m *DecodeBuf) ObjectGenerated(constructor uint32) (r TL) {
 		}
 
 	case crc_peerUser:
-		r = &TL_peerUser{
+		r = TL_peerUser{
 			m.Int(),
 		}
 
 	case crc_peerChat:
-		r = &TL_peerChat{
+		r = TL_peerChat{
 			m.Int(),
 		}
 
 	case crc_storage_fileUnknown:
-		r = &TL_storage_fileUnknown{}
+		r = TL_storage_fileUnknown{}
 
 	case crc_storage_fileJpeg:
-		r = &TL_storage_fileJpeg{}
+		r = TL_storage_fileJpeg{}
 
 	case crc_storage_fileGif:
-		r = &TL_storage_fileGif{}
+		r = TL_storage_fileGif{}
 
 	case crc_storage_filePng:
-		r = &TL_storage_filePng{}
+		r = TL_storage_filePng{}
 
 	case crc_storage_filePdf:
-		r = &TL_storage_filePdf{}
+		r = TL_storage_filePdf{}
 
 	case crc_storage_fileMp3:
-		r = &TL_storage_fileMp3{}
+		r = TL_storage_fileMp3{}
 
 	case crc_storage_fileMov:
-		r = &TL_storage_fileMov{}
+		r = TL_storage_fileMov{}
 
 	case crc_storage_filePartial:
-		r = &TL_storage_filePartial{}
+		r = TL_storage_filePartial{}
 
 	case crc_storage_fileMp4:
-		r = &TL_storage_fileMp4{}
+		r = TL_storage_fileMp4{}
 
 	case crc_storage_fileWebp:
-		r = &TL_storage_fileWebp{}
+		r = TL_storage_fileWebp{}
 
 	case crc_fileLocationUnavailable:
-		r = &TL_fileLocationUnavailable{
+		r = TL_fileLocationUnavailable{
 			m.Long(),
 			m.Int(),
 			m.Long(),
 		}
 
 	case crc_fileLocation:
-		r = &TL_fileLocation{
+		r = TL_fileLocation{
 			m.Int(),
 			m.Long(),
 			m.Int(),
@@ -6103,12 +6103,12 @@ func (m *DecodeBuf) ObjectGenerated(constructor uint32) (r TL) {
 		}
 
 	case crc_userEmpty:
-		r = &TL_userEmpty{
+		r = TL_userEmpty{
 			m.Int(),
 		}
 
 	case crc_userSelf:
-		r = &TL_userSelf{
+		r = TL_userSelf{
 			m.Int(),
 			m.String(),
 			m.String(),
@@ -6120,7 +6120,7 @@ func (m *DecodeBuf) ObjectGenerated(constructor uint32) (r TL) {
 		}
 
 	case crc_userContact:
-		r = &TL_userContact{
+		r = TL_userContact{
 			m.Int(),
 			m.String(),
 			m.String(),
@@ -6132,7 +6132,7 @@ func (m *DecodeBuf) ObjectGenerated(constructor uint32) (r TL) {
 		}
 
 	case crc_userRequest:
-		r = &TL_userRequest{
+		r = TL_userRequest{
 			m.Int(),
 			m.String(),
 			m.String(),
@@ -6144,7 +6144,7 @@ func (m *DecodeBuf) ObjectGenerated(constructor uint32) (r TL) {
 		}
 
 	case crc_userForeign:
-		r = &TL_userForeign{
+		r = TL_userForeign{
 			m.Int(),
 			m.String(),
 			m.String(),
@@ -6155,7 +6155,7 @@ func (m *DecodeBuf) ObjectGenerated(constructor uint32) (r TL) {
 		}
 
 	case crc_userDeleted:
-		r = &TL_userDeleted{
+		r = TL_userDeleted{
 			m.Int(),
 			m.String(),
 			m.String(),
@@ -6163,35 +6163,35 @@ func (m *DecodeBuf) ObjectGenerated(constructor uint32) (r TL) {
 		}
 
 	case crc_userProfilePhotoEmpty:
-		r = &TL_userProfilePhotoEmpty{}
+		r = TL_userProfilePhotoEmpty{}
 
 	case crc_userProfilePhoto:
-		r = &TL_userProfilePhoto{
+		r = TL_userProfilePhoto{
 			m.Long(),
 			m.Object(),
 			m.Object(),
 		}
 
 	case crc_userStatusEmpty:
-		r = &TL_userStatusEmpty{}
+		r = TL_userStatusEmpty{}
 
 	case crc_userStatusOnline:
-		r = &TL_userStatusOnline{
+		r = TL_userStatusOnline{
 			m.Int(),
 		}
 
 	case crc_userStatusOffline:
-		r = &TL_userStatusOffline{
+		r = TL_userStatusOffline{
 			m.Int(),
 		}
 
 	case crc_chatEmpty:
-		r = &TL_chatEmpty{
+		r = TL_chatEmpty{
 			m.Int(),
 		}
 
 	case crc_chat:
-		r = &TL_chat{
+		r = TL_chat{
 			m.Int(),
 			m.String(),
 			m.Object(),
@@ -6202,14 +6202,14 @@ func (m *DecodeBuf) ObjectGenerated(constructor uint32) (r TL) {
 		}
 
 	case crc_chatForbidden:
-		r = &TL_chatForbidden{
+		r = TL_chatForbidden{
 			m.Int(),
 			m.String(),
 			m.Int(),
 		}
 
 	case crc_chatFull:
-		r = &TL_chatFull{
+		r = TL_chatFull{
 			m.Int(),
 			m.Object(),
 			m.Object(),
@@ -6217,19 +6217,19 @@ func (m *DecodeBuf) ObjectGenerated(constructor uint32) (r TL) {
 		}
 
 	case crc_chatParticipant:
-		r = &TL_chatParticipant{
+		r = TL_chatParticipant{
 			m.Int(),
 			m.Int(),
 			m.Int(),
 		}
 
 	case crc_chatParticipantsForbidden:
-		r = &TL_chatParticipantsForbidden{
+		r = TL_chatParticipantsForbidden{
 			m.Int(),
 		}
 
 	case crc_chatParticipants:
-		r = &TL_chatParticipants{
+		r = TL_chatParticipants{
 			m.Int(),
 			m.Int(),
 			m.Vector(),
@@ -6237,21 +6237,21 @@ func (m *DecodeBuf) ObjectGenerated(constructor uint32) (r TL) {
 		}
 
 	case crc_chatPhotoEmpty:
-		r = &TL_chatPhotoEmpty{}
+		r = TL_chatPhotoEmpty{}
 
 	case crc_chatPhoto:
-		r = &TL_chatPhoto{
+		r = TL_chatPhoto{
 			m.Object(),
 			m.Object(),
 		}
 
 	case crc_messageEmpty:
-		r = &TL_messageEmpty{
+		r = TL_messageEmpty{
 			m.Int(),
 		}
 
 	case crc_message:
-		r = &TL_message{
+		r = TL_message{
 			m.Int(),
 			m.Int(),
 			m.Int(),
@@ -6262,7 +6262,7 @@ func (m *DecodeBuf) ObjectGenerated(constructor uint32) (r TL) {
 		}
 
 	case crc_messageForwarded:
-		r = &TL_messageForwarded{
+		r = TL_messageForwarded{
 			m.Int(),
 			m.Int(),
 			m.Int(),
@@ -6275,7 +6275,7 @@ func (m *DecodeBuf) ObjectGenerated(constructor uint32) (r TL) {
 		}
 
 	case crc_messageService:
-		r = &TL_messageService{
+		r = TL_messageService{
 			m.Int(),
 			m.Int(),
 			m.Int(),
@@ -6285,25 +6285,25 @@ func (m *DecodeBuf) ObjectGenerated(constructor uint32) (r TL) {
 		}
 
 	case crc_messageMediaEmpty:
-		r = &TL_messageMediaEmpty{}
+		r = TL_messageMediaEmpty{}
 
 	case crc_messageMediaPhoto:
-		r = &TL_messageMediaPhoto{
+		r = TL_messageMediaPhoto{
 			m.Object(),
 		}
 
 	case crc_messageMediaVideo:
-		r = &TL_messageMediaVideo{
+		r = TL_messageMediaVideo{
 			m.Object(),
 		}
 
 	case crc_messageMediaGeo:
-		r = &TL_messageMediaGeo{
+		r = TL_messageMediaGeo{
 			m.Object(),
 		}
 
 	case crc_messageMediaContact:
-		r = &TL_messageMediaContact{
+		r = TL_messageMediaContact{
 			m.String(),
 			m.String(),
 			m.String(),
@@ -6311,44 +6311,44 @@ func (m *DecodeBuf) ObjectGenerated(constructor uint32) (r TL) {
 		}
 
 	case crc_messageMediaUnsupported:
-		r = &TL_messageMediaUnsupported{
+		r = TL_messageMediaUnsupported{
 			m.StringBytes(),
 		}
 
 	case crc_messageActionEmpty:
-		r = &TL_messageActionEmpty{}
+		r = TL_messageActionEmpty{}
 
 	case crc_messageActionChatCreate:
-		r = &TL_messageActionChatCreate{
+		r = TL_messageActionChatCreate{
 			m.String(),
 			m.VectorInt(),
 		}
 
 	case crc_messageActionChatEditTitle:
-		r = &TL_messageActionChatEditTitle{
+		r = TL_messageActionChatEditTitle{
 			m.String(),
 		}
 
 	case crc_messageActionChatEditPhoto:
-		r = &TL_messageActionChatEditPhoto{
+		r = TL_messageActionChatEditPhoto{
 			m.Object(),
 		}
 
 	case crc_messageActionChatDeletePhoto:
-		r = &TL_messageActionChatDeletePhoto{}
+		r = TL_messageActionChatDeletePhoto{}
 
 	case crc_messageActionChatAddUser:
-		r = &TL_messageActionChatAddUser{
+		r = TL_messageActionChatAddUser{
 			m.Int(),
 		}
 
 	case crc_messageActionChatDeleteUser:
-		r = &TL_messageActionChatDeleteUser{
+		r = TL_messageActionChatDeleteUser{
 			m.Int(),
 		}
 
 	case crc_dialog:
-		r = &TL_dialog{
+		r = TL_dialog{
 			m.Object(),
 			m.Int(),
 			m.Int(),
@@ -6356,12 +6356,12 @@ func (m *DecodeBuf) ObjectGenerated(constructor uint32) (r TL) {
 		}
 
 	case crc_photoEmpty:
-		r = &TL_photoEmpty{
+		r = TL_photoEmpty{
 			m.Long(),
 		}
 
 	case crc_photo:
-		r = &TL_photo{
+		r = TL_photo{
 			m.Long(),
 			m.Long(),
 			m.Int(),
@@ -6372,12 +6372,12 @@ func (m *DecodeBuf) ObjectGenerated(constructor uint32) (r TL) {
 		}
 
 	case crc_photoSizeEmpty:
-		r = &TL_photoSizeEmpty{
+		r = TL_photoSizeEmpty{
 			m.String(),
 		}
 
 	case crc_photoSize:
-		r = &TL_photoSize{
+		r = TL_photoSize{
 			m.String(),
 			m.Object(),
 			m.Int(),
@@ -6386,7 +6386,7 @@ func (m *DecodeBuf) ObjectGenerated(constructor uint32) (r TL) {
 		}
 
 	case crc_photoCachedSize:
-		r = &TL_photoCachedSize{
+		r = TL_photoCachedSize{
 			m.String(),
 			m.Object(),
 			m.Int(),
@@ -6395,12 +6395,12 @@ func (m *DecodeBuf) ObjectGenerated(constructor uint32) (r TL) {
 		}
 
 	case crc_videoEmpty:
-		r = &TL_videoEmpty{
+		r = TL_videoEmpty{
 			m.Long(),
 		}
 
 	case crc_video:
-		r = &TL_video{
+		r = TL_video{
 			m.Long(),
 			m.Long(),
 			m.Int(),
@@ -6416,22 +6416,22 @@ func (m *DecodeBuf) ObjectGenerated(constructor uint32) (r TL) {
 		}
 
 	case crc_geoPointEmpty:
-		r = &TL_geoPointEmpty{}
+		r = TL_geoPointEmpty{}
 
 	case crc_geoPoint:
-		r = &TL_geoPoint{
+		r = TL_geoPoint{
 			m.Double(),
 			m.Double(),
 		}
 
 	case crc_auth_checkedPhone:
-		r = &TL_auth_checkedPhone{
+		r = TL_auth_checkedPhone{
 			m.Object(),
 			m.Object(),
 		}
 
 	case crc_auth_sentCode:
-		r = &TL_auth_sentCode{
+		r = TL_auth_sentCode{
 			m.Object(),
 			m.String(),
 			m.Int(),
@@ -6439,39 +6439,39 @@ func (m *DecodeBuf) ObjectGenerated(constructor uint32) (r TL) {
 		}
 
 	case crc_auth_authorization:
-		r = &TL_auth_authorization{
+		r = TL_auth_authorization{
 			m.Int(),
 			m.Object(),
 		}
 
 	case crc_auth_exportedAuthorization:
-		r = &TL_auth_exportedAuthorization{
+		r = TL_auth_exportedAuthorization{
 			m.Int(),
 			m.StringBytes(),
 		}
 
 	case crc_inputNotifyPeer:
-		r = &TL_inputNotifyPeer{
+		r = TL_inputNotifyPeer{
 			m.Object(),
 		}
 
 	case crc_inputNotifyUsers:
-		r = &TL_inputNotifyUsers{}
+		r = TL_inputNotifyUsers{}
 
 	case crc_inputNotifyChats:
-		r = &TL_inputNotifyChats{}
+		r = TL_inputNotifyChats{}
 
 	case crc_inputNotifyAll:
-		r = &TL_inputNotifyAll{}
+		r = TL_inputNotifyAll{}
 
 	case crc_inputPeerNotifyEventsEmpty:
-		r = &TL_inputPeerNotifyEventsEmpty{}
+		r = TL_inputPeerNotifyEventsEmpty{}
 
 	case crc_inputPeerNotifyEventsAll:
-		r = &TL_inputPeerNotifyEventsAll{}
+		r = TL_inputPeerNotifyEventsAll{}
 
 	case crc_inputPeerNotifySettings:
-		r = &TL_inputPeerNotifySettings{
+		r = TL_inputPeerNotifySettings{
 			m.Int(),
 			m.String(),
 			m.Object(),
@@ -6479,16 +6479,16 @@ func (m *DecodeBuf) ObjectGenerated(constructor uint32) (r TL) {
 		}
 
 	case crc_peerNotifyEventsEmpty:
-		r = &TL_peerNotifyEventsEmpty{}
+		r = TL_peerNotifyEventsEmpty{}
 
 	case crc_peerNotifyEventsAll:
-		r = &TL_peerNotifyEventsAll{}
+		r = TL_peerNotifyEventsAll{}
 
 	case crc_peerNotifySettingsEmpty:
-		r = &TL_peerNotifySettingsEmpty{}
+		r = TL_peerNotifySettingsEmpty{}
 
 	case crc_peerNotifySettings:
-		r = &TL_peerNotifySettings{
+		r = TL_peerNotifySettings{
 			m.Int(),
 			m.String(),
 			m.Object(),
@@ -6496,7 +6496,7 @@ func (m *DecodeBuf) ObjectGenerated(constructor uint32) (r TL) {
 		}
 
 	case crc_wallPaper:
-		r = &TL_wallPaper{
+		r = TL_wallPaper{
 			m.Int(),
 			m.String(),
 			m.Vector(),
@@ -6504,7 +6504,7 @@ func (m *DecodeBuf) ObjectGenerated(constructor uint32) (r TL) {
 		}
 
 	case crc_userFull:
-		r = &TL_userFull{
+		r = TL_userFull{
 			m.Object(),
 			m.Object(),
 			m.Object(),
@@ -6515,107 +6515,107 @@ func (m *DecodeBuf) ObjectGenerated(constructor uint32) (r TL) {
 		}
 
 	case crc_contact:
-		r = &TL_contact{
+		r = TL_contact{
 			m.Int(),
 			m.Object(),
 		}
 
 	case crc_importedContact:
-		r = &TL_importedContact{
+		r = TL_importedContact{
 			m.Int(),
 			m.Long(),
 		}
 
 	case crc_contactBlocked:
-		r = &TL_contactBlocked{
+		r = TL_contactBlocked{
 			m.Int(),
 			m.Int(),
 		}
 
 	case crc_contactSuggested:
-		r = &TL_contactSuggested{
+		r = TL_contactSuggested{
 			m.Int(),
 			m.Int(),
 		}
 
 	case crc_contactStatus:
-		r = &TL_contactStatus{
+		r = TL_contactStatus{
 			m.Int(),
 			m.Object(),
 		}
 
 	case crc_chatLocated:
-		r = &TL_chatLocated{
+		r = TL_chatLocated{
 			m.Int(),
 			m.Int(),
 		}
 
 	case crc_contacts_foreignLinkUnknown:
-		r = &TL_contacts_foreignLinkUnknown{}
+		r = TL_contacts_foreignLinkUnknown{}
 
 	case crc_contacts_foreignLinkRequested:
-		r = &TL_contacts_foreignLinkRequested{
+		r = TL_contacts_foreignLinkRequested{
 			m.Object(),
 		}
 
 	case crc_contacts_foreignLinkMutual:
-		r = &TL_contacts_foreignLinkMutual{}
+		r = TL_contacts_foreignLinkMutual{}
 
 	case crc_contacts_myLinkEmpty:
-		r = &TL_contacts_myLinkEmpty{}
+		r = TL_contacts_myLinkEmpty{}
 
 	case crc_contacts_myLinkRequested:
-		r = &TL_contacts_myLinkRequested{
+		r = TL_contacts_myLinkRequested{
 			m.Object(),
 		}
 
 	case crc_contacts_myLinkContact:
-		r = &TL_contacts_myLinkContact{}
+		r = TL_contacts_myLinkContact{}
 
 	case crc_contacts_link:
-		r = &TL_contacts_link{
+		r = TL_contacts_link{
 			m.Object(),
 			m.Object(),
 			m.Object(),
 		}
 
 	case crc_contacts_contactsNotModified:
-		r = &TL_contacts_contactsNotModified{}
+		r = TL_contacts_contactsNotModified{}
 
 	case crc_contacts_contacts:
-		r = &TL_contacts_contacts{
+		r = TL_contacts_contacts{
 			m.Vector(),
 			m.Vector(),
 		}
 
 	case crc_contacts_importedContacts:
-		r = &TL_contacts_importedContacts{
+		r = TL_contacts_importedContacts{
 			m.Vector(),
 			m.VectorLong(),
 			m.Vector(),
 		}
 
 	case crc_contacts_blocked:
-		r = &TL_contacts_blocked{
+		r = TL_contacts_blocked{
 			m.Vector(),
 			m.Vector(),
 		}
 
 	case crc_contacts_blockedSlice:
-		r = &TL_contacts_blockedSlice{
+		r = TL_contacts_blockedSlice{
 			m.Int(),
 			m.Vector(),
 			m.Vector(),
 		}
 
 	case crc_contacts_suggested:
-		r = &TL_contacts_suggested{
+		r = TL_contacts_suggested{
 			m.Vector(),
 			m.Vector(),
 		}
 
 	case crc_messages_dialogs:
-		r = &TL_messages_dialogs{
+		r = TL_messages_dialogs{
 			m.Vector(),
 			m.Vector(),
 			m.Vector(),
@@ -6623,7 +6623,7 @@ func (m *DecodeBuf) ObjectGenerated(constructor uint32) (r TL) {
 		}
 
 	case crc_messages_dialogsSlice:
-		r = &TL_messages_dialogsSlice{
+		r = TL_messages_dialogsSlice{
 			m.Int(),
 			m.Vector(),
 			m.Vector(),
@@ -6632,14 +6632,14 @@ func (m *DecodeBuf) ObjectGenerated(constructor uint32) (r TL) {
 		}
 
 	case crc_messages_messages:
-		r = &TL_messages_messages{
+		r = TL_messages_messages{
 			m.Vector(),
 			m.Vector(),
 			m.Vector(),
 		}
 
 	case crc_messages_messagesSlice:
-		r = &TL_messages_messagesSlice{
+		r = TL_messages_messagesSlice{
 			m.Int(),
 			m.Vector(),
 			m.Vector(),
@@ -6647,10 +6647,10 @@ func (m *DecodeBuf) ObjectGenerated(constructor uint32) (r TL) {
 		}
 
 	case crc_messages_messageEmpty:
-		r = &TL_messages_messageEmpty{}
+		r = TL_messages_messageEmpty{}
 
 	case crc_messages_statedMessages:
-		r = &TL_messages_statedMessages{
+		r = TL_messages_statedMessages{
 			m.Vector(),
 			m.Vector(),
 			m.Vector(),
@@ -6659,7 +6659,7 @@ func (m *DecodeBuf) ObjectGenerated(constructor uint32) (r TL) {
 		}
 
 	case crc_messages_statedMessage:
-		r = &TL_messages_statedMessage{
+		r = TL_messages_statedMessage{
 			m.Object(),
 			m.Vector(),
 			m.Vector(),
@@ -6668,7 +6668,7 @@ func (m *DecodeBuf) ObjectGenerated(constructor uint32) (r TL) {
 		}
 
 	case crc_messages_sentMessage:
-		r = &TL_messages_sentMessage{
+		r = TL_messages_sentMessage{
 			m.Int(),
 			m.Int(),
 			m.Int(),
@@ -6676,96 +6676,96 @@ func (m *DecodeBuf) ObjectGenerated(constructor uint32) (r TL) {
 		}
 
 	case crc_messages_chats:
-		r = &TL_messages_chats{
+		r = TL_messages_chats{
 			m.Vector(),
 			m.Vector(),
 		}
 
 	case crc_messages_chatFull:
-		r = &TL_messages_chatFull{
+		r = TL_messages_chatFull{
 			m.Object(),
 			m.Vector(),
 			m.Vector(),
 		}
 
 	case crc_messages_affectedHistory:
-		r = &TL_messages_affectedHistory{
+		r = TL_messages_affectedHistory{
 			m.Int(),
 			m.Int(),
 			m.Int(),
 		}
 
 	case crc_inputMessagesFilterEmpty:
-		r = &TL_inputMessagesFilterEmpty{}
+		r = TL_inputMessagesFilterEmpty{}
 
 	case crc_inputMessagesFilterPhotos:
-		r = &TL_inputMessagesFilterPhotos{}
+		r = TL_inputMessagesFilterPhotos{}
 
 	case crc_inputMessagesFilterVideo:
-		r = &TL_inputMessagesFilterVideo{}
+		r = TL_inputMessagesFilterVideo{}
 
 	case crc_inputMessagesFilterPhotoVideo:
-		r = &TL_inputMessagesFilterPhotoVideo{}
+		r = TL_inputMessagesFilterPhotoVideo{}
 
 	case crc_inputMessagesFilterPhotoVideoDocuments:
-		r = &TL_inputMessagesFilterPhotoVideoDocuments{}
+		r = TL_inputMessagesFilterPhotoVideoDocuments{}
 
 	case crc_inputMessagesFilterDocument:
-		r = &TL_inputMessagesFilterDocument{}
+		r = TL_inputMessagesFilterDocument{}
 
 	case crc_inputMessagesFilterAudio:
-		r = &TL_inputMessagesFilterAudio{}
+		r = TL_inputMessagesFilterAudio{}
 
 	case crc_updateNewMessage:
-		r = &TL_updateNewMessage{
+		r = TL_updateNewMessage{
 			m.Object(),
 			m.Int(),
 		}
 
 	case crc_updateMessageID:
-		r = &TL_updateMessageID{
+		r = TL_updateMessageID{
 			m.Int(),
 			m.Long(),
 		}
 
 	case crc_updateReadMessages:
-		r = &TL_updateReadMessages{
+		r = TL_updateReadMessages{
 			m.VectorInt(),
 			m.Int(),
 		}
 
 	case crc_updateDeleteMessages:
-		r = &TL_updateDeleteMessages{
+		r = TL_updateDeleteMessages{
 			m.VectorInt(),
 			m.Int(),
 		}
 
 	case crc_updateUserTyping:
-		r = &TL_updateUserTyping{
+		r = TL_updateUserTyping{
 			m.Int(),
 			m.Object(),
 		}
 
 	case crc_updateChatUserTyping:
-		r = &TL_updateChatUserTyping{
+		r = TL_updateChatUserTyping{
 			m.Int(),
 			m.Int(),
 			m.Object(),
 		}
 
 	case crc_updateChatParticipants:
-		r = &TL_updateChatParticipants{
+		r = TL_updateChatParticipants{
 			m.Object(),
 		}
 
 	case crc_updateUserStatus:
-		r = &TL_updateUserStatus{
+		r = TL_updateUserStatus{
 			m.Int(),
 			m.Object(),
 		}
 
 	case crc_updateUserName:
-		r = &TL_updateUserName{
+		r = TL_updateUserName{
 			m.Int(),
 			m.String(),
 			m.String(),
@@ -6773,7 +6773,7 @@ func (m *DecodeBuf) ObjectGenerated(constructor uint32) (r TL) {
 		}
 
 	case crc_updateUserPhoto:
-		r = &TL_updateUserPhoto{
+		r = TL_updateUserPhoto{
 			m.Int(),
 			m.Int(),
 			m.Object(),
@@ -6781,20 +6781,20 @@ func (m *DecodeBuf) ObjectGenerated(constructor uint32) (r TL) {
 		}
 
 	case crc_updateContactRegistered:
-		r = &TL_updateContactRegistered{
+		r = TL_updateContactRegistered{
 			m.Int(),
 			m.Int(),
 		}
 
 	case crc_updateContactLink:
-		r = &TL_updateContactLink{
+		r = TL_updateContactLink{
 			m.Int(),
 			m.Object(),
 			m.Object(),
 		}
 
 	case crc_updateNewAuthorization:
-		r = &TL_updateNewAuthorization{
+		r = TL_updateNewAuthorization{
 			m.Long(),
 			m.Int(),
 			m.String(),
@@ -6802,7 +6802,7 @@ func (m *DecodeBuf) ObjectGenerated(constructor uint32) (r TL) {
 		}
 
 	case crc_updates_state:
-		r = &TL_updates_state{
+		r = TL_updates_state{
 			m.Int(),
 			m.Int(),
 			m.Int(),
@@ -6811,13 +6811,13 @@ func (m *DecodeBuf) ObjectGenerated(constructor uint32) (r TL) {
 		}
 
 	case crc_updates_differenceEmpty:
-		r = &TL_updates_differenceEmpty{
+		r = TL_updates_differenceEmpty{
 			m.Int(),
 			m.Int(),
 		}
 
 	case crc_updates_difference:
-		r = &TL_updates_difference{
+		r = TL_updates_difference{
 			m.Vector(),
 			m.Vector(),
 			m.Vector(),
@@ -6827,7 +6827,7 @@ func (m *DecodeBuf) ObjectGenerated(constructor uint32) (r TL) {
 		}
 
 	case crc_updates_differenceSlice:
-		r = &TL_updates_differenceSlice{
+		r = TL_updates_differenceSlice{
 			m.Vector(),
 			m.Vector(),
 			m.Vector(),
@@ -6837,10 +6837,10 @@ func (m *DecodeBuf) ObjectGenerated(constructor uint32) (r TL) {
 		}
 
 	case crc_updatesTooLong:
-		r = &TL_updatesTooLong{}
+		r = TL_updatesTooLong{}
 
 	case crc_updateShortMessage:
-		r = &TL_updateShortMessage{
+		r = TL_updateShortMessage{
 			m.Int(),
 			m.Int(),
 			m.String(),
@@ -6850,7 +6850,7 @@ func (m *DecodeBuf) ObjectGenerated(constructor uint32) (r TL) {
 		}
 
 	case crc_updateShortChatMessage:
-		r = &TL_updateShortChatMessage{
+		r = TL_updateShortChatMessage{
 			m.Int(),
 			m.Int(),
 			m.Int(),
@@ -6861,13 +6861,13 @@ func (m *DecodeBuf) ObjectGenerated(constructor uint32) (r TL) {
 		}
 
 	case crc_updateShort:
-		r = &TL_updateShort{
+		r = TL_updateShort{
 			m.Object(),
 			m.Int(),
 		}
 
 	case crc_updatesCombined:
-		r = &TL_updatesCombined{
+		r = TL_updatesCombined{
 			m.Vector(),
 			m.Vector(),
 			m.Vector(),
@@ -6877,7 +6877,7 @@ func (m *DecodeBuf) ObjectGenerated(constructor uint32) (r TL) {
 		}
 
 	case crc_updates:
-		r = &TL_updates{
+		r = TL_updates{
 			m.Vector(),
 			m.Vector(),
 			m.Vector(),
@@ -6886,33 +6886,33 @@ func (m *DecodeBuf) ObjectGenerated(constructor uint32) (r TL) {
 		}
 
 	case crc_photos_photos:
-		r = &TL_photos_photos{
+		r = TL_photos_photos{
 			m.Vector(),
 			m.Vector(),
 		}
 
 	case crc_photos_photosSlice:
-		r = &TL_photos_photosSlice{
+		r = TL_photos_photosSlice{
 			m.Int(),
 			m.Vector(),
 			m.Vector(),
 		}
 
 	case crc_photos_photo:
-		r = &TL_photos_photo{
+		r = TL_photos_photo{
 			m.Object(),
 			m.Vector(),
 		}
 
 	case crc_upload_file:
-		r = &TL_upload_file{
+		r = TL_upload_file{
 			m.Object(),
 			m.Int(),
 			m.StringBytes(),
 		}
 
 	case crc_dcOption:
-		r = &TL_dcOption{
+		r = TL_dcOption{
 			m.Int(),
 			m.String(),
 			m.String(),
@@ -6920,7 +6920,7 @@ func (m *DecodeBuf) ObjectGenerated(constructor uint32) (r TL) {
 		}
 
 	case crc_config:
-		r = &TL_config{
+		r = TL_config{
 			m.Int(),
 			m.Int(),
 			m.Object(),
@@ -6933,14 +6933,14 @@ func (m *DecodeBuf) ObjectGenerated(constructor uint32) (r TL) {
 		}
 
 	case crc_nearestDc:
-		r = &TL_nearestDc{
+		r = TL_nearestDc{
 			m.String(),
 			m.Int(),
 			m.Int(),
 		}
 
 	case crc_help_appUpdate:
-		r = &TL_help_appUpdate{
+		r = TL_help_appUpdate{
 			m.Int(),
 			m.Object(),
 			m.String(),
@@ -6948,15 +6948,15 @@ func (m *DecodeBuf) ObjectGenerated(constructor uint32) (r TL) {
 		}
 
 	case crc_help_noAppUpdate:
-		r = &TL_help_noAppUpdate{}
+		r = TL_help_noAppUpdate{}
 
 	case crc_help_inviteText:
-		r = &TL_help_inviteText{
+		r = TL_help_inviteText{
 			m.String(),
 		}
 
 	case crc_messages_statedMessagesLinks:
-		r = &TL_messages_statedMessagesLinks{
+		r = TL_messages_statedMessagesLinks{
 			m.Vector(),
 			m.Vector(),
 			m.Vector(),
@@ -6966,7 +6966,7 @@ func (m *DecodeBuf) ObjectGenerated(constructor uint32) (r TL) {
 		}
 
 	case crc_messages_statedMessageLink:
-		r = &TL_messages_statedMessageLink{
+		r = TL_messages_statedMessageLink{
 			m.Object(),
 			m.Vector(),
 			m.Vector(),
@@ -6976,7 +6976,7 @@ func (m *DecodeBuf) ObjectGenerated(constructor uint32) (r TL) {
 		}
 
 	case crc_messages_sentMessageLink:
-		r = &TL_messages_sentMessageLink{
+		r = TL_messages_sentMessageLink{
 			m.Int(),
 			m.Int(),
 			m.Int(),
@@ -6985,18 +6985,18 @@ func (m *DecodeBuf) ObjectGenerated(constructor uint32) (r TL) {
 		}
 
 	case crc_inputGeoChat:
-		r = &TL_inputGeoChat{
+		r = TL_inputGeoChat{
 			m.Int(),
 			m.Long(),
 		}
 
 	case crc_inputNotifyGeoChatPeer:
-		r = &TL_inputNotifyGeoChatPeer{
+		r = TL_inputNotifyGeoChatPeer{
 			m.Object(),
 		}
 
 	case crc_geoChat:
-		r = &TL_geoChat{
+		r = TL_geoChat{
 			m.Int(),
 			m.Long(),
 			m.String(),
@@ -7011,13 +7011,13 @@ func (m *DecodeBuf) ObjectGenerated(constructor uint32) (r TL) {
 		}
 
 	case crc_geoChatMessageEmpty:
-		r = &TL_geoChatMessageEmpty{
+		r = TL_geoChatMessageEmpty{
 			m.Int(),
 			m.Int(),
 		}
 
 	case crc_geoChatMessage:
-		r = &TL_geoChatMessage{
+		r = TL_geoChatMessage{
 			m.Int(),
 			m.Int(),
 			m.Int(),
@@ -7027,7 +7027,7 @@ func (m *DecodeBuf) ObjectGenerated(constructor uint32) (r TL) {
 		}
 
 	case crc_geoChatMessageService:
-		r = &TL_geoChatMessageService{
+		r = TL_geoChatMessageService{
 			m.Int(),
 			m.Int(),
 			m.Int(),
@@ -7036,7 +7036,7 @@ func (m *DecodeBuf) ObjectGenerated(constructor uint32) (r TL) {
 		}
 
 	case crc_geochats_statedMessage:
-		r = &TL_geochats_statedMessage{
+		r = TL_geochats_statedMessage{
 			m.Object(),
 			m.Vector(),
 			m.Vector(),
@@ -7044,7 +7044,7 @@ func (m *DecodeBuf) ObjectGenerated(constructor uint32) (r TL) {
 		}
 
 	case crc_geochats_located:
-		r = &TL_geochats_located{
+		r = TL_geochats_located{
 			m.Vector(),
 			m.Vector(),
 			m.Vector(),
@@ -7052,14 +7052,14 @@ func (m *DecodeBuf) ObjectGenerated(constructor uint32) (r TL) {
 		}
 
 	case crc_geochats_messages:
-		r = &TL_geochats_messages{
+		r = TL_geochats_messages{
 			m.Vector(),
 			m.Vector(),
 			m.Vector(),
 		}
 
 	case crc_geochats_messagesSlice:
-		r = &TL_geochats_messagesSlice{
+		r = TL_geochats_messagesSlice{
 			m.Int(),
 			m.Vector(),
 			m.Vector(),
@@ -7067,21 +7067,21 @@ func (m *DecodeBuf) ObjectGenerated(constructor uint32) (r TL) {
 		}
 
 	case crc_messageActionGeoChatCreate:
-		r = &TL_messageActionGeoChatCreate{
+		r = TL_messageActionGeoChatCreate{
 			m.String(),
 			m.String(),
 		}
 
 	case crc_messageActionGeoChatCheckin:
-		r = &TL_messageActionGeoChatCheckin{}
+		r = TL_messageActionGeoChatCheckin{}
 
 	case crc_updateNewGeoChatMessage:
-		r = &TL_updateNewGeoChatMessage{
+		r = TL_updateNewGeoChatMessage{
 			m.Object(),
 		}
 
 	case crc_wallPaperSolid:
-		r = &TL_wallPaperSolid{
+		r = TL_wallPaperSolid{
 			m.Int(),
 			m.String(),
 			m.Int(),
@@ -7089,36 +7089,36 @@ func (m *DecodeBuf) ObjectGenerated(constructor uint32) (r TL) {
 		}
 
 	case crc_updateNewEncryptedMessage:
-		r = &TL_updateNewEncryptedMessage{
+		r = TL_updateNewEncryptedMessage{
 			m.Object(),
 			m.Int(),
 		}
 
 	case crc_updateEncryptedChatTyping:
-		r = &TL_updateEncryptedChatTyping{
+		r = TL_updateEncryptedChatTyping{
 			m.Int(),
 		}
 
 	case crc_updateEncryption:
-		r = &TL_updateEncryption{
+		r = TL_updateEncryption{
 			m.Object(),
 			m.Int(),
 		}
 
 	case crc_updateEncryptedMessagesRead:
-		r = &TL_updateEncryptedMessagesRead{
+		r = TL_updateEncryptedMessagesRead{
 			m.Int(),
 			m.Int(),
 			m.Int(),
 		}
 
 	case crc_encryptedChatEmpty:
-		r = &TL_encryptedChatEmpty{
+		r = TL_encryptedChatEmpty{
 			m.Int(),
 		}
 
 	case crc_encryptedChatWaiting:
-		r = &TL_encryptedChatWaiting{
+		r = TL_encryptedChatWaiting{
 			m.Int(),
 			m.Long(),
 			m.Int(),
@@ -7127,7 +7127,7 @@ func (m *DecodeBuf) ObjectGenerated(constructor uint32) (r TL) {
 		}
 
 	case crc_encryptedChatRequested:
-		r = &TL_encryptedChatRequested{
+		r = TL_encryptedChatRequested{
 			m.Int(),
 			m.Long(),
 			m.Int(),
@@ -7137,7 +7137,7 @@ func (m *DecodeBuf) ObjectGenerated(constructor uint32) (r TL) {
 		}
 
 	case crc_encryptedChat:
-		r = &TL_encryptedChat{
+		r = TL_encryptedChat{
 			m.Int(),
 			m.Long(),
 			m.Int(),
@@ -7148,21 +7148,21 @@ func (m *DecodeBuf) ObjectGenerated(constructor uint32) (r TL) {
 		}
 
 	case crc_encryptedChatDiscarded:
-		r = &TL_encryptedChatDiscarded{
+		r = TL_encryptedChatDiscarded{
 			m.Int(),
 		}
 
 	case crc_inputEncryptedChat:
-		r = &TL_inputEncryptedChat{
+		r = TL_inputEncryptedChat{
 			m.Int(),
 			m.Long(),
 		}
 
 	case crc_encryptedFileEmpty:
-		r = &TL_encryptedFileEmpty{}
+		r = TL_encryptedFileEmpty{}
 
 	case crc_encryptedFile:
-		r = &TL_encryptedFile{
+		r = TL_encryptedFile{
 			m.Long(),
 			m.Long(),
 			m.Int(),
@@ -7171,10 +7171,10 @@ func (m *DecodeBuf) ObjectGenerated(constructor uint32) (r TL) {
 		}
 
 	case crc_inputEncryptedFileEmpty:
-		r = &TL_inputEncryptedFileEmpty{}
+		r = TL_inputEncryptedFileEmpty{}
 
 	case crc_inputEncryptedFileUploaded:
-		r = &TL_inputEncryptedFileUploaded{
+		r = TL_inputEncryptedFileUploaded{
 			m.Long(),
 			m.Int(),
 			m.String(),
@@ -7182,19 +7182,19 @@ func (m *DecodeBuf) ObjectGenerated(constructor uint32) (r TL) {
 		}
 
 	case crc_inputEncryptedFile:
-		r = &TL_inputEncryptedFile{
+		r = TL_inputEncryptedFile{
 			m.Long(),
 			m.Long(),
 		}
 
 	case crc_inputEncryptedFileLocation:
-		r = &TL_inputEncryptedFileLocation{
+		r = TL_inputEncryptedFileLocation{
 			m.Long(),
 			m.Long(),
 		}
 
 	case crc_encryptedMessage:
-		r = &TL_encryptedMessage{
+		r = TL_encryptedMessage{
 			m.Long(),
 			m.Int(),
 			m.Int(),
@@ -7203,7 +7203,7 @@ func (m *DecodeBuf) ObjectGenerated(constructor uint32) (r TL) {
 		}
 
 	case crc_encryptedMessageService:
-		r = &TL_encryptedMessageService{
+		r = TL_encryptedMessageService{
 			m.Long(),
 			m.Int(),
 			m.Int(),
@@ -7211,12 +7211,12 @@ func (m *DecodeBuf) ObjectGenerated(constructor uint32) (r TL) {
 		}
 
 	case crc_messages_dhConfigNotModified:
-		r = &TL_messages_dhConfigNotModified{
+		r = TL_messages_dhConfigNotModified{
 			m.StringBytes(),
 		}
 
 	case crc_messages_dhConfig:
-		r = &TL_messages_dhConfig{
+		r = TL_messages_dhConfig{
 			m.Int(),
 			m.StringBytes(),
 			m.Int(),
@@ -7224,32 +7224,32 @@ func (m *DecodeBuf) ObjectGenerated(constructor uint32) (r TL) {
 		}
 
 	case crc_messages_sentEncryptedMessage:
-		r = &TL_messages_sentEncryptedMessage{
+		r = TL_messages_sentEncryptedMessage{
 			m.Int(),
 		}
 
 	case crc_messages_sentEncryptedFile:
-		r = &TL_messages_sentEncryptedFile{
+		r = TL_messages_sentEncryptedFile{
 			m.Int(),
 			m.Object(),
 		}
 
 	case crc_inputFileBig:
-		r = &TL_inputFileBig{
+		r = TL_inputFileBig{
 			m.Long(),
 			m.Int(),
 			m.String(),
 		}
 
 	case crc_inputEncryptedFileBigUploaded:
-		r = &TL_inputEncryptedFileBigUploaded{
+		r = TL_inputEncryptedFileBigUploaded{
 			m.Long(),
 			m.Int(),
 			m.Int(),
 		}
 
 	case crc_updateChatParticipantAdd:
-		r = &TL_updateChatParticipantAdd{
+		r = TL_updateChatParticipantAdd{
 			m.Int(),
 			m.Int(),
 			m.Int(),
@@ -7257,38 +7257,38 @@ func (m *DecodeBuf) ObjectGenerated(constructor uint32) (r TL) {
 		}
 
 	case crc_updateChatParticipantDelete:
-		r = &TL_updateChatParticipantDelete{
+		r = TL_updateChatParticipantDelete{
 			m.Int(),
 			m.Int(),
 			m.Int(),
 		}
 
 	case crc_updateDcOptions:
-		r = &TL_updateDcOptions{
+		r = TL_updateDcOptions{
 			m.Vector(),
 		}
 
 	case crc_inputMediaUploadedAudio:
-		r = &TL_inputMediaUploadedAudio{
+		r = TL_inputMediaUploadedAudio{
 			m.Object(),
 			m.Int(),
 			m.String(),
 		}
 
 	case crc_inputMediaAudio:
-		r = &TL_inputMediaAudio{
+		r = TL_inputMediaAudio{
 			m.Object(),
 		}
 
 	case crc_inputMediaUploadedDocument:
-		r = &TL_inputMediaUploadedDocument{
+		r = TL_inputMediaUploadedDocument{
 			m.Object(),
 			m.String(),
 			m.Vector(),
 		}
 
 	case crc_inputMediaUploadedThumbDocument:
-		r = &TL_inputMediaUploadedThumbDocument{
+		r = TL_inputMediaUploadedThumbDocument{
 			m.Object(),
 			m.Object(),
 			m.String(),
@@ -7296,57 +7296,57 @@ func (m *DecodeBuf) ObjectGenerated(constructor uint32) (r TL) {
 		}
 
 	case crc_inputMediaDocument:
-		r = &TL_inputMediaDocument{
+		r = TL_inputMediaDocument{
 			m.Object(),
 		}
 
 	case crc_messageMediaDocument:
-		r = &TL_messageMediaDocument{
+		r = TL_messageMediaDocument{
 			m.Object(),
 		}
 
 	case crc_messageMediaAudio:
-		r = &TL_messageMediaAudio{
+		r = TL_messageMediaAudio{
 			m.Object(),
 		}
 
 	case crc_inputAudioEmpty:
-		r = &TL_inputAudioEmpty{}
+		r = TL_inputAudioEmpty{}
 
 	case crc_inputAudio:
-		r = &TL_inputAudio{
+		r = TL_inputAudio{
 			m.Long(),
 			m.Long(),
 		}
 
 	case crc_inputDocumentEmpty:
-		r = &TL_inputDocumentEmpty{}
+		r = TL_inputDocumentEmpty{}
 
 	case crc_inputDocument:
-		r = &TL_inputDocument{
+		r = TL_inputDocument{
 			m.Long(),
 			m.Long(),
 		}
 
 	case crc_inputAudioFileLocation:
-		r = &TL_inputAudioFileLocation{
+		r = TL_inputAudioFileLocation{
 			m.Long(),
 			m.Long(),
 		}
 
 	case crc_inputDocumentFileLocation:
-		r = &TL_inputDocumentFileLocation{
+		r = TL_inputDocumentFileLocation{
 			m.Long(),
 			m.Long(),
 		}
 
 	case crc_audioEmpty:
-		r = &TL_audioEmpty{
+		r = TL_audioEmpty{
 			m.Long(),
 		}
 
 	case crc_audio:
-		r = &TL_audio{
+		r = TL_audio{
 			m.Long(),
 			m.Long(),
 			m.Int(),
@@ -7358,12 +7358,12 @@ func (m *DecodeBuf) ObjectGenerated(constructor uint32) (r TL) {
 		}
 
 	case crc_documentEmpty:
-		r = &TL_documentEmpty{
+		r = TL_documentEmpty{
 			m.Long(),
 		}
 
 	case crc_document:
-		r = &TL_document{
+		r = TL_document{
 			m.Long(),
 			m.Long(),
 			m.Int(),
@@ -7375,39 +7375,39 @@ func (m *DecodeBuf) ObjectGenerated(constructor uint32) (r TL) {
 		}
 
 	case crc_help_support:
-		r = &TL_help_support{
+		r = TL_help_support{
 			m.String(),
 			m.Object(),
 		}
 
 	case crc_notifyPeer:
-		r = &TL_notifyPeer{
+		r = TL_notifyPeer{
 			m.Object(),
 		}
 
 	case crc_notifyUsers:
-		r = &TL_notifyUsers{}
+		r = TL_notifyUsers{}
 
 	case crc_notifyChats:
-		r = &TL_notifyChats{}
+		r = TL_notifyChats{}
 
 	case crc_notifyAll:
-		r = &TL_notifyAll{}
+		r = TL_notifyAll{}
 
 	case crc_updateUserBlocked:
-		r = &TL_updateUserBlocked{
+		r = TL_updateUserBlocked{
 			m.Int(),
 			m.Object(),
 		}
 
 	case crc_updateNotifySettings:
-		r = &TL_updateNotifySettings{
+		r = TL_updateNotifySettings{
 			m.Object(),
 			m.Object(),
 		}
 
 	case crc_auth_sentAppCode:
-		r = &TL_auth_sentAppCode{
+		r = TL_auth_sentAppCode{
 			m.Object(),
 			m.String(),
 			m.Int(),
@@ -7415,48 +7415,48 @@ func (m *DecodeBuf) ObjectGenerated(constructor uint32) (r TL) {
 		}
 
 	case crc_sendMessageTypingAction:
-		r = &TL_sendMessageTypingAction{}
+		r = TL_sendMessageTypingAction{}
 
 	case crc_sendMessageCancelAction:
-		r = &TL_sendMessageCancelAction{}
+		r = TL_sendMessageCancelAction{}
 
 	case crc_sendMessageRecordVideoAction:
-		r = &TL_sendMessageRecordVideoAction{}
+		r = TL_sendMessageRecordVideoAction{}
 
 	case crc_sendMessageUploadVideoAction:
-		r = &TL_sendMessageUploadVideoAction{}
+		r = TL_sendMessageUploadVideoAction{}
 
 	case crc_sendMessageRecordAudioAction:
-		r = &TL_sendMessageRecordAudioAction{}
+		r = TL_sendMessageRecordAudioAction{}
 
 	case crc_sendMessageUploadAudioAction:
-		r = &TL_sendMessageUploadAudioAction{}
+		r = TL_sendMessageUploadAudioAction{}
 
 	case crc_sendMessageUploadPhotoAction:
-		r = &TL_sendMessageUploadPhotoAction{}
+		r = TL_sendMessageUploadPhotoAction{}
 
 	case crc_sendMessageUploadDocumentAction:
-		r = &TL_sendMessageUploadDocumentAction{}
+		r = TL_sendMessageUploadDocumentAction{}
 
 	case crc_sendMessageGeoLocationAction:
-		r = &TL_sendMessageGeoLocationAction{}
+		r = TL_sendMessageGeoLocationAction{}
 
 	case crc_sendMessageChooseContactAction:
-		r = &TL_sendMessageChooseContactAction{}
+		r = TL_sendMessageChooseContactAction{}
 
 	case crc_contactFound:
-		r = &TL_contactFound{
+		r = TL_contactFound{
 			m.Int(),
 		}
 
 	case crc_contacts_found:
-		r = &TL_contacts_found{
+		r = TL_contacts_found{
 			m.Vector(),
 			m.Vector(),
 		}
 
 	case crc_updateServiceNotification:
-		r = &TL_updateServiceNotification{
+		r = TL_updateServiceNotification{
 			m.String(),
 			m.String(),
 			m.Object(),
@@ -7464,172 +7464,172 @@ func (m *DecodeBuf) ObjectGenerated(constructor uint32) (r TL) {
 		}
 
 	case crc_userStatusRecently:
-		r = &TL_userStatusRecently{}
+		r = TL_userStatusRecently{}
 
 	case crc_userStatusLastWeek:
-		r = &TL_userStatusLastWeek{}
+		r = TL_userStatusLastWeek{}
 
 	case crc_userStatusLastMonth:
-		r = &TL_userStatusLastMonth{}
+		r = TL_userStatusLastMonth{}
 
 	case crc_updatePrivacy:
-		r = &TL_updatePrivacy{
+		r = TL_updatePrivacy{
 			m.Object(),
 			m.Vector(),
 		}
 
 	case crc_inputPrivacyKeyStatusTimestamp:
-		r = &TL_inputPrivacyKeyStatusTimestamp{}
+		r = TL_inputPrivacyKeyStatusTimestamp{}
 
 	case crc_privacyKeyStatusTimestamp:
-		r = &TL_privacyKeyStatusTimestamp{}
+		r = TL_privacyKeyStatusTimestamp{}
 
 	case crc_inputPrivacyValueAllowContacts:
-		r = &TL_inputPrivacyValueAllowContacts{}
+		r = TL_inputPrivacyValueAllowContacts{}
 
 	case crc_inputPrivacyValueAllowAll:
-		r = &TL_inputPrivacyValueAllowAll{}
+		r = TL_inputPrivacyValueAllowAll{}
 
 	case crc_inputPrivacyValueAllowUsers:
-		r = &TL_inputPrivacyValueAllowUsers{
+		r = TL_inputPrivacyValueAllowUsers{
 			m.Vector(),
 		}
 
 	case crc_inputPrivacyValueDisallowContacts:
-		r = &TL_inputPrivacyValueDisallowContacts{}
+		r = TL_inputPrivacyValueDisallowContacts{}
 
 	case crc_inputPrivacyValueDisallowAll:
-		r = &TL_inputPrivacyValueDisallowAll{}
+		r = TL_inputPrivacyValueDisallowAll{}
 
 	case crc_inputPrivacyValueDisallowUsers:
-		r = &TL_inputPrivacyValueDisallowUsers{
+		r = TL_inputPrivacyValueDisallowUsers{
 			m.Vector(),
 		}
 
 	case crc_privacyValueAllowContacts:
-		r = &TL_privacyValueAllowContacts{}
+		r = TL_privacyValueAllowContacts{}
 
 	case crc_privacyValueAllowAll:
-		r = &TL_privacyValueAllowAll{}
+		r = TL_privacyValueAllowAll{}
 
 	case crc_privacyValueAllowUsers:
-		r = &TL_privacyValueAllowUsers{
+		r = TL_privacyValueAllowUsers{
 			m.VectorInt(),
 		}
 
 	case crc_privacyValueDisallowContacts:
-		r = &TL_privacyValueDisallowContacts{}
+		r = TL_privacyValueDisallowContacts{}
 
 	case crc_privacyValueDisallowAll:
-		r = &TL_privacyValueDisallowAll{}
+		r = TL_privacyValueDisallowAll{}
 
 	case crc_privacyValueDisallowUsers:
-		r = &TL_privacyValueDisallowUsers{
+		r = TL_privacyValueDisallowUsers{
 			m.VectorInt(),
 		}
 
 	case crc_account_privacyRules:
-		r = &TL_account_privacyRules{
+		r = TL_account_privacyRules{
 			m.Vector(),
 			m.Vector(),
 		}
 
 	case crc_accountDaysTTL:
-		r = &TL_accountDaysTTL{
+		r = TL_accountDaysTTL{
 			m.Int(),
 		}
 
 	case crc_account_sentChangePhoneCode:
-		r = &TL_account_sentChangePhoneCode{
+		r = TL_account_sentChangePhoneCode{
 			m.String(),
 			m.Int(),
 		}
 
 	case crc_updateUserPhone:
-		r = &TL_updateUserPhone{
+		r = TL_updateUserPhone{
 			m.Int(),
 			m.String(),
 		}
 
 	case crc_documentAttributeImageSize:
-		r = &TL_documentAttributeImageSize{
+		r = TL_documentAttributeImageSize{
 			m.Int(),
 			m.Int(),
 		}
 
 	case crc_documentAttributeAnimated:
-		r = &TL_documentAttributeAnimated{}
+		r = TL_documentAttributeAnimated{}
 
 	case crc_documentAttributeSticker:
-		r = &TL_documentAttributeSticker{}
+		r = TL_documentAttributeSticker{}
 
 	case crc_documentAttributeVideo:
-		r = &TL_documentAttributeVideo{
+		r = TL_documentAttributeVideo{
 			m.Int(),
 			m.Int(),
 			m.Int(),
 		}
 
 	case crc_documentAttributeAudio:
-		r = &TL_documentAttributeAudio{
+		r = TL_documentAttributeAudio{
 			m.Int(),
 		}
 
 	case crc_documentAttributeFilename:
-		r = &TL_documentAttributeFilename{
+		r = TL_documentAttributeFilename{
 			m.String(),
 		}
 
 	case crc_messages_stickersNotModified:
-		r = &TL_messages_stickersNotModified{}
+		r = TL_messages_stickersNotModified{}
 
 	case crc_messages_stickers:
-		r = &TL_messages_stickers{
+		r = TL_messages_stickers{
 			m.String(),
 			m.Vector(),
 		}
 
 	case crc_stickerPack:
-		r = &TL_stickerPack{
+		r = TL_stickerPack{
 			m.String(),
 			m.VectorLong(),
 		}
 
 	case crc_messages_allStickersNotModified:
-		r = &TL_messages_allStickersNotModified{}
+		r = TL_messages_allStickersNotModified{}
 
 	case crc_messages_allStickers:
-		r = &TL_messages_allStickers{
+		r = TL_messages_allStickers{
 			m.String(),
 			m.Vector(),
 			m.Vector(),
 		}
 
 	case crc_disabledFeature:
-		r = &TL_disabledFeature{
+		r = TL_disabledFeature{
 			m.String(),
 			m.String(),
 		}
 
 	case crc_invokeAfterMsg:
-		r = &TL_invokeAfterMsg{
+		r = TL_invokeAfterMsg{
 			m.Long(),
 			m.Object(),
 		}
 
 	case crc_invokeAfterMsgs:
-		r = &TL_invokeAfterMsgs{
+		r = TL_invokeAfterMsgs{
 			m.VectorLong(),
 			m.Object(),
 		}
 
 	case crc_auth_checkPhone:
-		r = &TL_auth_checkPhone{
+		r = TL_auth_checkPhone{
 			m.String(),
 		}
 
 	case crc_auth_sendCode:
-		r = &TL_auth_sendCode{
+		r = TL_auth_sendCode{
 			m.String(),
 			m.Int(),
 			m.Int(),
@@ -7638,13 +7638,13 @@ func (m *DecodeBuf) ObjectGenerated(constructor uint32) (r TL) {
 		}
 
 	case crc_auth_sendCall:
-		r = &TL_auth_sendCall{
+		r = TL_auth_sendCall{
 			m.String(),
 			m.String(),
 		}
 
 	case crc_auth_signUp:
-		r = &TL_auth_signUp{
+		r = TL_auth_signUp{
 			m.String(),
 			m.String(),
 			m.String(),
@@ -7653,37 +7653,37 @@ func (m *DecodeBuf) ObjectGenerated(constructor uint32) (r TL) {
 		}
 
 	case crc_auth_signIn:
-		r = &TL_auth_signIn{
+		r = TL_auth_signIn{
 			m.String(),
 			m.String(),
 			m.String(),
 		}
 
 	case crc_auth_logOut:
-		r = &TL_auth_logOut{}
+		r = TL_auth_logOut{}
 
 	case crc_auth_resetAuthorizations:
-		r = &TL_auth_resetAuthorizations{}
+		r = TL_auth_resetAuthorizations{}
 
 	case crc_auth_sendInvites:
-		r = &TL_auth_sendInvites{
+		r = TL_auth_sendInvites{
 			m.VectorString(),
 			m.String(),
 		}
 
 	case crc_auth_exportAuthorization:
-		r = &TL_auth_exportAuthorization{
+		r = TL_auth_exportAuthorization{
 			m.Int(),
 		}
 
 	case crc_auth_importAuthorization:
-		r = &TL_auth_importAuthorization{
+		r = TL_auth_importAuthorization{
 			m.Int(),
 			m.StringBytes(),
 		}
 
 	case crc_auth_bindTempAuthKey:
-		r = &TL_auth_bindTempAuthKey{
+		r = TL_auth_bindTempAuthKey{
 			m.Long(),
 			m.Long(),
 			m.Int(),
@@ -7691,7 +7691,7 @@ func (m *DecodeBuf) ObjectGenerated(constructor uint32) (r TL) {
 		}
 
 	case crc_account_registerDevice:
-		r = &TL_account_registerDevice{
+		r = TL_account_registerDevice{
 			m.Int(),
 			m.String(),
 			m.String(),
@@ -7702,116 +7702,116 @@ func (m *DecodeBuf) ObjectGenerated(constructor uint32) (r TL) {
 		}
 
 	case crc_account_unregisterDevice:
-		r = &TL_account_unregisterDevice{
+		r = TL_account_unregisterDevice{
 			m.Int(),
 			m.String(),
 		}
 
 	case crc_account_updateNotifySettings:
-		r = &TL_account_updateNotifySettings{
+		r = TL_account_updateNotifySettings{
 			m.Object(),
 			m.Object(),
 		}
 
 	case crc_account_getNotifySettings:
-		r = &TL_account_getNotifySettings{
+		r = TL_account_getNotifySettings{
 			m.Object(),
 		}
 
 	case crc_account_resetNotifySettings:
-		r = &TL_account_resetNotifySettings{}
+		r = TL_account_resetNotifySettings{}
 
 	case crc_account_updateProfile:
-		r = &TL_account_updateProfile{
+		r = TL_account_updateProfile{
 			m.String(),
 			m.String(),
 		}
 
 	case crc_account_updateStatus:
-		r = &TL_account_updateStatus{
+		r = TL_account_updateStatus{
 			m.Object(),
 		}
 
 	case crc_account_getWallPapers:
-		r = &TL_account_getWallPapers{}
+		r = TL_account_getWallPapers{}
 
 	case crc_users_getUsers:
-		r = &TL_users_getUsers{
+		r = TL_users_getUsers{
 			m.Vector(),
 		}
 
 	case crc_users_getFullUser:
-		r = &TL_users_getFullUser{
+		r = TL_users_getFullUser{
 			m.Object(),
 		}
 
 	case crc_contacts_getStatuses:
-		r = &TL_contacts_getStatuses{}
+		r = TL_contacts_getStatuses{}
 
 	case crc_contacts_getContacts:
-		r = &TL_contacts_getContacts{
+		r = TL_contacts_getContacts{
 			m.String(),
 		}
 
 	case crc_contacts_importContacts:
-		r = &TL_contacts_importContacts{
+		r = TL_contacts_importContacts{
 			m.Vector(),
 			m.Object(),
 		}
 
 	case crc_contacts_getSuggested:
-		r = &TL_contacts_getSuggested{
+		r = TL_contacts_getSuggested{
 			m.Int(),
 		}
 
 	case crc_contacts_deleteContact:
-		r = &TL_contacts_deleteContact{
+		r = TL_contacts_deleteContact{
 			m.Object(),
 		}
 
 	case crc_contacts_deleteContacts:
-		r = &TL_contacts_deleteContacts{
+		r = TL_contacts_deleteContacts{
 			m.Vector(),
 		}
 
 	case crc_contacts_block:
-		r = &TL_contacts_block{
+		r = TL_contacts_block{
 			m.Object(),
 		}
 
 	case crc_contacts_unblock:
-		r = &TL_contacts_unblock{
+		r = TL_contacts_unblock{
 			m.Object(),
 		}
 
 	case crc_contacts_getBlocked:
-		r = &TL_contacts_getBlocked{
+		r = TL_contacts_getBlocked{
 			m.Int(),
 			m.Int(),
 		}
 
 	case crc_contacts_exportCard:
-		r = &TL_contacts_exportCard{}
+		r = TL_contacts_exportCard{}
 
 	case crc_contacts_importCard:
-		r = &TL_contacts_importCard{
+		r = TL_contacts_importCard{
 			m.VectorInt(),
 		}
 
 	case crc_messages_getMessages:
-		r = &TL_messages_getMessages{
+		r = TL_messages_getMessages{
 			m.VectorInt(),
 		}
 
 	case crc_messages_getDialogs:
-		r = &TL_messages_getDialogs{
+		r = TL_messages_getDialogs{
 			m.Int(),
 			m.Int(),
 			m.Int(),
 		}
 
 	case crc_messages_getHistory:
-		r = &TL_messages_getHistory{
+		r = TL_messages_getHistory{
 			m.Object(),
 			m.Int(),
 			m.Int(),
@@ -7819,7 +7819,7 @@ func (m *DecodeBuf) ObjectGenerated(constructor uint32) (r TL) {
 		}
 
 	case crc_messages_search:
-		r = &TL_messages_search{
+		r = TL_messages_search{
 			m.Object(),
 			m.String(),
 			m.Object(),
@@ -7831,7 +7831,7 @@ func (m *DecodeBuf) ObjectGenerated(constructor uint32) (r TL) {
 		}
 
 	case crc_messages_readHistory:
-		r = &TL_messages_readHistory{
+		r = TL_messages_readHistory{
 			m.Object(),
 			m.Int(),
 			m.Int(),
@@ -7839,106 +7839,106 @@ func (m *DecodeBuf) ObjectGenerated(constructor uint32) (r TL) {
 		}
 
 	case crc_messages_deleteHistory:
-		r = &TL_messages_deleteHistory{
+		r = TL_messages_deleteHistory{
 			m.Object(),
 			m.Int(),
 		}
 
 	case crc_messages_deleteMessages:
-		r = &TL_messages_deleteMessages{
+		r = TL_messages_deleteMessages{
 			m.VectorInt(),
 		}
 
 	case crc_messages_receivedMessages:
-		r = &TL_messages_receivedMessages{
+		r = TL_messages_receivedMessages{
 			m.Int(),
 		}
 
 	case crc_messages_setTyping:
-		r = &TL_messages_setTyping{
+		r = TL_messages_setTyping{
 			m.Object(),
 			m.Object(),
 		}
 
 	case crc_messages_sendMessage:
-		r = &TL_messages_sendMessage{
+		r = TL_messages_sendMessage{
 			m.Object(),
 			m.String(),
 			m.Long(),
 		}
 
 	case crc_messages_sendMedia:
-		r = &TL_messages_sendMedia{
+		r = TL_messages_sendMedia{
 			m.Object(),
 			m.Object(),
 			m.Long(),
 		}
 
 	case crc_messages_forwardMessages:
-		r = &TL_messages_forwardMessages{
+		r = TL_messages_forwardMessages{
 			m.Object(),
 			m.VectorInt(),
 		}
 
 	case crc_messages_getChats:
-		r = &TL_messages_getChats{
+		r = TL_messages_getChats{
 			m.VectorInt(),
 		}
 
 	case crc_messages_getFullChat:
-		r = &TL_messages_getFullChat{
+		r = TL_messages_getFullChat{
 			m.Int(),
 		}
 
 	case crc_messages_editChatTitle:
-		r = &TL_messages_editChatTitle{
+		r = TL_messages_editChatTitle{
 			m.Int(),
 			m.String(),
 		}
 
 	case crc_messages_editChatPhoto:
-		r = &TL_messages_editChatPhoto{
+		r = TL_messages_editChatPhoto{
 			m.Int(),
 			m.Object(),
 		}
 
 	case crc_messages_addChatUser:
-		r = &TL_messages_addChatUser{
+		r = TL_messages_addChatUser{
 			m.Int(),
 			m.Object(),
 			m.Int(),
 		}
 
 	case crc_messages_deleteChatUser:
-		r = &TL_messages_deleteChatUser{
+		r = TL_messages_deleteChatUser{
 			m.Int(),
 			m.Object(),
 		}
 
 	case crc_messages_createChat:
-		r = &TL_messages_createChat{
+		r = TL_messages_createChat{
 			m.Vector(),
 			m.String(),
 		}
 
 	case crc_updates_getState:
-		r = &TL_updates_getState{}
+		r = TL_updates_getState{}
 
 	case crc_updates_getDifference:
-		r = &TL_updates_getDifference{
+		r = TL_updates_getDifference{
 			m.Int(),
 			m.Int(),
 			m.Int(),
 		}
 
 	case crc_photos_updateProfilePhoto:
-		r = &TL_photos_updateProfilePhoto{
+		r = TL_photos_updateProfilePhoto{
 			m.Object(),
 			m.Object(),
 		}
 
 	case crc_photos_uploadProfilePhoto:
-		r = &TL_photos_uploadProfilePhoto{
+		r = TL_photos_uploadProfilePhoto{
 			m.Object(),
 			m.String(),
 			m.Object(),
@@ -7946,32 +7946,32 @@ func (m *DecodeBuf) ObjectGenerated(constructor uint32) (r TL) {
 		}
 
 	case crc_photos_deletePhotos:
-		r = &TL_photos_deletePhotos{
+		r = TL_photos_deletePhotos{
 			m.Vector(),
 		}
 
 	case crc_upload_saveFilePart:
-		r = &TL_upload_saveFilePart{
+		r = TL_upload_saveFilePart{
 			m.Long(),
 			m.Int(),
 			m.StringBytes(),
 		}
 
 	case crc_upload_getFile:
-		r = &TL_upload_getFile{
+		r = TL_upload_getFile{
 			m.Object(),
 			m.Int(),
 			m.Int(),
 		}
 
 	case crc_help_getConfig:
-		r = &TL_help_getConfig{}
+		r = TL_help_getConfig{}
 
 	case crc_help_getNearestDc:
-		r = &TL_help_getNearestDc{}
+		r = TL_help_getNearestDc{}
 
 	case crc_help_getAppUpdate:
-		r = &TL_help_getAppUpdate{
+		r = TL_help_getAppUpdate{
 			m.String(),
 			m.String(),
 			m.String(),
@@ -7979,17 +7979,17 @@ func (m *DecodeBuf) ObjectGenerated(constructor uint32) (r TL) {
 		}
 
 	case crc_help_saveAppLog:
-		r = &TL_help_saveAppLog{
+		r = TL_help_saveAppLog{
 			m.Vector(),
 		}
 
 	case crc_help_getInviteText:
-		r = &TL_help_getInviteText{
+		r = TL_help_getInviteText{
 			m.String(),
 		}
 
 	case crc_photos_getUserPhotos:
-		r = &TL_photos_getUserPhotos{
+		r = TL_photos_getUserPhotos{
 			m.Object(),
 			m.Int(),
 			m.Int(),
@@ -7997,57 +7997,57 @@ func (m *DecodeBuf) ObjectGenerated(constructor uint32) (r TL) {
 		}
 
 	case crc_messages_forwardMessage:
-		r = &TL_messages_forwardMessage{
+		r = TL_messages_forwardMessage{
 			m.Object(),
 			m.Int(),
 			m.Long(),
 		}
 
 	case crc_messages_sendBroadcast:
-		r = &TL_messages_sendBroadcast{
+		r = TL_messages_sendBroadcast{
 			m.Vector(),
 			m.String(),
 			m.Object(),
 		}
 
 	case crc_geochats_getLocated:
-		r = &TL_geochats_getLocated{
+		r = TL_geochats_getLocated{
 			m.Object(),
 			m.Int(),
 			m.Int(),
 		}
 
 	case crc_geochats_getRecents:
-		r = &TL_geochats_getRecents{
+		r = TL_geochats_getRecents{
 			m.Int(),
 			m.Int(),
 		}
 
 	case crc_geochats_checkin:
-		r = &TL_geochats_checkin{
+		r = TL_geochats_checkin{
 			m.Object(),
 		}
 
 	case crc_geochats_getFullChat:
-		r = &TL_geochats_getFullChat{
+		r = TL_geochats_getFullChat{
 			m.Object(),
 		}
 
 	case crc_geochats_editChatTitle:
-		r = &TL_geochats_editChatTitle{
+		r = TL_geochats_editChatTitle{
 			m.Object(),
 			m.String(),
 			m.String(),
 		}
 
 	case crc_geochats_editChatPhoto:
-		r = &TL_geochats_editChatPhoto{
+		r = TL_geochats_editChatPhoto{
 			m.Object(),
 			m.Object(),
 		}
 
 	case crc_geochats_search:
-		r = &TL_geochats_search{
+		r = TL_geochats_search{
 			m.Object(),
 			m.String(),
 			m.Object(),
@@ -8059,7 +8059,7 @@ func (m *DecodeBuf) ObjectGenerated(constructor uint32) (r TL) {
 		}
 
 	case crc_geochats_getHistory:
-		r = &TL_geochats_getHistory{
+		r = TL_geochats_getHistory{
 			m.Object(),
 			m.Int(),
 			m.Int(),
@@ -8067,27 +8067,27 @@ func (m *DecodeBuf) ObjectGenerated(constructor uint32) (r TL) {
 		}
 
 	case crc_geochats_setTyping:
-		r = &TL_geochats_setTyping{
+		r = TL_geochats_setTyping{
 			m.Object(),
 			m.Object(),
 		}
 
 	case crc_geochats_sendMessage:
-		r = &TL_geochats_sendMessage{
+		r = TL_geochats_sendMessage{
 			m.Object(),
 			m.String(),
 			m.Long(),
 		}
 
 	case crc_geochats_sendMedia:
-		r = &TL_geochats_sendMedia{
+		r = TL_geochats_sendMedia{
 			m.Object(),
 			m.Object(),
 			m.Long(),
 		}
 
 	case crc_geochats_createGeoChat:
-		r = &TL_geochats_createGeoChat{
+		r = TL_geochats_createGeoChat{
 			m.String(),
 			m.Object(),
 			m.String(),
@@ -8095,51 +8095,51 @@ func (m *DecodeBuf) ObjectGenerated(constructor uint32) (r TL) {
 		}
 
 	case crc_messages_getDhConfig:
-		r = &TL_messages_getDhConfig{
+		r = TL_messages_getDhConfig{
 			m.Int(),
 			m.Int(),
 		}
 
 	case crc_messages_requestEncryption:
-		r = &TL_messages_requestEncryption{
+		r = TL_messages_requestEncryption{
 			m.Object(),
 			m.Int(),
 			m.StringBytes(),
 		}
 
 	case crc_messages_acceptEncryption:
-		r = &TL_messages_acceptEncryption{
+		r = TL_messages_acceptEncryption{
 			m.Object(),
 			m.StringBytes(),
 			m.Long(),
 		}
 
 	case crc_messages_discardEncryption:
-		r = &TL_messages_discardEncryption{
+		r = TL_messages_discardEncryption{
 			m.Int(),
 		}
 
 	case crc_messages_setEncryptedTyping:
-		r = &TL_messages_setEncryptedTyping{
+		r = TL_messages_setEncryptedTyping{
 			m.Object(),
 			m.Object(),
 		}
 
 	case crc_messages_readEncryptedHistory:
-		r = &TL_messages_readEncryptedHistory{
+		r = TL_messages_readEncryptedHistory{
 			m.Object(),
 			m.Int(),
 		}
 
 	case crc_messages_sendEncrypted:
-		r = &TL_messages_sendEncrypted{
+		r = TL_messages_sendEncrypted{
 			m.Object(),
 			m.Long(),
 			m.StringBytes(),
 		}
 
 	case crc_messages_sendEncryptedFile:
-		r = &TL_messages_sendEncryptedFile{
+		r = TL_messages_sendEncryptedFile{
 			m.Object(),
 			m.Long(),
 			m.StringBytes(),
@@ -8147,19 +8147,19 @@ func (m *DecodeBuf) ObjectGenerated(constructor uint32) (r TL) {
 		}
 
 	case crc_messages_sendEncryptedService:
-		r = &TL_messages_sendEncryptedService{
+		r = TL_messages_sendEncryptedService{
 			m.Object(),
 			m.Long(),
 			m.StringBytes(),
 		}
 
 	case crc_messages_receivedQueue:
-		r = &TL_messages_receivedQueue{
+		r = TL_messages_receivedQueue{
 			m.Int(),
 		}
 
 	case crc_upload_saveBigFilePart:
-		r = &TL_upload_saveBigFilePart{
+		r = TL_upload_saveBigFilePart{
 			m.Long(),
 			m.Int(),
 			m.Int(),
@@ -8167,7 +8167,7 @@ func (m *DecodeBuf) ObjectGenerated(constructor uint32) (r TL) {
 		}
 
 	case crc_initConnection:
-		r = &TL_initConnection{
+		r = TL_initConnection{
 			m.Int(),
 			m.String(),
 			m.String(),
@@ -8177,95 +8177,95 @@ func (m *DecodeBuf) ObjectGenerated(constructor uint32) (r TL) {
 		}
 
 	case crc_help_getSupport:
-		r = &TL_help_getSupport{}
+		r = TL_help_getSupport{}
 
 	case crc_auth_sendSms:
-		r = &TL_auth_sendSms{
+		r = TL_auth_sendSms{
 			m.String(),
 			m.String(),
 		}
 
 	case crc_messages_readMessageContents:
-		r = &TL_messages_readMessageContents{
+		r = TL_messages_readMessageContents{
 			m.VectorInt(),
 		}
 
 	case crc_account_checkUsername:
-		r = &TL_account_checkUsername{
+		r = TL_account_checkUsername{
 			m.String(),
 		}
 
 	case crc_account_updateUsername:
-		r = &TL_account_updateUsername{
+		r = TL_account_updateUsername{
 			m.String(),
 		}
 
 	case crc_contacts_search:
-		r = &TL_contacts_search{
+		r = TL_contacts_search{
 			m.String(),
 			m.Int(),
 		}
 
 	case crc_account_getPrivacy:
-		r = &TL_account_getPrivacy{
+		r = TL_account_getPrivacy{
 			m.Object(),
 		}
 
 	case crc_account_setPrivacy:
-		r = &TL_account_setPrivacy{
+		r = TL_account_setPrivacy{
 			m.Object(),
 			m.Vector(),
 		}
 
 	case crc_account_deleteAccount:
-		r = &TL_account_deleteAccount{
+		r = TL_account_deleteAccount{
 			m.String(),
 		}
 
 	case crc_account_getAccountTTL:
-		r = &TL_account_getAccountTTL{}
+		r = TL_account_getAccountTTL{}
 
 	case crc_account_setAccountTTL:
-		r = &TL_account_setAccountTTL{
+		r = TL_account_setAccountTTL{
 			m.Object(),
 		}
 
 	case crc_invokeWithLayer:
-		r = &TL_invokeWithLayer{
+		r = TL_invokeWithLayer{
 			m.Int(),
 			m.Object(),
 		}
 
 	case crc_contacts_resolveUsername:
-		r = &TL_contacts_resolveUsername{
+		r = TL_contacts_resolveUsername{
 			m.String(),
 		}
 
 	case crc_account_sendChangePhoneCode:
-		r = &TL_account_sendChangePhoneCode{
+		r = TL_account_sendChangePhoneCode{
 			m.String(),
 		}
 
 	case crc_account_changePhone:
-		r = &TL_account_changePhone{
+		r = TL_account_changePhone{
 			m.String(),
 			m.String(),
 			m.String(),
 		}
 
 	case crc_messages_getStickers:
-		r = &TL_messages_getStickers{
+		r = TL_messages_getStickers{
 			m.String(),
 			m.String(),
 		}
 
 	case crc_messages_getAllStickers:
-		r = &TL_messages_getAllStickers{
+		r = TL_messages_getAllStickers{
 			m.String(),
 		}
 
 	case crc_account_updateDeviceLocked:
-		r = &TL_account_updateDeviceLocked{
+		r = TL_account_updateDeviceLocked{
 			m.Int(),
 		}
 

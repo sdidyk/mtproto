@@ -2,6 +2,7 @@ package mtproto
 
 import (
 	"fmt"
+	"github.com/sdidyk/pp"
 	"math/big"
 	"math/rand"
 	"net"
@@ -113,25 +114,25 @@ func (m *MTProto) Connect() error {
 	// (help_getConfig)
 	resp = make(chan TL, 1)
 	m.queueSend <- packetToSend{
-		&TL_invokeWithLayer{
+		TL_invokeWithLayer{
 			layer,
-			&TL_initConnection{
+			TL_initConnection{
 				appId,
 				"MacBook Pro (Retina, Mid 2012)",
 				"OS X 10.10.3",
 				"0.0.1",
 				"en",
-				&TL_help_getConfig{},
+				TL_help_getConfig{},
 			},
 		},
 		resp,
 	}
 	x = <-resp
 	switch x.(type) {
-	case *TL_config:
+	case TL_config:
 		m.dclist = make(map[int32]string, 5)
-		for _, v := range x.(*TL_config).dc_options {
-			v := v.(*TL_dcOption)
+		for _, v := range x.(TL_config).dc_options {
+			v := v.(TL_dcOption)
 			m.dclist[v.id] = fmt.Sprintf("%s:%d", v.ip_address, v.port)
 		}
 	default:
@@ -163,21 +164,21 @@ func (m *MTProto) Reconnect(newaddr string) error {
 	return err
 }
 
-func (m *MTProto) SendCode(phonenumber string) error {
+func (m *MTProto) Auth(phonenumber string) error {
 	var authSentCode TL_auth_sentCode
 
 	// (TL_auth_sendCode)
 	flag := true
 	for flag {
 		resp := make(chan TL, 1)
-		m.queueSend <- packetToSend{&TL_auth_sendCode{phonenumber, 0, appId, appHash, "en"}, resp}
+		m.queueSend <- packetToSend{TL_auth_sendCode{phonenumber, 0, appId, appHash, "en"}, resp}
 		x := <-resp
 		switch x.(type) {
-		case *TL_auth_sentCode:
-			authSentCode = *(x.(*TL_auth_sentCode))
+		case TL_auth_sentCode:
+			authSentCode = x.(TL_auth_sentCode)
 			flag = false
-		case *TL_rpc_error:
-			x := x.(*TL_rpc_error)
+		case TL_rpc_error:
+			x := x.(TL_rpc_error)
 			if x.error_code != 303 {
 				return fmt.Errorf("RPC error_code: %d", x.error_code)
 			}
@@ -206,24 +207,52 @@ func (m *MTProto) SendCode(phonenumber string) error {
 	fmt.Print("Enter code: ")
 	fmt.Scanf("%d", &code)
 
-	_, phone_registed := authSentCode.phone_registered.(*TL_boolTrue)
+	_, phone_registed := authSentCode.phone_registered.(TL_boolTrue)
 	if phone_registed {
 		resp := make(chan TL, 1)
 		m.queueSend <- packetToSend{
-			&TL_auth_signIn{phonenumber, authSentCode.phone_code_hash, fmt.Sprintf("%d", code)},
+			TL_auth_signIn{phonenumber, authSentCode.phone_code_hash, fmt.Sprintf("%d", code)},
 			resp,
 		}
 		x := <-resp
-		auth, ok := x.(*TL_auth_authorization)
+		auth, ok := x.(TL_auth_authorization)
 		if !ok {
 			return fmt.Errorf("RPC: %#v", x)
 		}
-		userSelf := auth.user.(*TL_userSelf)
-		fmt.Printf("Signed in: user %d <%s %s>\n", userSelf.id, userSelf.first_name, userSelf.last_name)
+		userSelf := auth.user.(TL_userSelf)
+		fmt.Printf("Signed in: id %d name <%s %s>\n", userSelf.id, userSelf.first_name, userSelf.last_name)
 
 	} else {
 
-		return fmt.Errorf("Cannot signUp yet")
+		return fmt.Errorf("Cannot sign up yet")
+	}
+
+	return nil
+}
+
+func (m *MTProto) GetContacts() error {
+	resp := make(chan TL, 1)
+	m.queueSend <- packetToSend{TL_contacts_getContacts{""}, resp}
+	x := <-resp
+	list, ok := x.(TL_contacts_contacts)
+	if !ok {
+		return fmt.Errorf("RPC: %#v", x)
+	}
+
+	contacts := make(map[int32]TL_userContact)
+	for _, v := range list.users {
+		v := v.(TL_userContact)
+		contacts[v.id] = v
+	}
+	for _, v := range list.contacts {
+		v := v.(TL_contact)
+		fmt.Printf(
+			"%15d    %5t    %-30s    %-20s\n",
+			v.user_id,
+			toBool(v.mutual),
+			fmt.Sprintf("%s %s", contacts[v.user_id].first_name, contacts[v.user_id].last_name),
+			contacts[v.user_id].username,
+		)
 	}
 
 	return nil
@@ -237,7 +266,7 @@ func (m *MTProto) startPing() {
 			case <-m.stopPing:
 				return
 			case <-time.After(60 * time.Second):
-				m.queueSend <- packetToSend{&TL_ping{0xCADACADA}, nil}
+				m.queueSend <- packetToSend{TL_ping{0xCADACADA}, nil}
 			}
 		}
 	}()
@@ -247,7 +276,7 @@ func (m *MTProto) SendRoutine() {
 	for x := range m.queueSend {
 		needAck := true
 		switch x.msg.(type) {
-		case *TL_ping, *TL_msgs_ack:
+		case TL_ping, TL_msgs_ack:
 			needAck = false
 		}
 		err := m.SendPacket(x.msg, needAck, x.resp)
@@ -276,36 +305,36 @@ func (m *MTProto) ReadRoutine(stop <-chan struct{}) {
 
 func (m *MTProto) Process(msgId int64, seqNo int32, data interface{}) interface{} {
 	switch data.(type) {
-	case *TL_msg_container:
-		data := data.(*TL_msg_container).items
+	case TL_msg_container:
+		data := data.(TL_msg_container).items
 		for _, v := range data {
 			m.Process(v.msg_id, v.seq_no, v.data)
 		}
 
-	case *TL_bad_server_salt:
-		data := data.(*TL_bad_server_salt)
+	case TL_bad_server_salt:
+		data := data.(TL_bad_server_salt)
 		m.setSalt(data.new_server_salt)
 		// TODO: resend messages
 
-	case *TL_new_session_created:
-		data := data.(*TL_new_session_created)
+	case TL_new_session_created:
+		data := data.(TL_new_session_created)
 		m.setSalt(data.server_salt)
 
-	case *TL_ping:
-		data := data.(*TL_ping)
-		m.queueSend <- packetToSend{&TL_pong{msgId, data.ping_id}, nil}
+	case TL_ping:
+		data := data.(TL_ping)
+		m.queueSend <- packetToSend{TL_pong{msgId, data.ping_id}, nil}
 
-	case *TL_pong:
+	case TL_pong:
 		// (ignore)
 
-	case *TL_msgs_ack:
-		data := data.(*TL_msgs_ack)
+	case TL_msgs_ack:
+		data := data.(TL_msgs_ack)
 		for _, v := range data.msgIds {
 			delete(m.msgsIdToAck, v)
 		}
 
-	case *TL_rpc_result:
-		data := data.(*TL_rpc_result)
+	case TL_rpc_result:
+		data := data.(TL_rpc_result)
 		x := m.Process(msgId, seqNo, data.obj)
 		v, ok := m.msgsIdToResp[data.req_msg_id]
 		if ok {
@@ -321,7 +350,7 @@ func (m *MTProto) Process(msgId int64, seqNo int32, data interface{}) interface{
 	}
 
 	if (seqNo & 1) == 1 {
-		m.SendPacket(&TL_msgs_ack{[]int64{msgId}}, false, nil)
+		m.SendPacket(TL_msgs_ack{[]int64{msgId}}, false, nil)
 	}
 
 	return nil
@@ -356,4 +385,8 @@ func (m *MTProto) Halt() {
 
 func dump(x interface{}) {
 	fmt.Printf("%#v\n", x)
+}
+
+func dump2(x interface{}) {
+	pp.Println(x)
 }

@@ -152,7 +152,7 @@ func main() {
 	// encode funcs
 	for _, key := range _order {
 		c := _cons[key]
-		fmt.Printf("func (e *TL_%s) encode() []byte {\n", c.predicate)
+		fmt.Printf("func (e TL_%s) encode() []byte {\n", c.predicate)
 		fmt.Printf("x := NewEncodeBuf(512)\n")
 		fmt.Printf("x.UInt(crc_%s)\n", c.predicate)
 		for _, t := range c.params {
@@ -200,7 +200,7 @@ func (m *DecodeBuf) ObjectGenerated(constructor uint32) (r TL) {
 	for _, key := range _order {
 		c := _cons[key]
 		fmt.Printf("case crc_%s:\n", c.predicate)
-		fmt.Printf("r = &TL_%s{\n", c.predicate)
+		fmt.Printf("r = TL_%s{\n", c.predicate)
 		for _, t := range c.params {
 			switch t._type {
 			case "int":
