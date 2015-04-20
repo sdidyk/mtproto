@@ -76,7 +76,6 @@ func (m *MTProto) Connect() error {
 	var tcpAddr *net.TCPAddr
 
 	// connect
-	fmt.Printf("Connecting to %s\n", m.addr)
 	tcpAddr, err = net.ResolveTCPAddr("tcp", m.addr)
 	if err != nil {
 		return err
@@ -244,8 +243,8 @@ func (m *MTProto) GetContacts() error {
 		contacts[v.id] = v
 	}
 	fmt.Printf(
-		"%10s    %10s    %-30s    %-20s\n",
-		"(id)", "(mutual)", "(name)", "(username)",
+		"\033[33m\033[1m%10s    %10s    %-30s    %-20s\033[0m\n",
+		"id", "mutual", "name", "username",
 	)
 	for _, v := range list.contacts {
 		v := v.(TL_contact)
