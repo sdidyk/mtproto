@@ -2,7 +2,7 @@ package main
 
 import (
 	"fmt"
-	"github.com/sdidyk/telegram/mtproto"
+	"github.com/sdidyk/telegram"
 	"os"
 	"strconv"
 )
