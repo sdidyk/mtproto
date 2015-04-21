@@ -3,12 +3,10 @@ package mtproto
 import (
 	"fmt"
 	"github.com/sdidyk/pp"
-	"math/big"
 	"math/rand"
 	"net"
 	"os"
 	"runtime"
-	"strings"
 	"sync"
 	"time"
 )
@@ -55,14 +53,9 @@ func NewMTProto(authkeyfile string) (*MTProto, error) {
 	if err != nil {
 		return nil, err
 	}
-	// TODO: rewrite to DecodeBuf
-	b := make([]byte, 256+8+8+32)
-	n, err := m.f.Read(b)
-	if n == 256+8+8+32 {
-		m.authKey = b[:256]
-		m.authKeyHash = b[256 : 256+8]
-		m.serverSalt = b[256+8 : 256+8+8]
-		m.addr = strings.TrimRight(string(b[256+8+8:]), "\x00")
+
+	err = m.readData()
+	if err == nil {
 		m.encrypted = true
 	} else {
 		m.addr = "149.154.175.50:443"
@@ -98,7 +91,6 @@ func (m *MTProto) Connect() error {
 		if err != nil {
 			return err
 		}
-		m.setAddr(m.addr)
 	}
 
 	// start goroutines
@@ -335,7 +327,8 @@ func (m *MTProto) Process(msgId int64, seqNo int32, data interface{}) interface{
 
 	case TL_bad_server_salt:
 		data := data.(TL_bad_server_salt)
-		m.setSalt(data.new_server_salt)
+		m.serverSalt = data.new_server_salt
+		m.saveData()
 		m.mutex.Lock()
 		for k, v := range m.msgsIdToAck {
 			delete(m.msgsIdToAck, k)
@@ -345,7 +338,8 @@ func (m *MTProto) Process(msgId int64, seqNo int32, data interface{}) interface{
 
 	case TL_new_session_created:
 		data := data.(TL_new_session_created)
-		m.setSalt(data.server_salt)
+		m.serverSalt = data.server_salt
+		m.saveData()
 
 	case TL_ping:
 		data := data.(TL_ping)
@@ -387,28 +381,46 @@ func (m *MTProto) Process(msgId int64, seqNo int32, data interface{}) interface{
 	return nil
 }
 
-// TODO: rewrite to EncodeBuf
-func (m *MTProto) setGAB(g_ab *big.Int) {
+func (m *MTProto) saveData() (err error) {
 	m.encrypted = true
-	m.authKey = g_ab.Bytes()
-	if m.authKey[0] == 0 {
-		m.authKey = m.authKey[1:]
+
+	b := NewEncodeBuf(1024)
+	b.StringBytes(m.authKey)
+	b.StringBytes(m.authKeyHash)
+	b.StringBytes(m.serverSalt)
+	b.String(m.addr)
+
+	err = m.f.Truncate(0)
+	if err != nil {
+		return err
 	}
-	m.authKeyHash = sha1(m.authKey)[12:20]
-	m.f.WriteAt(m.authKey, 0)
-	m.f.WriteAt(m.authKeyHash, 256)
+
+	_, err = m.f.WriteAt(b.buf, 0)
+	if err != nil {
+		return err
+	}
+
+	return nil
 }
 
-func (m *MTProto) setSalt(s []byte) {
-	m.serverSalt = s
-	m.f.WriteAt(m.serverSalt, 256+8)
-}
+func (m *MTProto) readData() (err error) {
+	b := make([]byte, 1024*4)
+	n, err := m.f.ReadAt(b, 0)
+	if n <= 0 {
+		return fmt.Errorf("New session")
+	}
 
-func (m *MTProto) setAddr(s string) {
-	m.addr = s
-	b := make([]byte, 32)
-	copy(b, []byte(s))
-	m.f.WriteAt(b, 256+8+8)
+	d := NewDecodeBuf(b)
+	m.authKey = d.StringBytes()
+	m.authKeyHash = d.StringBytes()
+	m.serverSalt = d.StringBytes()
+	m.addr = d.String()
+
+	if d.err != nil {
+		return d.err
+	}
+
+	return nil
 }
 
 func (m *MTProto) Halt() {

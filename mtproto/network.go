@@ -297,18 +297,19 @@ func (m *MTProto) makeAuthKey() error {
 	}
 
 	_, g_b, g_ab := MakeGAB(dhi.g, dhi.g_a, dhi.dh_prime)
-	authKey := g_ab.Bytes()
-	if authKey[0] == 0 {
-		authKey = authKey[1:]
+	m.authKey = g_ab.Bytes()
+	if m.authKey[0] == 0 {
+		m.authKey = m.authKey[1:]
 	}
+	m.authKeyHash = sha1(m.authKey)[12:20]
 	t4 := make([]byte, 32+1+8)
 	copy(t4[0:], nonceSecond)
 	t4[32] = 1
-	copy(t4[33:], sha1(authKey)[0:8])
+	copy(t4[33:], sha1(m.authKey)[0:8])
 	nonceHash1 := sha1(t4)[4:20]
-	serverSalt := make([]byte, 8)
-	copy(serverSalt, nonceSecond[:8])
-	xor(serverSalt, nonceServer[:8])
+	m.serverSalt = make([]byte, 8)
+	copy(m.serverSalt, nonceSecond[:8])
+	xor(m.serverSalt, nonceServer[:8])
 
 	// (encoding) client_DH_inner_data
 	innerData2 := (TL_client_DH_inner_data{nonceFirst, nonceServer, 0, g_b}).encode()
@@ -343,8 +344,10 @@ func (m *MTProto) makeAuthKey() error {
 	}
 
 	// (all ok)
-	m.setGAB(g_ab)
-	m.setSalt(serverSalt)
+	err = m.saveData()
+	if err != nil {
+		return err
+	}
 
 	return nil
 }
