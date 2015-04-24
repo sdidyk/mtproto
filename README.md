@@ -1,9 +1,15 @@
 # telegram
 MTProto implementation in Golang with example tool.
 
-# Usage
+# Example tool
 
 Example tool saves the authkey and other data in ~/.telegram_go. If you delete/lost this file, you will need to auth again.
+
+## install
+
+```
+$ go get -v -u github.com/sdidyk/mtproto/example/telegram
+```
 
 ## phone authorization
 
