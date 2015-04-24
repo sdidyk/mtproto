@@ -10,7 +10,7 @@ import (
 
 func GenerateNonce(size int) []byte {
 	b := make([]byte, size)
-	rand.Read(b)
+	_, _ = rand.Read(b)
 	return b
 }
 

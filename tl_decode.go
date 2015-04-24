@@ -348,7 +348,7 @@ func (m *DecodeBuf) Object() (r TL) {
 		obj := make([]byte, 0, 1024)
 
 		var buf bytes.Buffer
-		buf.Write(m.StringBytes())
+		_, _ = buf.Write(m.StringBytes())
 		gz, _ := gzip.NewReader(&buf)
 
 		b := make([]byte, 1024)

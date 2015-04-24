@@ -141,13 +141,17 @@ func (m *MTProto) Connect() error {
 }
 
 func (m *MTProto) Reconnect(newaddr string) error {
+	var err error
 	// stop ping routine
 	m.stopPing <- struct{}{}
 	close(m.stopPing)
 
 	// close send routine & close connection
 	close(m.queueSend)
-	m.conn.Close()
+	err = m.conn.Close()
+	if err != nil {
+		return err
+	}
 
 	// stop read routine
 	m.stopRead <- struct{}{}
@@ -156,7 +160,7 @@ func (m *MTProto) Reconnect(newaddr string) error {
 	// renew connection
 	m.encrypted = false
 	m.addr = newaddr
-	err := m.Connect()
+	err = m.Connect()
 	return err
 }
 
@@ -191,7 +195,10 @@ func (m *MTProto) Auth(phonenumber string) error {
 			if !ok {
 				return fmt.Errorf("Wrong DC index: %d", newDc)
 			}
-			m.Reconnect(newDcAddr)
+			err := m.Reconnect(newDcAddr)
+			if err != nil {
+				return err
+			}
 		default:
 			return fmt.Errorf("Got: %T", x)
 		}
@@ -328,7 +335,7 @@ func (m *MTProto) Process(msgId int64, seqNo int32, data interface{}) interface{
 	case TL_bad_server_salt:
 		data := data.(TL_bad_server_salt)
 		m.serverSalt = data.new_server_salt
-		m.saveData()
+		_ = m.saveData()
 		m.mutex.Lock()
 		for k, v := range m.msgsIdToAck {
 			delete(m.msgsIdToAck, k)
@@ -339,7 +346,7 @@ func (m *MTProto) Process(msgId int64, seqNo int32, data interface{}) interface{
 	case TL_new_session_created:
 		data := data.(TL_new_session_created)
 		m.serverSalt = data.server_salt
-		m.saveData()
+		_ = m.saveData()
 
 	case TL_ping:
 		data := data.(TL_ping)
@@ -375,7 +382,7 @@ func (m *MTProto) Process(msgId int64, seqNo int32, data interface{}) interface{
 	}
 
 	if (seqNo & 1) == 1 {
-		m.SendPacket(TL_msgs_ack{[]int64{msgId}}, nil)
+		m.queueSend <- packetToSend{TL_msgs_ack{[]int64{msgId}}, nil}
 	}
 
 	return nil
@@ -428,5 +435,5 @@ func (m *MTProto) Halt() {
 }
 
 func dump(x interface{}) {
-	pp.Println(x)
+	_, _ = pp.Println(x)
 }

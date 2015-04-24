@@ -93,7 +93,10 @@ func (m *MTProto) Read(stop <-chan struct{}) (interface{}, error) {
 	var size int
 	var data interface{}
 
-	m.conn.SetReadDeadline(time.Now().Add(300 * time.Second))
+	err = m.conn.SetReadDeadline(time.Now().Add(300 * time.Second))
+	if err != nil {
+		return nil, err
+	}
 	b := make([]byte, 1)
 	n, err = m.conn.Read(b)
 	if stop != nil {
