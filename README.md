@@ -7,10 +7,10 @@ Example tool saves the authkey and other data in ~/.telegram_go. If you delete/l
 
 ## phone authorization
 
-Authorizes phone by code (sent by sms to thru telegram app).
+Authorizes phone by code (sent by sms or thru telegram app).
 
 ```
-$ ./telegram auth 79998886655
+$ telegram auth 79998886655
 Enter code: 25704
 Signed in: id 104842610 name <Sergey Didyk>
 ```
@@ -20,7 +20,7 @@ Signed in: id 104842610 name <Sergey Didyk>
 Shows user's contact list.
 
 ```
-$ ./telegram list
+$ telegram list
         id        mutual    name                              username
     132597         false    Алексей Г*******                  O******
     326007         false    Татьяна К*******
@@ -34,7 +34,7 @@ $ ./telegram list
 Sends a message to contact. Destination id should be from contact list or user himself.
 
 ```
-$ ./telegram msg 104842610 'Hack the planet!'
+$ telegram msg 104842610 'Hack the planet!'
 ```
 
 ## Library
