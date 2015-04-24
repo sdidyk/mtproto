@@ -2,9 +2,10 @@ package main
 
 import (
 	"fmt"
-	"github.com/sdidyk/telegram"
 	"os"
 	"strconv"
+
+	"github.com/sdidyk/telegram"
 )
 
 func usage() {

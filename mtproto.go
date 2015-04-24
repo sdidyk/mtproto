@@ -2,13 +2,14 @@ package mtproto
 
 import (
 	"fmt"
-	"github.com/sdidyk/pp"
 	"math/rand"
 	"net"
 	"os"
 	"runtime"
 	"sync"
 	"time"
+
+	"github.com/sdidyk/pp"
 )
 
 const (
