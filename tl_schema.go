@@ -8270,7 +8270,6 @@ func (m *DecodeBuf) ObjectGenerated(constructor uint32) (r TL) {
 		}
 
 	default:
-		panic(fmt.Sprintf("Unknown constructor: %08x", constructor))
 		m.err = fmt.Errorf("Unknown constructor: %08x", constructor)
 		return nil
 

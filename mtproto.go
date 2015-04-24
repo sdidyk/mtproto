@@ -189,7 +189,7 @@ func (m *MTProto) Auth(phonenumber string) error {
 
 			newDcAddr, ok := m.dclist[newDc]
 			if !ok {
-				return fmt.Errorf("Wrong DC index: %s", newDc)
+				return fmt.Errorf("Wrong DC index: %d", newDc)
 			}
 			m.Reconnect(newDcAddr)
 		default:
