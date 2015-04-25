@@ -9,7 +9,7 @@ import (
 	"sync"
 	"time"
 
-	"github.com/sdidyk/pp"
+	"github.com/k0kubun/pp"
 )
 
 const (
