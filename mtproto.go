@@ -13,8 +13,8 @@ import (
 )
 
 const (
-	appId   = 2899
-	appHash = "36722c72256a24c1225de00eb6a1ca74"
+	appId   = 41994
+	appHash = "269069e15c81241f5670c397941016a2"
 )
 
 type MTProto struct {
@@ -59,7 +59,7 @@ func NewMTProto(authkeyfile string) (*MTProto, error) {
 	if err == nil {
 		m.encrypted = true
 	} else {
-		m.addr = "149.154.175.50:443"
+		m.addr = "149.154.167.50:443"
 		m.encrypted = false
 	}
 	rand.Seed(time.Now().UnixNano())
@@ -116,7 +116,7 @@ func (m *MTProto) Connect() error {
 				appId,
 				"Unknown",
 				runtime.GOOS + "/" + runtime.GOARCH,
-				"0.0.2",
+				"0.0.3",
 				"en",
 				TL_help_getConfig{},
 			},

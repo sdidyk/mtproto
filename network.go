@@ -16,8 +16,8 @@ func (m *MTProto) SendPacket(msg TL, resp chan TL) error {
 	// padding for tcpsize
 	x.Int(0)
 
+	needAck := true
 	if m.encrypted {
-		needAck := true
 		switch msg.(type) {
 		case TL_ping, TL_msgs_ack:
 			needAck = false
@@ -80,7 +80,7 @@ func (m *MTProto) SendPacket(msg TL, resp chan TL) error {
 		binary.LittleEndian.PutUint32(x.buf, uint32(size<<8|127))
 	}
 	_, err := m.conn.Write(x.buf)
-	if err != nil {
+	if err != nil && needAck == true {
 		return err
 	}
 
