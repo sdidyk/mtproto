@@ -8,7 +8,7 @@ import (
 	"runtime"
 	"sync"
 	"time"
-
+	
 	"github.com/k0kubun/pp"
 )
 
@@ -233,6 +233,25 @@ func (m *MTProto) Auth(phonenumber string) error {
 	return nil
 }
 
+func (m *MTProto) GetDialogs() error {
+	resp := make(chan TL, 1)
+	m.queueSend <- packetToSend{TL_messages_getDialogs{}, resp}
+	x := <-resp
+
+	list, ok := x.(TL_messages_dialogsSlice)
+	if !ok {
+		return fmt.Errorf("RPC: %#v", ok)
+	}
+
+	//fmt.Printf("%#v",list.chats)
+
+	for _, chat := range list.chats {
+		chat := chat.(TL_chat)
+		fmt.Printf("%#v\n",chat.title)
+	}
+
+	return nil
+}
 func (m *MTProto) GetContacts() error {
 	resp := make(chan TL, 1)
 	m.queueSend <- packetToSend{TL_contacts_getContacts{""}, resp}
@@ -244,8 +263,11 @@ func (m *MTProto) GetContacts() error {
 
 	contacts := make(map[int32]TL_userContact)
 	for _, v := range list.users {
-		v := v.(TL_userContact)
-		contacts[v.id] = v
+		switch v.(type) {
+	        case TL_userContact:
+                v := v.(TL_userContact)
+                contacts[v.id] = v
+        }
 	}
 	fmt.Printf(
 		"\033[33m\033[1m%10s    %10s    %-30s    %-20s\033[0m\n",
@@ -261,6 +283,25 @@ func (m *MTProto) GetContacts() error {
 			contacts[v.user_id].username,
 		)
 	}
+
+	return nil
+}
+
+func (m *MTProto) GetFullChat(chat_id int32) error {
+	resp := make(chan TL, 1)
+	m.queueSend <- packetToSend{
+		TL_messages_getFullChat{
+			chat_id,
+		}, 
+		resp,
+	}
+	x := <-resp
+	list, ok := x.(TL_messages_chatFull)
+	if !ok {
+		return fmt.Errorf("RPC: %#v", x)
+	}
+
+	fmt.Printf("%#v",list)
 
 	return nil
 }
