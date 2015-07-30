@@ -13,8 +13,8 @@ import (
 )
 
 const (
-	appId   = 41994
-	appHash = "269069e15c81241f5670c397941016a2"
+	appId   = 45139
+	appHash = "7e55cea996fe1d94d6d22105258e3579"
 )
 
 type MTProto struct {
@@ -302,6 +302,19 @@ func (m *MTProto) GetFullChat(chat_id int32) error {
 	}
 
 	fmt.Printf("%#v",list)
+
+	return nil
+}
+func (m *MTProto) GetState() error {
+	resp := make(chan TL, 1)
+	m.queueSend <- packetToSend{TL_updates_getState{}, resp}
+	x := <-resp
+	_, ok := x.(TL_updates_state)
+	if !ok {
+		return fmt.Errorf("RPC: %#v", x)
+	}
+
+	//fmt.Printf("%#v",list)
 
 	return nil
 }
