@@ -5,7 +5,7 @@ import (
 	"os"
 	"strconv"
 
-	"github.com/sdidyk/mtproto"
+	"github.com/beautyfree/mtproto"
 )
 
 func usage() {
@@ -26,7 +26,13 @@ func main() {
 		os.Exit(1)
 	}
 
-	commands := map[string]int{"auth": 1, "msg": 2, "list": 0}
+	commands := map[string]int{
+		"auth": 1, 
+		"msg": 2, 
+		"list": 0, 
+		"get_full_chat": 1,
+		"get_dialogs": 0,
+	}
 	valid := false
 	for k, v := range commands {
 		if os.Args[1] == k {
@@ -62,9 +68,13 @@ func main() {
 	case "msg":
 		user_id, _ := strconv.Atoi(os.Args[2])
 		err = m.SendMsg(int32(user_id), os.Args[3])
-
 	case "list":
 		err = m.GetContacts()
+	case "get_full_chat":
+		chat_id, _ := strconv.Atoi(os.Args[2])
+		err = m.GetFullChat(int32(chat_id))
+	case "get_dialogs":
+		err = m.GetDialogs()
 	}
 
 	if err != nil {

@@ -8,19 +8,21 @@ import (
 	"runtime"
 	"sync"
 	"time"
-
+	"reflect"
 	"github.com/k0kubun/pp"
 )
 
 const (
-	appId   = 41994
-	appHash = "269069e15c81241f5670c397941016a2"
+	appId   = 45139
+	appHash = "7e55cea996fe1d94d6d22105258e3579"
+	defaultServerAddr = "149.154.167.50:443"
 )
 
 type MTProto struct {
 	addr      string
 	conn      *net.TCPConn
 	f         *os.File
+	connected bool
 	queueSend chan packetToSend
 	stopRead  chan struct{}
 	stopPing  chan struct{}
@@ -59,18 +61,19 @@ func NewMTProto(authkeyfile string) (*MTProto, error) {
 	if err == nil {
 		m.encrypted = true
 	} else {
-		m.addr = "149.154.167.50:443"
+		m.addr = defaultServerAddr
 		m.encrypted = false
 	}
 	rand.Seed(time.Now().UnixNano())
 	m.sessionId = rand.Int63()
-
+	m.connected = false
 	return m, nil
 }
 
 func (m *MTProto) Connect() error {
 	var err error
 	var tcpAddr *net.TCPAddr
+	//fmt.Println("Connecting: ", m.addr)
 
 	// connect
 	tcpAddr, err = net.ResolveTCPAddr("tcp", m.addr)
@@ -137,12 +140,13 @@ func (m *MTProto) Connect() error {
 
 	// start keepalive pinging
 	m.startPing()
-
+	m.connected = true
 	return nil
 }
 
 func (m *MTProto) Reconnect(newaddr string) error {
 	var err error
+	//fmt.Println("Reconnecting: ", newaddr)
 	// stop ping routine
 	m.stopPing <- struct{}{}
 	close(m.stopPing)
@@ -153,7 +157,7 @@ func (m *MTProto) Reconnect(newaddr string) error {
 	if err != nil {
 		return err
 	}
-
+	m.connected = false
 	// stop read routine
 	m.stopRead <- struct{}{}
 	close(m.stopRead)
@@ -167,7 +171,6 @@ func (m *MTProto) Reconnect(newaddr string) error {
 
 func (m *MTProto) Auth(phonenumber string) error {
 	var authSentCode TL_auth_sentCode
-
 	// (TL_auth_sendCode)
 	flag := true
 	for flag {
@@ -181,7 +184,7 @@ func (m *MTProto) Auth(phonenumber string) error {
 		case TL_rpc_error:
 			x := x.(TL_rpc_error)
 			if x.error_code != 303 {
-				return fmt.Errorf("RPC error_code: %d", x.error_code)
+				return fmt.Errorf("RPC error_code: %d, %s", x.error_code, x.error_message)
 			}
 			var newDc int32
 			n, _ := fmt.Sscanf(x.error_message, "PHONE_MIGRATE_%d", &newDc)
@@ -233,6 +236,25 @@ func (m *MTProto) Auth(phonenumber string) error {
 	return nil
 }
 
+func (m *MTProto) GetDialogs() error {
+	resp := make(chan TL, 1)
+	m.queueSend <- packetToSend{TL_messages_getDialogs{}, resp}
+	x := <-resp
+
+	list, ok := x.(TL_messages_dialogsSlice)
+	if !ok {
+		return fmt.Errorf("RPC: %#v", ok)
+	}
+
+	//fmt.Printf("%#v",list.chats)
+
+	for _, chat := range list.chats {
+		chat := chat.(TL_chat)
+		fmt.Printf("%#v\n",chat.title)
+	}
+
+	return nil
+}
 func (m *MTProto) GetContacts() error {
 	resp := make(chan TL, 1)
 	m.queueSend <- packetToSend{TL_contacts_getContacts{""}, resp}
@@ -244,8 +266,11 @@ func (m *MTProto) GetContacts() error {
 
 	contacts := make(map[int32]TL_userContact)
 	for _, v := range list.users {
-		v := v.(TL_userContact)
-		contacts[v.id] = v
+		switch v.(type) {
+	        case TL_userContact:
+                v := v.(TL_userContact)
+                contacts[v.id] = v
+        }
 	}
 	fmt.Printf(
 		"\033[33m\033[1m%10s    %10s    %-30s    %-20s\033[0m\n",
@@ -261,6 +286,38 @@ func (m *MTProto) GetContacts() error {
 			contacts[v.user_id].username,
 		)
 	}
+
+	return nil
+}
+
+func (m *MTProto) GetFullChat(chat_id int32) error {
+	resp := make(chan TL, 1)
+	m.queueSend <- packetToSend{
+		TL_messages_getFullChat{
+			chat_id,
+		}, 
+		resp,
+	}
+	x := <-resp
+	list, ok := x.(TL_messages_chatFull)
+	if !ok {
+		return fmt.Errorf("RPC: %#v", x)
+	}
+
+	fmt.Printf("%#v",list)
+
+	return nil
+}
+func (m *MTProto) GetState() error {
+	resp := make(chan TL, 1)
+	m.queueSend <- packetToSend{TL_updates_getState{}, resp}
+	x := <-resp
+	_, ok := x.(TL_updates_state)
+	if !ok {
+		return fmt.Errorf("RPC: %#v", x)
+	}
+
+	//fmt.Printf("%#v",list)
 
 	return nil
 }
@@ -303,7 +360,7 @@ func (m *MTProto) SendRoutine() {
 	for x := range m.queueSend {
 		err := m.SendPacket(x.msg, x.resp)
 		if err != nil {
-			fmt.Println("SendRoutine:", err)
+			fmt.Fprintln(os.Stderr, "SendRoutine:", err)
 			os.Exit(2)
 		}
 	}
@@ -313,7 +370,7 @@ func (m *MTProto) ReadRoutine(stop <-chan struct{}) {
 	for true {
 		data, err := m.Read(stop)
 		if err != nil {
-			fmt.Println("ReadRoutine:", err)
+			fmt.Fprintln(os.Stderr, "ReadRoutine:", err)
 			os.Exit(2)
 		}
 		if data == nil {
@@ -326,6 +383,7 @@ func (m *MTProto) ReadRoutine(stop <-chan struct{}) {
 }
 
 func (m *MTProto) Process(msgId int64, seqNo int32, data interface{}) interface{} {
+	fmt.Fprintln(os.Stderr, "Received: ", reflect.TypeOf(data))
 	switch data.(type) {
 	case TL_msg_container:
 		data := data.(TL_msg_container).items
@@ -376,13 +434,19 @@ func (m *MTProto) Process(msgId int64, seqNo int32, data interface{}) interface{
 		}
 		delete(m.msgsIdToAck, data.req_msg_id)
 		m.mutex.Unlock()
-
+	
+	case TL_rpc_error:
+		if data == nil {
+			break
+		}
+		data := data.(TL_rpc_error)
+		fmt.Fprintln(os.Stderr, "RPC error: ", data)
 	default:
 		return data
 
 	}
 
-	if (seqNo & 1) == 1 {
+	if (seqNo & 1) == 1 && m.connected {
 		m.queueSend <- packetToSend{TL_msgs_ack{[]int64{msgId}}, nil}
 	}
 
