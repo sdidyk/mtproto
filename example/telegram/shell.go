@@ -6,7 +6,7 @@ import (
 	"strconv"
 	"strings"
 	"bufio"
-	"github.com/beautyfree/mtproto"
+	"github.com/sovietspaceship/mtproto"
 )
 
 func main() {
