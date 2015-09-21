@@ -244,8 +244,9 @@ func (m *MTProto) GetContacts() error {
 
 	contacts := make(map[int32]TL_userContact)
 	for _, v := range list.users {
-		v := v.(TL_userContact)
-		contacts[v.id] = v
+		if v, ok := v.(TL_userContact); ok {
+			contacts[v.id] = v
+		}
 	}
 	fmt.Printf(
 		"\033[33m\033[1m%10s    %10s    %-30s    %-20s\033[0m\n",
