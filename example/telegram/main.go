@@ -1,14 +1,12 @@
 package main
 
 import (
-	"flag"
 	"fmt"
-	"github.com/sdidyk/mtproto"
 	"os"
 	"strconv"
-)
 
-var authFile string
+	"github.com/sdidyk/mtproto"
+)
 
 func usage() {
 	fmt.Print("Telegram is a simple MTProto tool.\n\nUsage:\n\n")
@@ -18,11 +16,6 @@ func usage() {
 	fmt.Print("    msg   <user_id> <msgtext>       send message to user\n")
 	fmt.Print("    list                            get contact list\n")
 	fmt.Println()
-}
-
-func init() {
-	flag.StringVar(&authFile, "c", os.Getenv("HOME")+"/.telegram_go", "specify auth file")
-	flag.Parse()
 }
 
 func main() {
@@ -51,7 +44,7 @@ func main() {
 		os.Exit(1)
 	}
 
-	m, err := mtproto.NewMTProto(authFile)
+	m, err := mtproto.NewMTProto(os.Getenv("HOME") + "/.telegram_go")
 	if err != nil {
 		fmt.Printf("Create failed: %s\n", err)
 		os.Exit(2)
