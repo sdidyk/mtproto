@@ -18,6 +18,13 @@ func usage() {
 	fmt.Println()
 }
 
+var commands = map[string]int{
+	"auth":    1,
+	"msg":     2,
+	"list":    0,
+	"dialogs": 0,
+}
+
 func main() {
 	var err error
 
@@ -26,7 +33,6 @@ func main() {
 		os.Exit(1)
 	}
 
-	commands := map[string]int{"auth": 1, "msg": 2, "list": 0}
 	valid := false
 	for k, v := range commands {
 		if os.Args[1] == k {
@@ -62,9 +68,10 @@ func main() {
 	case "msg":
 		user_id, _ := strconv.Atoi(os.Args[2])
 		err = m.SendMsg(int32(user_id), os.Args[3])
-
 	case "list":
 		err = m.GetContacts()
+	case "dialogs":
+		err = m.GetChats()
 	}
 
 	if err != nil {

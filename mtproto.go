@@ -266,6 +266,63 @@ func (m *MTProto) GetContacts() error {
 	return nil
 }
 
+func (m *MTProto) GetChats() error {
+	resp := make(chan TL, 1)
+	m.queueSend <- packetToSend{TL_messages_getDialogs{}, resp}
+	x := <-resp
+	list, ok := x.(TL_messages_dialogs)
+	if !ok {
+		return fmt.Errorf("RPC: %#v", x)
+	}
+
+	fmt.Printf(
+		"\033[33m\033[1m%10s    %10s    %-10s    %-5s	%-20s\033[0m\n",
+		"id", "type", "top_message", "unread_count", "title",
+	)
+
+	t := ""
+	i := int32(0)
+	title := ""
+	chat_idx := 0
+	user_idx := 0
+	for _, v := range list.dialogs {
+		v := v.(TL_dialog)
+		switch v.peer.(type) {
+		case TL_peerUser:
+			t = "User"
+			i = v.peer.(TL_peerUser).user_id
+			switch list.users[user_idx].(type) {
+			case TL_userSelf:
+				u := list.users[user_idx].(TL_userSelf)
+				title = fmt.Sprintf("%s %s(%s)", u.first_name, u.last_name, u.username)
+			case TL_userContact:
+				u := list.users[user_idx].(TL_userContact)
+				title = fmt.Sprintf("%s %s(%s)", u.first_name, u.last_name, u.username)
+			case TL_userRequest:
+				u := list.users[user_idx].(TL_userRequest)
+				title = fmt.Sprintf("%s %s(%s)", u.first_name, u.last_name, u.username)
+			case TL_userForeign:
+				u := list.users[user_idx].(TL_userForeign)
+				title = fmt.Sprintf("%s %s(%s)", u.first_name, u.last_name, u.username)
+			case TL_userDeleted:
+				u := list.users[user_idx].(TL_userDeleted)
+				title = fmt.Sprintf("%s %s(%s)", u.first_name, u.last_name, u.username)
+			}
+			user_idx = user_idx + 1
+		case TL_peerChat:
+			t = "Chat"
+			i = v.peer.(TL_peerChat).chat_id
+			title = list.chats[chat_idx].(TL_chat).title
+			chat_idx = chat_idx + 1
+		}
+		fmt.Printf(
+			"%10d	%8s	%-10d	%-5d	%-20s\n",
+			i, t, v.top_message, v.unread_count, title,
+		)
+	}
+	return nil
+}
+
 func (m *MTProto) SendMsg(user_id int32, msg string) error {
 	resp := make(chan TL, 1)
 	m.queueSend <- packetToSend{
