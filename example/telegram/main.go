@@ -14,13 +14,16 @@ func usage() {
 	fmt.Print("The commands are:\n\n")
 	fmt.Print("    auth  <phone_number>            auth connection by code\n")
 	fmt.Print("    msg   <user_id> <msgtext>       send message to user\n")
+	fmt.Print("    chatmsg   <chat_id> <msgtext>   send message to chat\n")
 	fmt.Print("    list                            get contact list\n")
+	fmt.Print("    dialogs                         get dialogs\n")
 	fmt.Println()
 }
 
 var commands = map[string]int{
 	"auth":    1,
 	"msg":     2,
+	"chatmsg": 2,
 	"list":    0,
 	"dialogs": 0,
 }
@@ -68,6 +71,9 @@ func main() {
 	case "msg":
 		user_id, _ := strconv.Atoi(os.Args[2])
 		err = m.SendMsg(int32(user_id), os.Args[3])
+	case "chatmsg":
+		chat_id, _ := strconv.Atoi(os.Args[2])
+		err = m.SendChatMsg(int32(chat_id), os.Args[3])
 	case "list":
 		err = m.GetContacts()
 	case "dialogs":

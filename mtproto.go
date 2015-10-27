@@ -343,6 +343,26 @@ func (m *MTProto) SendMsg(user_id int32, msg string) error {
 	return nil
 }
 
+func (m *MTProto) SendChatMsg(chat_id int32, msg string) error {
+	resp := make(chan TL, 1)
+	m.queueSend <- packetToSend{
+		TL_messages_sendMessage{
+			// TL_inputPeerSelf{},
+			TL_inputPeerChat{chat_id},
+			msg,
+			rand.Int63(),
+		},
+		resp,
+	}
+	x := <-resp
+	_, ok := x.(TL_messages_sentMessage)
+	if !ok {
+		return fmt.Errorf("RPC: %#v", x)
+	}
+
+	return nil
+}
+
 func (m *MTProto) startPing() {
 	// goroutine (TL_ping)
 	go func() {
