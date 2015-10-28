@@ -2,6 +2,7 @@ package mtproto
 
 import (
 	"fmt"
+	"io/ioutil"
 	"math/rand"
 	"net"
 	"os"
@@ -360,6 +361,32 @@ func (m *MTProto) SendChatMsg(chat_id int32, msg string) error {
 		return fmt.Errorf("RPC: %#v", x)
 	}
 
+	return nil
+}
+
+func (m *MTProto) SendMedia(peer_type string, id int32, file string) error {
+	bytes, err := ioutil.ReadFile(file)
+	if err != nil {
+		return fmt.Errorf("Error to read file: %#v", err)
+	}
+	fmt.Println("------", len(bytes))
+	resp := make(chan TL, 1)
+	m.queueSend <- packetToSend{
+		// TL_upload_saveFilePart{
+		// 	0,
+		// 	1,
+		// 	bytes,
+		// },
+		TL_messages_sendMessage{
+			// TL_inputPeerSelf{},
+			TL_inputPeerContact{id},
+			file,
+			rand.Int63(),
+		},
+		resp,
+	}
+	x := <-resp
+	fmt.Printf("%#v", x)
 	return nil
 }
 

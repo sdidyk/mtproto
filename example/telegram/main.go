@@ -2,10 +2,9 @@ package main
 
 import (
 	"fmt"
+	"github.com/sdidyk/mtproto"
 	"os"
 	"strconv"
-
-	"github.com/sdidyk/mtproto"
 )
 
 func usage() {
@@ -14,6 +13,7 @@ func usage() {
 	fmt.Print("The commands are:\n\n")
 	fmt.Print("    auth  <phone_number>            auth connection by code\n")
 	fmt.Print("    msg   <user_id> <msgtext>       send message to user\n")
+	fmt.Print("    sendmedia u/c <id> <file>       send media file to user\n")
 	fmt.Print("    chatmsg   <chat_id> <msgtext>   send message to chat\n")
 	fmt.Print("    list                            get contact list\n")
 	fmt.Print("    dialogs                         get dialogs\n")
@@ -21,11 +21,12 @@ func usage() {
 }
 
 var commands = map[string]int{
-	"auth":    1,
-	"msg":     2,
-	"chatmsg": 2,
-	"list":    0,
-	"dialogs": 0,
+	"auth":      1,
+	"msg":       2,
+	"sendmedia": 3,
+	"chatmsg":   2,
+	"list":      0,
+	"dialogs":   0,
 }
 
 func main() {
@@ -78,6 +79,9 @@ func main() {
 		err = m.GetContacts()
 	case "dialogs":
 		err = m.GetChats()
+	case "sendmedia":
+		chat_id, _ := strconv.Atoi(os.Args[3])
+		err = m.SendMedia(os.Args[2], int32(chat_id), os.Args[4])
 	}
 
 	if err != nil {
