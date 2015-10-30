@@ -81,7 +81,7 @@ func main() {
 		err = m.GetChats()
 	case "sendmedia":
 		chat_id, _ := strconv.Atoi(os.Args[3])
-		err = m.SendMedia(os.Args[2], int32(chat_id), os.Args[4])
+		_, err = m.SendMedia(os.Args[2], int32(chat_id), os.Args[4])
 	}
 
 	if err != nil {

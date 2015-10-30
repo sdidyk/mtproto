@@ -1,7 +1,9 @@
 package mtproto
 
 import (
+	"crypto/md5"
 	"fmt"
+	"github.com/k0kubun/pp"
 	"io/ioutil"
 	"math/rand"
 	"net"
@@ -9,8 +11,6 @@ import (
 	"runtime"
 	"sync"
 	"time"
-
-	"github.com/k0kubun/pp"
 )
 
 const (
@@ -364,30 +364,56 @@ func (m *MTProto) SendChatMsg(chat_id int32, msg string) error {
 	return nil
 }
 
-func (m *MTProto) SendMedia(peer_type string, id int32, file string) error {
+func (m *MTProto) SendMedia(peer_type string, id int32, file string) (result TL_messages_statedMessage, err error) {
 	bytes, err := ioutil.ReadFile(file)
 	if err != nil {
-		return fmt.Errorf("Error to read file: %#v", err)
+		return result, fmt.Errorf("Error to read file: %#v", err)
 	}
-	fmt.Println("------", len(bytes))
+	fileId := rand.Int63()
+	parts := int32(1)
 	resp := make(chan TL, 1)
+	md5_hash := fmt.Sprintf("%x", md5.Sum(bytes))
 	m.queueSend <- packetToSend{
-		// TL_upload_saveFilePart{
-		// 	0,
-		// 	1,
-		// 	bytes,
-		// },
-		TL_messages_sendMessage{
-			// TL_inputPeerSelf{},
-			TL_inputPeerContact{id},
-			file,
-			rand.Int63(),
+		TL_upload_saveFilePart{
+			fileId,
+			0,
+			bytes,
 		},
 		resp,
 	}
 	x := <-resp
-	fmt.Printf("%#v", x)
-	return nil
+	_, ok := x.(TL_boolTrue)
+	if !ok {
+		return result, fmt.Errorf("upload_saveFilePart RPC: %#v", x)
+	}
+	resp = make(chan TL, 1)
+	var peer TL
+	if peer_type == "u" {
+		peer = TL_inputPeerContact{id}
+	} else {
+		peer = TL_inputPeerChat{id}
+	}
+	m.queueSend <- packetToSend{
+		TL_messages_sendMedia{
+			peer,
+			TL_inputMediaUploadedPhoto{
+				TL_inputFile{
+					fileId,
+					parts,
+					file,
+					md5_hash,
+				},
+			},
+			rand.Int63(),
+		},
+		resp,
+	}
+	x = <-resp
+	result, ok = x.(TL_messages_statedMessage)
+	if !ok {
+		return result, fmt.Errorf("messages_sendMedia RPC: %#v", x)
+	}
+	return result, nil
 }
 
 func (m *MTProto) startPing() {
