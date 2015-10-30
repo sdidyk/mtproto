@@ -9,6 +9,7 @@ import (
 	"net"
 	"os"
 	"runtime"
+	"strconv"
 	"sync"
 	"time"
 )
@@ -324,12 +325,36 @@ func (m *MTProto) GetChats() error {
 	return nil
 }
 
-func (m *MTProto) SendMsg(user_id int32, msg string) error {
+func parsePeerById(str_id string) (peer TL, err error) {
+	if len(str_id) > 0 {
+		if str_id[0:1] == "#" {
+			id, err := strconv.Atoi(str_id[1:])
+			if err == nil {
+				peer = TL_inputPeerChat{int32(id)}
+			}
+		} else if str_id[0:1] == "@" {
+			id, err := strconv.Atoi(str_id[1:])
+			if err == nil {
+				peer = TL_inputPeerContact{int32(id)}
+			}
+		} else {
+			id, err := strconv.Atoi(str_id)
+			if err == nil {
+				peer = TL_inputPeerContact{int32(id)}
+			}
+		}
+	} else {
+		peer = TL_inputPeerSelf{}
+	}
+	return peer, err
+}
+
+func (m *MTProto) SendMsg(peer_id string, msg string) error {
+	peer, _ := parsePeerById(peer_id)
 	resp := make(chan TL, 1)
 	m.queueSend <- packetToSend{
 		TL_messages_sendMessage{
-			// TL_inputPeerSelf{},
-			TL_inputPeerContact{user_id},
+			peer,
 			msg,
 			rand.Int63(),
 		},
@@ -344,55 +369,40 @@ func (m *MTProto) SendMsg(user_id int32, msg string) error {
 	return nil
 }
 
-func (m *MTProto) SendChatMsg(chat_id int32, msg string) error {
-	resp := make(chan TL, 1)
-	m.queueSend <- packetToSend{
-		TL_messages_sendMessage{
-			// TL_inputPeerSelf{},
-			TL_inputPeerChat{chat_id},
-			msg,
-			rand.Int63(),
-		},
-		resp,
-	}
-	x := <-resp
-	_, ok := x.(TL_messages_sentMessage)
-	if !ok {
-		return fmt.Errorf("RPC: %#v", x)
-	}
-
-	return nil
-}
-
-func (m *MTProto) SendMedia(peer_type string, id int32, file string) (result TL_messages_statedMessage, err error) {
+func (m *MTProto) SendMedia(peer_id string, file string) (err error) {
+	_512k := 512 * 1024
+	peer, _ := parsePeerById(peer_id)
 	bytes, err := ioutil.ReadFile(file)
 	if err != nil {
-		return result, fmt.Errorf("Error to read file: %#v", err)
+		return fmt.Errorf("Error to read file: %#v", err)
 	}
-	fileId := rand.Int63()
-	parts := int32(1)
-	resp := make(chan TL, 1)
 	md5_hash := fmt.Sprintf("%x", md5.Sum(bytes))
-	m.queueSend <- packetToSend{
-		TL_upload_saveFilePart{
-			fileId,
-			0,
-			bytes,
-		},
-		resp,
+	fileId := rand.Int63()
+	parts := int32(len(bytes)/_512k) + 1
+	start := 0
+	for i := int32(0); i < parts; i++ {
+		resp := make(chan TL, 1)
+		end := start + _512k
+		if end > len(bytes) {
+			end = len(bytes)
+		}
+		m.queueSend <- packetToSend{
+			TL_upload_saveFilePart{
+				fileId,
+				i,
+				bytes[start:end],
+			},
+			resp,
+		}
+		x := <-resp
+		_, ok := x.(TL_boolTrue)
+		if !ok {
+			return fmt.Errorf("upload_saveFilePart RPC: %#v", x)
+		}
+		start = end
 	}
-	x := <-resp
-	_, ok := x.(TL_boolTrue)
-	if !ok {
-		return result, fmt.Errorf("upload_saveFilePart RPC: %#v", x)
-	}
-	resp = make(chan TL, 1)
-	var peer TL
-	if peer_type == "u" {
-		peer = TL_inputPeerContact{id}
-	} else {
-		peer = TL_inputPeerChat{id}
-	}
+
+	resp := make(chan TL, 1)
 	m.queueSend <- packetToSend{
 		TL_messages_sendMedia{
 			peer,
@@ -408,12 +418,12 @@ func (m *MTProto) SendMedia(peer_type string, id int32, file string) (result TL_
 		},
 		resp,
 	}
-	x = <-resp
-	result, ok = x.(TL_messages_statedMessage)
+	x := <-resp
+	_, ok := x.(TL_messages_statedMessage)
 	if !ok {
-		return result, fmt.Errorf("messages_sendMedia RPC: %#v", x)
+		return fmt.Errorf("messages_sendMedia RPC: %#v", x)
 	}
-	return result, nil
+	return nil
 }
 
 func (m *MTProto) startPing() {
