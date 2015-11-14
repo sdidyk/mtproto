@@ -79,10 +79,24 @@ func (m *MTProto) Connect() error {
 	if err != nil {
 		return err
 	}
-	m.conn, err = net.DialTCP("tcp", nil, tcpAddr)
-	if err != nil {
-		return err
+
+	proxy := os.Getenv("socks5_proxy")
+
+	if proxy != "" {
+		var d net.Dialer
+		socks5, err := SOCKS5("tcp", proxy, nil, d)
+		if err != nil {
+			return err
+		}
+		conn, err := socks5.Dial("tcp", tcpAddr.String())
+		if err != nil {
+			return err
+		}
+		m.conn = conn.(*net.TCPConn)
+	} else {
+		m.conn, err = net.DialTCP("tcp", nil, tcpAddr)
 	}
+
 	_, err = m.conn.Write([]byte{0xef})
 	if err != nil {
 		return err
@@ -381,6 +395,7 @@ func (m *MTProto) SendMedia(peer_id string, file string) (err error) {
 	parts := int32(len(bytes)/_512k) + 1
 	start := 0
 	for i := int32(0); i < parts; i++ {
+		fmt.Println(i, "/", parts)
 		resp := make(chan TL, 1)
 		end := start + _512k
 		if end > len(bytes) {
