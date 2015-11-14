@@ -2,10 +2,8 @@ package main
 
 import (
 	"fmt"
-	"os"
-	"strconv"
-
 	"github.com/sdidyk/mtproto"
+	"os"
 )
 
 func usage() {
@@ -13,9 +11,19 @@ func usage() {
 	fmt.Print("    ./telegram <command> [arguments]\n\n")
 	fmt.Print("The commands are:\n\n")
 	fmt.Print("    auth  <phone_number>            auth connection by code\n")
-	fmt.Print("    msg   <user_id> <msgtext>       send message to user\n")
+	fmt.Print("    msg	<peer_id> <msgtext>        send message to user\n")
+	fmt.Print("    sendmedia <peer_id> <file>      send media file to user\n")
 	fmt.Print("    list                            get contact list\n")
+	fmt.Print("    dialogs                         get dialogs\n")
 	fmt.Println()
+}
+
+var commands = map[string]int{
+	"auth":      1,
+	"msg":       2,
+	"sendmedia": 2,
+	"list":      0,
+	"dialogs":   0,
 }
 
 func main() {
@@ -26,7 +34,6 @@ func main() {
 		os.Exit(1)
 	}
 
-	commands := map[string]int{"auth": 1, "msg": 2, "list": 0}
 	valid := false
 	for k, v := range commands {
 		if os.Args[1] == k {
@@ -55,16 +62,17 @@ func main() {
 		fmt.Printf("Connect failed: %s\n", err)
 		os.Exit(2)
 	}
-
 	switch os.Args[1] {
 	case "auth":
 		err = m.Auth(os.Args[2])
 	case "msg":
-		user_id, _ := strconv.Atoi(os.Args[2])
-		err = m.SendMsg(int32(user_id), os.Args[3])
-
+		err = m.SendMsg(os.Args[2], os.Args[3])
 	case "list":
 		err = m.GetContacts()
+	case "dialogs":
+		err = m.GetChats()
+	case "sendmedia":
+		err = m.SendMedia(os.Args[2], os.Args[3])
 	}
 
 	if err != nil {

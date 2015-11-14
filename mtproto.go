@@ -1,15 +1,17 @@
 package mtproto
 
 import (
+	"crypto/md5"
 	"fmt"
+	"github.com/k0kubun/pp"
+	"io/ioutil"
 	"math/rand"
 	"net"
 	"os"
 	"runtime"
+	"strconv"
 	"sync"
 	"time"
-
-	"github.com/k0kubun/pp"
 )
 
 const (
@@ -77,10 +79,24 @@ func (m *MTProto) Connect() error {
 	if err != nil {
 		return err
 	}
-	m.conn, err = net.DialTCP("tcp", nil, tcpAddr)
-	if err != nil {
-		return err
+
+	proxy := os.Getenv("socks5_proxy")
+
+	if proxy != "" {
+		var d net.Dialer
+		socks5, err := SOCKS5("tcp", proxy, nil, d)
+		if err != nil {
+			return err
+		}
+		conn, err := socks5.Dial("tcp", tcpAddr.String())
+		if err != nil {
+			return err
+		}
+		m.conn = conn.(*net.TCPConn)
+	} else {
+		m.conn, err = net.DialTCP("tcp", nil, tcpAddr)
 	}
+
 	_, err = m.conn.Write([]byte{0xef})
 	if err != nil {
 		return err
@@ -266,12 +282,93 @@ func (m *MTProto) GetContacts() error {
 	return nil
 }
 
-func (m *MTProto) SendMsg(user_id int32, msg string) error {
+func (m *MTProto) GetChats() error {
+	resp := make(chan TL, 1)
+	m.queueSend <- packetToSend{TL_messages_getDialogs{}, resp}
+	x := <-resp
+	list, ok := x.(TL_messages_dialogs)
+	if !ok {
+		return fmt.Errorf("RPC: %#v", x)
+	}
+
+	fmt.Printf(
+		"\033[33m\033[1m%10s    %10s    %-10s    %-5s	%-20s\033[0m\n",
+		"id", "type", "top_message", "unread_count", "title",
+	)
+
+	t := ""
+	i := int32(0)
+	title := ""
+	chat_idx := 0
+	user_idx := 0
+	for _, v := range list.dialogs {
+		v := v.(TL_dialog)
+		switch v.peer.(type) {
+		case TL_peerUser:
+			t = "User"
+			i = v.peer.(TL_peerUser).user_id
+			switch list.users[user_idx].(type) {
+			case TL_userSelf:
+				u := list.users[user_idx].(TL_userSelf)
+				title = fmt.Sprintf("%s %s(%s)", u.first_name, u.last_name, u.username)
+			case TL_userContact:
+				u := list.users[user_idx].(TL_userContact)
+				title = fmt.Sprintf("%s %s(%s)", u.first_name, u.last_name, u.username)
+			case TL_userRequest:
+				u := list.users[user_idx].(TL_userRequest)
+				title = fmt.Sprintf("%s %s(%s)", u.first_name, u.last_name, u.username)
+			case TL_userForeign:
+				u := list.users[user_idx].(TL_userForeign)
+				title = fmt.Sprintf("%s %s(%s)", u.first_name, u.last_name, u.username)
+			case TL_userDeleted:
+				u := list.users[user_idx].(TL_userDeleted)
+				title = fmt.Sprintf("%s %s(%s)", u.first_name, u.last_name, u.username)
+			}
+			user_idx = user_idx + 1
+		case TL_peerChat:
+			t = "Chat"
+			i = v.peer.(TL_peerChat).chat_id
+			title = list.chats[chat_idx].(TL_chat).title
+			chat_idx = chat_idx + 1
+		}
+		fmt.Printf(
+			"%10d	%8s	%-10d	%-5d	%-20s\n",
+			i, t, v.top_message, v.unread_count, title,
+		)
+	}
+	return nil
+}
+
+func parsePeerById(str_id string) (peer TL, err error) {
+	if len(str_id) > 0 {
+		if str_id[0:1] == "#" {
+			id, err := strconv.Atoi(str_id[1:])
+			if err == nil {
+				peer = TL_inputPeerChat{int32(id)}
+			}
+		} else if str_id[0:1] == "@" {
+			id, err := strconv.Atoi(str_id[1:])
+			if err == nil {
+				peer = TL_inputPeerContact{int32(id)}
+			}
+		} else {
+			id, err := strconv.Atoi(str_id)
+			if err == nil {
+				peer = TL_inputPeerContact{int32(id)}
+			}
+		}
+	} else {
+		peer = TL_inputPeerSelf{}
+	}
+	return peer, err
+}
+
+func (m *MTProto) SendMsg(peer_id string, msg string) error {
+	peer, _ := parsePeerById(peer_id)
 	resp := make(chan TL, 1)
 	m.queueSend <- packetToSend{
 		TL_messages_sendMessage{
-			// TL_inputPeerSelf{},
-			TL_inputPeerContact{user_id},
+			peer,
 			msg,
 			rand.Int63(),
 		},
@@ -283,6 +380,64 @@ func (m *MTProto) SendMsg(user_id int32, msg string) error {
 		return fmt.Errorf("RPC: %#v", x)
 	}
 
+	return nil
+}
+
+func (m *MTProto) SendMedia(peer_id string, file string) (err error) {
+	_512k := 512 * 1024
+	peer, _ := parsePeerById(peer_id)
+	bytes, err := ioutil.ReadFile(file)
+	if err != nil {
+		return fmt.Errorf("Error to read file: %#v", err)
+	}
+	md5_hash := fmt.Sprintf("%x", md5.Sum(bytes))
+	fileId := rand.Int63()
+	parts := int32(len(bytes)/_512k) + 1
+	start := 0
+	for i := int32(0); i < parts; i++ {
+		fmt.Println(i, "/", parts)
+		resp := make(chan TL, 1)
+		end := start + _512k
+		if end > len(bytes) {
+			end = len(bytes)
+		}
+		m.queueSend <- packetToSend{
+			TL_upload_saveFilePart{
+				fileId,
+				i,
+				bytes[start:end],
+			},
+			resp,
+		}
+		x := <-resp
+		_, ok := x.(TL_boolTrue)
+		if !ok {
+			return fmt.Errorf("upload_saveFilePart RPC: %#v", x)
+		}
+		start = end
+	}
+
+	resp := make(chan TL, 1)
+	m.queueSend <- packetToSend{
+		TL_messages_sendMedia{
+			peer,
+			TL_inputMediaUploadedPhoto{
+				TL_inputFile{
+					fileId,
+					parts,
+					file,
+					md5_hash,
+				},
+			},
+			rand.Int63(),
+		},
+		resp,
+	}
+	x := <-resp
+	_, ok := x.(TL_messages_statedMessage)
+	if !ok {
+		return fmt.Errorf("messages_sendMedia RPC: %#v", x)
+	}
 	return nil
 }
 
