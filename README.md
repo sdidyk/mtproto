@@ -12,9 +12,9 @@ $ go get -v -u github.com/hugozhu/mtproto/example/telegram
 ```
 
 ## proxy setting
-Example tool supports socks5 proxy
+Socks5 proxy is supported by env variable socks5_proxy
 ```
-$ export socks_proxy=192.168.1.4:1080
+$ export socks5_proxy=192.168.1.4:1080
 ```
 
 ## phone authorization
