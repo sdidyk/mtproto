@@ -8,7 +8,7 @@ Example tool saves the authkey and other data in ~/.telegram_go. If you delete/l
 ## install
 
 ```
-$ go get -v -u github.com/sdidyk/mtproto/example/telegram
+$ go get -v -u github.com/hugozhu/mtproto/example/telegram
 ```
 
 ## proxy setting
