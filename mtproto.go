@@ -266,7 +266,7 @@ func (m *MTProto) GetContacts() error {
 	return nil
 }
 
-func (m *MTProto) contact_search(q string, limit int32) error {
+func (m *MTProto) SearchContacts(q string, limit int32) error {
 	resp := make(chan TL, 1)
 	m.queueSend <- packetToSend{TL_contacts_search{q, limit}, resp}
 	x := <-resp

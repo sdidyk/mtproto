@@ -68,7 +68,7 @@ func main() {
 	case "contacts_search":
 		pattern := string(os.Args[2])
 		limit, _ := strconv.Atoi(os.Args[3])
-		err = m.contact_search(pattern, int32(limit))
+		err = m.SearchContacts(pattern, int32(limit))
 	}
 
 	if err != nil {
