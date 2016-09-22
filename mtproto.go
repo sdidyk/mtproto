@@ -266,6 +266,33 @@ func (m *MTProto) GetContacts() error {
 	return nil
 }
 
+func (m *MTProto) contact_search(q string, limit int32) error {
+	resp := make(chan TL, 1)
+	m.queueSend <- packetToSend{TL_contacts_search{q, limit}, resp}
+	x := <-resp
+	list, ok := x.(TL_contacts_found)
+	if !ok {
+		return fmt.Errorf("RPC: %#v", x)
+	}
+	
+	contacts := make(map[int32]TL_userContact)
+	for _, v := range list.users {
+		if v, ok := v.(TL_userContact); ok {
+			contacts[v.id] = v
+		}
+	}
+
+	for _, v := range list.users {
+		v := v.(TL_userForeign)
+		fmt.Printf(
+			"%-20s %30s\n",
+			"@" + v.username,
+			v.first_name)
+	}
+
+	return nil
+}
+
 func (m *MTProto) SendMsg(user_id int32, msg string) error {
 	resp := make(chan TL, 1)
 	m.queueSend <- packetToSend{

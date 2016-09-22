@@ -15,6 +15,7 @@ func usage() {
 	fmt.Print("    auth  <phone_number>            auth connection by code\n")
 	fmt.Print("    msg   <user_id> <msgtext>       send message to user\n")
 	fmt.Print("    list                            get contact list\n")
+	fmt.Print("    contacts_search                 search contact by pattern\n")
 	fmt.Println()
 }
 
@@ -26,7 +27,7 @@ func main() {
 		os.Exit(1)
 	}
 
-	commands := map[string]int{"auth": 1, "msg": 2, "list": 0}
+	commands := map[string]int{"auth": 1, "msg": 2, "list": 0, "contacts_search": 2}
 	valid := false
 	for k, v := range commands {
 		if os.Args[1] == k {
@@ -62,9 +63,12 @@ func main() {
 	case "msg":
 		user_id, _ := strconv.Atoi(os.Args[2])
 		err = m.SendMsg(int32(user_id), os.Args[3])
-
 	case "list":
 		err = m.GetContacts()
+	case "contacts_search":
+		pattern := string(os.Args[2])
+		limit, _ := strconv.Atoi(os.Args[3])
+		err = m.contact_search(pattern, int32(limit))
 	}
 
 	if err != nil {
