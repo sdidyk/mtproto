@@ -115,7 +115,7 @@ func (e *EncodeBuf) VectorString(v []string) {
 }
 
 func (e *EncodeBuf) Vector(v []TL) {
-	x := make([]byte, 512)
+	x := make([]byte, 8)
 	binary.LittleEndian.PutUint32(x, crc_vector)
 	binary.LittleEndian.PutUint32(x[4:], uint32(len(v)))
 	e.buf = append(e.buf, x...)
