@@ -24,6 +24,7 @@ type MTProto struct {
 	queueSend chan packetToSend
 	stopRead  chan struct{}
 	stopPing  chan struct{}
+	allDone   chan struct{}
 
 	authKey     []byte
 	authKeyHash []byte
@@ -98,11 +99,12 @@ func (m *MTProto) Connect() error {
 	m.queueSend = make(chan packetToSend, 64)
 	m.stopRead = make(chan struct{}, 1)
 	m.stopPing = make(chan struct{}, 1)
+	m.allDone = make(chan struct{}, 3)
 	m.msgsIdToAck = make(map[int64]packetToSend)
 	m.msgsIdToResp = make(map[int64]chan TL)
 	m.mutex = &sync.Mutex{}
-	go m.SendRoutine()
-	go m.ReadRoutine(m.stopRead)
+	go m.SendRoutine(m.allDone)
+	go m.ReadRoutine(m.stopRead, m.allDone)
 
 	var resp chan TL
 	var x TL
@@ -136,27 +138,34 @@ func (m *MTProto) Connect() error {
 	}
 
 	// start keepalive pinging
-	m.startPing()
+	m.startPing(m.allDone)
 
 	return nil
 }
 
 func (m *MTProto) Reconnect(newaddr string) error {
 	var err error
+
 	// stop ping routine
 	m.stopPing <- struct{}{}
 	close(m.stopPing)
 
-	// close send routine & close connection
+	// close send routine
 	close(m.queueSend)
-	err = m.conn.Close()
-	if err != nil {
-		return err
-	}
 
 	// stop read routine
 	m.stopRead <- struct{}{}
 	close(m.stopRead)
+
+	<- m.allDone
+	<- m.allDone
+	<- m.allDone
+
+	// close connection
+	err = m.conn.Close()
+	if err != nil {
+		return err
+	}
 
 	// renew connection
 	m.encrypted = false
@@ -284,11 +293,12 @@ func (m *MTProto) SendMsg(user_id int32, msg string) error {
 	return nil
 }
 
-func (m *MTProto) startPing() {
+func (m *MTProto) startPing(done chan<- struct{}) {
 	go func() {
 		for {
 			select {
 			case <-m.stopPing:
+				done <- struct{}{}
 				return
 			case <-time.After(60 * time.Second):
 				m.queueSend <- packetToSend{TL_ping{0xCADACADA}, nil}
@@ -297,7 +307,7 @@ func (m *MTProto) startPing() {
 	}()
 }
 
-func (m *MTProto) SendRoutine() {
+func (m *MTProto) SendRoutine(done chan<- struct{}) {
 	for x := range m.queueSend {
 		err := m.SendPacket(x.msg, x.resp)
 		if err != nil {
@@ -305,16 +315,19 @@ func (m *MTProto) SendRoutine() {
 			os.Exit(2)
 		}
 	}
+
+	done <- struct{}{}
 }
 
-func (m *MTProto) ReadRoutine(stop <-chan struct{}) {
-	for true {
+func (m *MTProto) ReadRoutine(stop <-chan struct{}, done chan<- struct{}) {
+	for {
 		data, err := m.Read(stop)
 		if err != nil {
 			fmt.Println("ReadRoutine:", err)
 			os.Exit(2)
 		}
 		if data == nil {
+			done <- struct{}{}
 			return
 		}
 
