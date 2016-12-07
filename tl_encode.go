@@ -16,9 +16,9 @@ func GenerateNonce(size int) []byte {
 
 func GenerateMessageId() int64 {
 	const nano = 1000 * 1000 * 1000
-	time := time.Now().UnixNano()
+	unixnano := time.Now().UnixNano()
 
-	return ((time / nano) << 32) | ((time % nano) & -4)
+	return ((unixnano / nano) << 32) | ((unixnano % nano) & -4)
 }
 
 type EncodeBuf struct {
@@ -105,7 +105,7 @@ func (e *EncodeBuf) VectorLong(v []int64) {
 }
 
 func (e *EncodeBuf) VectorString(v []string) {
-	x := make([]byte, 512)
+	x := make([]byte, 8)
 	binary.LittleEndian.PutUint32(x, crc_vector)
 	binary.LittleEndian.PutUint32(x[4:], uint32(len(v)))
 	e.buf = append(e.buf, x...)
@@ -115,7 +115,7 @@ func (e *EncodeBuf) VectorString(v []string) {
 }
 
 func (e *EncodeBuf) Vector(v []TL) {
-	x := make([]byte, 512)
+	x := make([]byte, 8)
 	binary.LittleEndian.PutUint32(x, crc_vector)
 	binary.LittleEndian.PutUint32(x[4:], uint32(len(v)))
 	e.buf = append(e.buf, x...)

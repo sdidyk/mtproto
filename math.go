@@ -240,7 +240,7 @@ func AES256IGE_decrypt(data, key, iv []byte) ([]byte, error) {
 }
 
 func xor(dst, src []byte) {
-	for i, _ := range dst {
+	for i := range dst {
 		dst[i] = dst[i] ^ src[i]
 	}
 }

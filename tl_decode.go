@@ -22,7 +22,7 @@ func NewDecodeBuf(b []byte) *DecodeBuf {
 	return &DecodeBuf{b, 0, len(b), nil}
 }
 
-func (m *DecodeBuf) Long() (r int64) {
+func (m *DecodeBuf) Long() int64 {
 	if m.err != nil {
 		return 0
 	}
@@ -35,7 +35,7 @@ func (m *DecodeBuf) Long() (r int64) {
 	return x
 }
 
-func (m *DecodeBuf) Double() (r float64) {
+func (m *DecodeBuf) Double() float64 {
 	if m.err != nil {
 		return 0
 	}
@@ -48,7 +48,7 @@ func (m *DecodeBuf) Double() (r float64) {
 	return x
 }
 
-func (m *DecodeBuf) Int() (r int32) {
+func (m *DecodeBuf) Int() int32 {
 	if m.err != nil {
 		return 0
 	}
@@ -61,7 +61,7 @@ func (m *DecodeBuf) Int() (r int32) {
 	return int32(x)
 }
 
-func (m *DecodeBuf) UInt() (r uint32) {
+func (m *DecodeBuf) UInt() uint32 {
 	if m.err != nil {
 		return 0
 	}
@@ -74,7 +74,7 @@ func (m *DecodeBuf) UInt() (r uint32) {
 	return x
 }
 
-func (m *DecodeBuf) Bytes(size int) (r []byte) {
+func (m *DecodeBuf) Bytes(size int) []byte {
 	if m.err != nil {
 		return nil
 	}
@@ -88,7 +88,7 @@ func (m *DecodeBuf) Bytes(size int) (r []byte) {
 	return x
 }
 
-func (m *DecodeBuf) StringBytes() (r []byte) {
+func (m *DecodeBuf) StringBytes() []byte {
 	if m.err != nil {
 		return nil
 	}
@@ -128,7 +128,7 @@ func (m *DecodeBuf) StringBytes() (r []byte) {
 	return x
 }
 
-func (m *DecodeBuf) String() (r string) {
+func (m *DecodeBuf) String() string {
 	b := m.StringBytes()
 	if m.err != nil {
 		return ""
@@ -137,7 +137,7 @@ func (m *DecodeBuf) String() (r string) {
 	return x
 }
 
-func (m *DecodeBuf) BigInt() (r *big.Int) {
+func (m *DecodeBuf) BigInt() *big.Int {
 	b := m.StringBytes()
 	if m.err != nil {
 		return nil
@@ -149,7 +149,7 @@ func (m *DecodeBuf) BigInt() (r *big.Int) {
 	return x
 }
 
-func (m *DecodeBuf) VectorInt() (r []int32) {
+func (m *DecodeBuf) VectorInt() []int32 {
 	constructor := m.UInt()
 	if m.err != nil {
 		return nil
@@ -179,7 +179,7 @@ func (m *DecodeBuf) VectorInt() (r []int32) {
 	return x
 }
 
-func (m *DecodeBuf) VectorLong() (r []int64) {
+func (m *DecodeBuf) VectorLong() []int64 {
 	constructor := m.UInt()
 	if m.err != nil {
 		return nil
@@ -209,7 +209,7 @@ func (m *DecodeBuf) VectorLong() (r []int64) {
 	return x
 }
 
-func (m *DecodeBuf) VectorString() (r []string) {
+func (m *DecodeBuf) VectorString() []string {
 	constructor := m.UInt()
 	if m.err != nil {
 		return nil
@@ -239,7 +239,7 @@ func (m *DecodeBuf) VectorString() (r []string) {
 	return x
 }
 
-func (m *DecodeBuf) Bool() (r bool) {
+func (m *DecodeBuf) Bool() bool {
 	constructor := m.UInt()
 	if m.err != nil {
 		return false
