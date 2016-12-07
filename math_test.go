@@ -37,6 +37,6 @@ func TestAES256IGE_decrypt(t *testing.T) {
 	}
 
 	if !bytes.Equal(result[20:584], answer) {
-		t.Errorf("Decrypt mismatch")
+		t.Error("Decrypt mismatch")
 	}
 }

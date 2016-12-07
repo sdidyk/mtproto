@@ -9,7 +9,7 @@ import (
 	"sync"
 	"time"
 
-	"github.com/k0kubun/pp"
+	"errors"
 )
 
 const (
@@ -168,7 +168,6 @@ func (m *MTProto) Reconnect(newaddr string) error {
 func (m *MTProto) Auth(phonenumber string) error {
 	var authSentCode TL_auth_sentCode
 
-	// (TL_auth_sendCode)
 	flag := true
 	for flag {
 		resp := make(chan TL, 1)
@@ -227,7 +226,7 @@ func (m *MTProto) Auth(phonenumber string) error {
 
 	} else {
 
-		return fmt.Errorf("Cannot sign up yet")
+		return errors.New("Cannot sign up yet")
 	}
 
 	return nil
@@ -270,7 +269,6 @@ func (m *MTProto) SendMsg(user_id int32, msg string) error {
 	resp := make(chan TL, 1)
 	m.queueSend <- packetToSend{
 		TL_messages_sendMessage{
-			// TL_inputPeerSelf{},
 			TL_inputPeerContact{user_id},
 			msg,
 			rand.Int63(),
@@ -287,7 +285,6 @@ func (m *MTProto) SendMsg(user_id int32, msg string) error {
 }
 
 func (m *MTProto) startPing() {
-	// goroutine (TL_ping)
 	go func() {
 		for {
 			select {
@@ -416,7 +413,7 @@ func (m *MTProto) readData() (err error) {
 	b := make([]byte, 1024*4)
 	n, err := m.f.ReadAt(b, 0)
 	if n <= 0 {
-		return fmt.Errorf("New session")
+		return errors.New("New session")
 	}
 
 	d := NewDecodeBuf(b)
@@ -434,8 +431,4 @@ func (m *MTProto) readData() (err error) {
 
 func (m *MTProto) Halt() {
 	select {}
-}
-
-func dump(x interface{}) {
-	_, _ = pp.Println(x)
 }

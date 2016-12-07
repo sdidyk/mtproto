@@ -116,25 +116,25 @@ func main() {
 			fmt.Printf("%s\t", t.name)
 			switch t._type {
 			case "int":
-				fmt.Printf("int32")
+				fmt.Print("int32")
 			case "long":
-				fmt.Printf("int64")
+				fmt.Print("int64")
 			case "string":
-				fmt.Printf("string")
+				fmt.Print("string")
 			case "double":
-				fmt.Printf("float64")
+				fmt.Print("float64")
 			case "bytes":
-				fmt.Printf("[]byte")
+				fmt.Print("[]byte")
 			case "Vector<int>":
-				fmt.Printf("[]int32")
+				fmt.Print("[]int32")
 			case "Vector<long>":
-				fmt.Printf("[]int64")
+				fmt.Print("[]int64")
 			case "Vector<string>":
-				fmt.Printf("[]string")
+				fmt.Print("[]string")
 			case "Vector<double>":
-				fmt.Printf("[]float64")
+				fmt.Print("[]float64")
 			case "!X":
-				fmt.Printf("TL")
+				fmt.Print("TL")
 			default:
 				var inner string
 				n, _ := fmt.Sscanf(t._type, "Vector<%s", &inner)
@@ -144,16 +144,16 @@ func main() {
 					fmt.Printf("TL // %s", t._type)
 				}
 			}
-			fmt.Printf("\n")
+			fmt.Print("\n")
 		}
-		fmt.Printf("}\n\n")
+		fmt.Print("}\n\n")
 	}
 
 	// encode funcs
 	for _, key := range _order {
 		c := _cons[key]
 		fmt.Printf("func (e TL_%s) encode() []byte {\n", c.predicate)
-		fmt.Printf("x := NewEncodeBuf(512)\n")
+		fmt.Print("x := NewEncodeBuf(512)\n")
 		fmt.Printf("x.UInt(crc_%s)\n", c.predicate)
 		for _, t := range c.params {
 			switch t._type {
@@ -187,8 +187,8 @@ func main() {
 				}
 			}
 		}
-		fmt.Printf("return x.buf\n")
-		fmt.Printf("}\n\n")
+		fmt.Print("return x.buf\n")
+		fmt.Print("}\n\n")
 
 	}
 
@@ -238,7 +238,7 @@ func (m *DecodeBuf) ObjectGenerated(constructor uint32) (r TL) {
 
 	fmt.Println(`
 	default:
-		m.err = fmt.Errorf("Unknown constructor: %08x", constructor)
+		m.err = fmt.Errorf("Unknown constructor: \u002508x", constructor)
 		return nil
 
 	}
