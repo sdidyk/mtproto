@@ -8,7 +8,7 @@ import (
 	"time"
 )
 
-func (m *MTProto) SendPacket(msg TL, resp chan TL) error {
+func (m *MTProto) sendPacket(msg TL, resp chan TL) error {
 	obj := msg.encode()
 
 	x := NewEncodeBuf(256)
@@ -40,7 +40,7 @@ func (m *MTProto) SendPacket(msg TL, resp chan TL) error {
 
 		y := make([]byte, len(z.buf)+((16-(len(obj)%16))&15))
 		copy(y, z.buf)
-		encryptedData, err := AES256IGE_encrypt(y, aesKey, aesIV)
+		encryptedData, err := doAES256IGEencrypt(y, aesKey, aesIV)
 		if err != nil {
 			return err
 		}
@@ -87,7 +87,7 @@ func (m *MTProto) SendPacket(msg TL, resp chan TL) error {
 	return nil
 }
 
-func (m *MTProto) Read(stop <-chan struct{}) (interface{}, error) {
+func (m *MTProto) read(stop <-chan struct{}) (interface{}, error) {
 	var err error
 	var n int
 	var size int
@@ -155,7 +155,7 @@ func (m *MTProto) Read(stop <-chan struct{}) (interface{}, error) {
 		msgKey := dbuf.Bytes(16)
 		encryptedData := dbuf.Bytes(dbuf.size - 24)
 		aesKey, aesIV := generateAES(msgKey, m.authKey, true)
-		x, err := AES256IGE_decrypt(encryptedData, aesKey, aesIV)
+		x, err := doAES256IGEdecrypt(encryptedData, aesKey, aesIV)
 		if err != nil {
 			return nil, err
 		}
@@ -193,13 +193,13 @@ func (m *MTProto) makeAuthKey() error {
 
 	// (send) req_pq
 	nonceFirst := GenerateNonce(16)
-	err = m.SendPacket(TL_req_pq{nonceFirst}, nil)
+	err = m.sendPacket(TL_req_pq{nonceFirst}, nil)
 	if err != nil {
 		return err
 	}
 
 	// (parse) resPQ
-	data, err = m.Read(nil)
+	data, err = m.read(nil)
 	if err != nil {
 		return err
 	}
@@ -222,7 +222,7 @@ func (m *MTProto) makeAuthKey() error {
 	}
 
 	// (encoding) p_q_inner_data
-	p, q := SplitPQ(res.pq)
+	p, q := splitPQ(res.pq)
 	nonceSecond := GenerateNonce(32)
 	nonceServer := res.server_nonce
 	innerData1 := (TL_p_q_inner_data{res.pq, p, q, nonceFirst, nonceServer, nonceSecond}).encode()
@@ -230,16 +230,16 @@ func (m *MTProto) makeAuthKey() error {
 	x = make([]byte, 255)
 	copy(x[0:], sha1(innerData1))
 	copy(x[20:], innerData1)
-	encryptedData1 := RSA_encrypt(x)
+	encryptedData1 := doRSAencrypt(x)
 
 	// (send) req_DH_params
-	err = m.SendPacket(TL_req_DH_params{nonceFirst, nonceServer, p, q, telegramPublicKey_FP, encryptedData1}, nil)
+	err = m.sendPacket(TL_req_DH_params{nonceFirst, nonceServer, p, q, telegramPublicKey_FP, encryptedData1}, nil)
 	if err != nil {
 		return err
 	}
 
 	// (parse) server_DH_params_{ok, fail}
-	data, err = m.Read(nil)
+	data, err = m.read(nil)
 	if err != nil {
 		return err
 	}
@@ -279,7 +279,7 @@ func (m *MTProto) makeAuthKey() error {
 	copy(tmpAESIV[28:], nonceSecond[0:4])
 
 	// (parse-thru) server_DH_inner_data
-	decodedData, err := AES256IGE_decrypt(dh.encrypted_answer, tmpAESKey, tmpAESIV)
+	decodedData, err := doAES256IGEdecrypt(dh.encrypted_answer, tmpAESKey, tmpAESIV)
 	if err != nil {
 		return err
 	}
@@ -299,7 +299,7 @@ func (m *MTProto) makeAuthKey() error {
 		return errors.New("Handshake: Wrong server_nonce")
 	}
 
-	_, g_b, g_ab := MakeGAB(dhi.g, dhi.g_a, dhi.dh_prime)
+	_, g_b, g_ab := makeGAB(dhi.g, dhi.g_a, dhi.dh_prime)
 	m.authKey = g_ab.Bytes()
 	if m.authKey[0] == 0 {
 		m.authKey = m.authKey[1:]
@@ -319,16 +319,16 @@ func (m *MTProto) makeAuthKey() error {
 	x = make([]byte, 20+len(innerData2)+(16-((20+len(innerData2))%16))&15)
 	copy(x[0:], sha1(innerData2))
 	copy(x[20:], innerData2)
-	encryptedData2, err := AES256IGE_encrypt(x, tmpAESKey, tmpAESIV)
+	encryptedData2, err := doAES256IGEencrypt(x, tmpAESKey, tmpAESIV)
 
 	// (send) set_client_DH_params
-	err = m.SendPacket(TL_set_client_DH_params{nonceFirst, nonceServer, encryptedData2}, nil)
+	err = m.sendPacket(TL_set_client_DH_params{nonceFirst, nonceServer, encryptedData2}, nil)
 	if err != nil {
 		return err
 	}
 
 	// (parse) dh_gen_{ok, retry, fail}
-	data, err = m.Read(nil)
+	data, err = m.read(nil)
 	if err != nil {
 		return err
 	}

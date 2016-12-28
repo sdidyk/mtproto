@@ -1,6 +1,7 @@
 package mtproto
 
 import (
+	"errors"
 	"fmt"
 	"math/rand"
 	"net"
@@ -8,8 +9,6 @@ import (
 	"runtime"
 	"sync"
 	"time"
-
-	"errors"
 )
 
 const (
@@ -22,6 +21,7 @@ type MTProto struct {
 	conn      *net.TCPConn
 	f         *os.File
 	queueSend chan packetToSend
+	stopSend  chan struct{}
 	stopRead  chan struct{}
 	stopPing  chan struct{}
 	allDone   chan struct{}
@@ -97,14 +97,15 @@ func (m *MTProto) Connect() error {
 
 	// start goroutines
 	m.queueSend = make(chan packetToSend, 64)
+	m.stopSend = make(chan struct{}, 1)
 	m.stopRead = make(chan struct{}, 1)
 	m.stopPing = make(chan struct{}, 1)
 	m.allDone = make(chan struct{}, 3)
 	m.msgsIdToAck = make(map[int64]packetToSend)
 	m.msgsIdToResp = make(map[int64]chan TL)
 	m.mutex = &sync.Mutex{}
-	go m.SendRoutine(m.allDone)
-	go m.ReadRoutine(m.stopRead, m.allDone)
+	go m.sendRoutine()
+	go m.readRoutine()
 
 	var resp chan TL
 	var x TL
@@ -118,7 +119,7 @@ func (m *MTProto) Connect() error {
 				appId,
 				"Unknown",
 				runtime.GOOS + "/" + runtime.GOARCH,
-				"0.0.3",
+				"0.0.4",
 				"en",
 				TL_help_getConfig{},
 			},
@@ -138,28 +139,32 @@ func (m *MTProto) Connect() error {
 	}
 
 	// start keepalive pinging
-	m.startPing(m.allDone)
+	go m.pingRoutine()
 
 	return nil
 }
 
-func (m *MTProto) Reconnect(newaddr string) error {
+func (m *MTProto) reconnect(newaddr string) error {
 	var err error
 
 	// stop ping routine
 	m.stopPing <- struct{}{}
 	close(m.stopPing)
 
-	// close send routine
-	close(m.queueSend)
+	// stop send routine
+	m.stopSend <- struct{}{}
+	close(m.stopSend)
 
 	// stop read routine
 	m.stopRead <- struct{}{}
 	close(m.stopRead)
 
-	<- m.allDone
-	<- m.allDone
-	<- m.allDone
+	<-m.allDone
+	<-m.allDone
+	<-m.allDone
+
+	// close send queue
+	close(m.queueSend)
 
 	// close connection
 	err = m.conn.Close()
@@ -204,7 +209,7 @@ func (m *MTProto) Auth(phonenumber string) error {
 			if !ok {
 				return fmt.Errorf("Wrong DC index: %d", newDc)
 			}
-			err := m.Reconnect(newDcAddr)
+			err := m.reconnect(newDcAddr)
 			if err != nil {
 				return err
 			}
@@ -274,7 +279,7 @@ func (m *MTProto) GetContacts() error {
 	return nil
 }
 
-func (m *MTProto) SendMsg(user_id int32, msg string) error {
+func (m *MTProto) SendMessage(user_id int32, msg string) error {
 	resp := make(chan TL, 1)
 	m.queueSend <- packetToSend{
 		TL_messages_sendMessage{
@@ -293,55 +298,53 @@ func (m *MTProto) SendMsg(user_id int32, msg string) error {
 	return nil
 }
 
-func (m *MTProto) startPing(done chan<- struct{}) {
-	go func() {
-		for {
-			select {
-			case <-m.stopPing:
-				done <- struct{}{}
-				return
-			case <-time.After(60 * time.Second):
-				m.queueSend <- packetToSend{TL_ping{0xCADACADA}, nil}
-			}
+func (m *MTProto) pingRoutine() {
+	for {
+		select {
+		case <-m.stopPing:
+			m.allDone <- struct{}{}
+			return
+		case <-time.After(60 * time.Second):
+			m.queueSend <- packetToSend{TL_ping{0xCADACADA}, nil}
 		}
-	}()
+	}
 }
 
-func (m *MTProto) SendRoutine(done chan<- struct{}) {
+func (m *MTProto) sendRoutine() {
 	for x := range m.queueSend {
-		err := m.SendPacket(x.msg, x.resp)
+		err := m.sendPacket(x.msg, x.resp)
 		if err != nil {
 			fmt.Println("SendRoutine:", err)
 			os.Exit(2)
 		}
 	}
 
-	done <- struct{}{}
+	m.allDone <- struct{}{}
 }
 
-func (m *MTProto) ReadRoutine(stop <-chan struct{}, done chan<- struct{}) {
+func (m *MTProto) readRoutine() {
 	for {
-		data, err := m.Read(stop)
+		data, err := m.read(m.stopRead)
 		if err != nil {
 			fmt.Println("ReadRoutine:", err)
 			os.Exit(2)
 		}
 		if data == nil {
-			done <- struct{}{}
+			m.allDone <- struct{}{}
 			return
 		}
 
-		m.Process(m.msgId, m.seqNo, data)
+		m.process(m.msgId, m.seqNo, data)
 	}
 
 }
 
-func (m *MTProto) Process(msgId int64, seqNo int32, data interface{}) interface{} {
+func (m *MTProto) process(msgId int64, seqNo int32, data interface{}) interface{} {
 	switch data.(type) {
 	case TL_msg_container:
 		data := data.(TL_msg_container).items
 		for _, v := range data {
-			m.Process(v.msg_id, v.seq_no, v.data)
+			m.process(v.msg_id, v.seq_no, v.data)
 		}
 
 	case TL_bad_server_salt:
@@ -377,7 +380,7 @@ func (m *MTProto) Process(msgId int64, seqNo int32, data interface{}) interface{
 
 	case TL_rpc_result:
 		data := data.(TL_rpc_result)
-		x := m.Process(msgId, seqNo, data.obj)
+		x := m.process(msgId, seqNo, data.obj)
 		m.mutex.Lock()
 		v, ok := m.msgsIdToResp[data.req_msg_id]
 		if ok {
@@ -440,8 +443,4 @@ func (m *MTProto) readData() (err error) {
 	}
 
 	return nil
-}
-
-func (m *MTProto) Halt() {
-	select {}
 }

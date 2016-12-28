@@ -28,7 +28,7 @@ func sha1(data []byte) []byte {
 	return r[:]
 }
 
-func RSA_encrypt(em []byte) []byte {
+func doRSAencrypt(em []byte) []byte {
 	z := make([]byte, 255)
 	copy(z, em)
 
@@ -41,7 +41,7 @@ func RSA_encrypt(em []byte) []byte {
 	return res
 }
 
-func SplitPQ(pq *big.Int) (p1, p2 *big.Int) {
+func splitPQ(pq *big.Int) (p1, p2 *big.Int) {
 	value_0 := big.NewInt(0)
 	value_1 := big.NewInt(1)
 	value_15 := big.NewInt(15)
@@ -120,7 +120,7 @@ func SplitPQ(pq *big.Int) (p1, p2 *big.Int) {
 	return
 }
 
-func MakeGAB(g int32, g_a, dh_prime *big.Int) (b, g_b, g_ab *big.Int) {
+func makeGAB(g int32, g_a, dh_prime *big.Int) (b, g_b, g_ab *big.Int) {
 	rnd := rand.New(rand.NewSource(time.Now().UnixNano()))
 	rndmax := big.NewInt(0).SetBit(big.NewInt(0), 2048, 1)
 	b = big.NewInt(0).Rand(rnd, rndmax)
@@ -174,7 +174,7 @@ func generateAES(msg_key, auth_key []byte, decode bool) ([]byte, []byte) {
 	return aes_key, aes_iv
 }
 
-func AES256IGE_encrypt(data, key, iv []byte) ([]byte, error) {
+func doAES256IGEencrypt(data, key, iv []byte) ([]byte, error) {
 	block, err := aes.NewCipher(key)
 	if err != nil {
 		return nil, err
@@ -206,7 +206,7 @@ func AES256IGE_encrypt(data, key, iv []byte) ([]byte, error) {
 	return encrypted, nil
 }
 
-func AES256IGE_decrypt(data, key, iv []byte) ([]byte, error) {
+func doAES256IGEdecrypt(data, key, iv []byte) ([]byte, error) {
 	block, err := aes.NewCipher(key)
 	if err != nil {
 		return nil, err

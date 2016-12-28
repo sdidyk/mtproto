@@ -345,16 +345,16 @@ func (m *DecodeBuf) Object() (r TL) {
 		r = TL_msgs_ack{m.VectorLong()}
 
 	case crc_gzip_packed:
-		obj := make([]byte, 0, 1024)
+		obj := make([]byte, 0, 4096)
 
 		var buf bytes.Buffer
 		_, _ = buf.Write(m.StringBytes())
 		gz, _ := gzip.NewReader(&buf)
 
-		b := make([]byte, 1024)
+		b := make([]byte, 4096)
 		for true {
 			n, _ := gz.Read(b)
-			obj = append(obj, b...)
+			obj = append(obj, b[0:n]...)
 			if n <= 0 {
 				break
 			}

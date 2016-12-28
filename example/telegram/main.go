@@ -61,7 +61,7 @@ func main() {
 		err = m.Auth(os.Args[2])
 	case "msg":
 		user_id, _ := strconv.Atoi(os.Args[2])
-		err = m.SendMsg(int32(user_id), os.Args[3])
+		err = m.SendMessage(int32(user_id), os.Args[3])
 
 	case "list":
 		err = m.GetContacts()
