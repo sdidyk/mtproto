@@ -23,6 +23,10 @@ type TL_req_pq struct {
 	nonce []byte
 }
 
+type TL_req_pq_multi struct {
+	nonce []byte
+}
+
 type TL_p_q_inner_data struct {
 	pq           *big.Int
 	p            *big.Int
@@ -31,12 +35,21 @@ type TL_p_q_inner_data struct {
 	server_nonce []byte
 	new_nonce    []byte
 }
+type TL_p_q_inner_data_dc struct {
+	pq           *big.Int
+	p            *big.Int
+	q            *big.Int
+	nonce        []byte
+	server_nonce []byte
+	new_nonce    []byte
+	dc           int32
+}
 type TL_req_DH_params struct {
 	nonce        []byte
 	server_nonce []byte
 	p            *big.Int
 	q            *big.Int
-	fp           uint64
+	fp           int64
 	encdata      []byte
 }
 type TL_client_DH_inner_data struct {

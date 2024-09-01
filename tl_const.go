@@ -1,12 +1,14 @@
 package mtproto
 
 const (
-	layer = 23
+	layer = 170
 
 	// https://core.telegram.org/schema/mtproto
 	crc_vector                     = 0x1cb5c415
 	crc_resPQ                      = 0x05162463
+	crc_req_pq_multi               = 0xbe7e8ef1
 	crc_p_q_inner_data             = 0x83c95aec
+	crc_p_q_inner_data_dc          = 0xa9f55f95
 	crc_server_DH_params_fail      = 0x79cb045d
 	crc_server_DH_params_ok        = 0xd0e8075c
 	crc_server_DH_inner_data       = 0xb5890dba

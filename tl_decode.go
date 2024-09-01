@@ -382,3 +382,10 @@ func toBool(x TL) bool {
 	_, ok := x.(TL_boolTrue)
 	return ok
 }
+
+func toFlags(bits ...int) (r int32) {
+	for _, t := range bits {
+		r |= 1 << t
+	}
+	return
+}

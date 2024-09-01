@@ -7,6 +7,7 @@ import (
 	"net"
 	"os"
 	"runtime"
+	"slices"
 	"sync"
 	"time"
 )
@@ -18,6 +19,7 @@ const (
 
 type MTProto struct {
 	addr      string
+	dc        int32
 	conn      *net.TCPConn
 	f         *os.File
 	queueSend chan packetToSend
@@ -61,6 +63,7 @@ func NewMTProto(authkeyfile string) (*MTProto, error) {
 		m.encrypted = true
 	} else {
 		m.addr = "149.154.167.50:443"
+		m.dc = 2
 		m.encrypted = false
 	}
 	rand.Seed(time.Now().UnixNano())
@@ -89,7 +92,7 @@ func (m *MTProto) Connect() error {
 
 	// get new authKey if need
 	if !m.encrypted {
-		err = m.makeAuthKey()
+		err = m.makeAuthKey(m.dc)
 		if err != nil {
 			return err
 		}
@@ -116,12 +119,14 @@ func (m *MTProto) Connect() error {
 		TL_invokeWithLayer{
 			layer,
 			TL_initConnection{
-				appId,
-				"Unknown",
-				runtime.GOOS + "/" + runtime.GOARCH,
-				"0.0.4",
-				"en",
-				TL_help_getConfig{},
+				api_id:           appId,
+				device_model:     "Unknown",
+				system_version:   runtime.GOOS + "/" + runtime.GOARCH,
+				app_version:      "0.1.0",
+				system_lang_code: "en",
+				lang_pack:        "en",
+				lang_code:        "en",
+				query:            TL_help_getConfig{},
 			},
 		},
 		resp,
@@ -132,7 +137,9 @@ func (m *MTProto) Connect() error {
 		m.dclist = make(map[int32]string, 5)
 		for _, v := range x.(TL_config).dc_options {
 			v := v.(TL_dcOption)
-			m.dclist[v.id] = fmt.Sprintf("%s:%d", v.ip_address, v.port)
+			if !v.ipv6 && !v.media_only && !v.tcpo_only && !v.cdn && !v.static {
+				m.dclist[v.id] = fmt.Sprintf("%s:%d", v.ip_address, v.port)
+			}
 		}
 	default:
 		return fmt.Errorf("Got: %T", x)
@@ -180,120 +187,98 @@ func (m *MTProto) reconnect(newaddr string) error {
 }
 
 func (m *MTProto) Auth(phonenumber string) error {
-	var authSentCode TL_auth_sentCode
+	var x TL
+	var resp chan TL
 
-	flag := true
-	for flag {
-		resp := make(chan TL, 1)
-		m.queueSend <- packetToSend{TL_auth_sendCode{phonenumber, 0, appId, appHash, "en"}, resp}
-		x := <-resp
-		switch x.(type) {
-		case TL_auth_sentCode:
-			authSentCode = x.(TL_auth_sentCode)
-			flag = false
-		case TL_rpc_error:
-			x := x.(TL_rpc_error)
-			if x.error_code != 303 {
-				return fmt.Errorf("RPC error_code: %d", x.error_code)
-			}
-			var newDc int32
-			n, _ := fmt.Sscanf(x.error_message, "PHONE_MIGRATE_%d", &newDc)
-			if n != 1 {
-				n, _ := fmt.Sscanf(x.error_message, "NETWORK_MIGRATE_%d", &newDc)
-				if n != 1 {
-					return fmt.Errorf("RPC error_string: %s", x.error_message)
-				}
-			}
+	resp = make(chan TL, 1)
+	m.queueSend <- packetToSend{TL_auth_sendCode{phonenumber, appId, appHash, &TL_codeSettings{}}, resp}
+	x = <-resp
 
-			newDcAddr, ok := m.dclist[newDc]
-			if !ok {
-				return fmt.Errorf("Wrong DC index: %d", newDc)
-			}
-			err := m.reconnect(newDcAddr)
-			if err != nil {
-				return err
-			}
-		default:
-			return fmt.Errorf("Got: %T", x)
-		}
-
+	authSentCode, ok := x.(TL_auth_sentCode)
+	if !ok {
+		return fmt.Errorf("RPC: %#v", x)
 	}
+	fmt.Println(authSentCode)
 
 	var code int
 
 	fmt.Print("Enter code: ")
 	fmt.Scanf("%d", &code)
 
-	if toBool(authSentCode.phone_registered) {
-		resp := make(chan TL, 1)
-		m.queueSend <- packetToSend{
-			TL_auth_signIn{phonenumber, authSentCode.phone_code_hash, fmt.Sprintf("%d", code)},
-			resp,
-		}
-		x := <-resp
-		auth, ok := x.(TL_auth_authorization)
-		if !ok {
-			return fmt.Errorf("RPC: %#v", x)
-		}
-		userSelf := auth.user.(TL_userSelf)
-		fmt.Printf("Signed in: id %d name <%s %s>\n", userSelf.id, userSelf.first_name, userSelf.last_name)
-
-	} else {
-
-		return errors.New("Cannot sign up yet")
+	fmt.Println("Login:", phonenumber, authSentCode.phone_code_hash, code)
+	resp = make(chan TL, 1)
+	m.queueSend <- packetToSend{
+		TL_auth_signIn{
+			phone_number: phonenumber,
+			phone_code_hash: authSentCode.phone_code_hash,
+			phone_code: fmt.Sprintf("%d", code),
+		},
+		resp,
 	}
+	x = <-resp
+	auth, ok := x.(TL_auth_authorization)
+	if !ok {
+		return fmt.Errorf("RPC: %#v", x)
+	}
+	user := auth.user.(TL_user)
+	fmt.Printf("Signed in: id %d name <%s %s>\n", user.id, user.first_name, user.last_name)
 
 	return nil
 }
 
 func (m *MTProto) GetContacts() error {
 	resp := make(chan TL, 1)
-	m.queueSend <- packetToSend{TL_contacts_getContacts{""}, resp}
+	m.queueSend <- packetToSend{TL_contacts_getContacts{0}, resp}
 	x := <-resp
 	list, ok := x.(TL_contacts_contacts)
 	if !ok {
 		return fmt.Errorf("RPC: %#v", x)
 	}
 
-	contacts := make(map[int32]TL_userContact)
+	users := make(map[int64]TL_user)
 	for _, v := range list.users {
-		if v, ok := v.(TL_userContact); ok {
-			contacts[v.id] = v
+		if v, ok := v.(TL_user); ok {
+			users[v.id] = v
 		}
 	}
+
+	userKeys := make([]int64, 0, len(users))
+	for k := range users {
+		userKeys = append(userKeys, k)
+	}
+	slices.Sort(userKeys)
+
 	fmt.Printf(
-		"\033[33m\033[1m%10s    %10s    %-30s    %-20s\033[0m\n",
-		"id", "mutual", "name", "username",
+		"\033[33m\033[1m%10s    %8s    %-30s    %-30s    %16s\033[0m\n",
+		"id", "mutual", "name", "username", "access_hash",
 	)
-	for _, v := range list.contacts {
-		v := v.(TL_contact)
+	for _, uid := range userKeys {
+		v := users[uid]
 		fmt.Printf(
-			"%10d    %10t    %-30s    %-20s\n",
-			v.user_id,
-			toBool(v.mutual),
-			fmt.Sprintf("%s %s", contacts[v.user_id].first_name, contacts[v.user_id].last_name),
-			contacts[v.user_id].username,
+			"%10d    %8t    %-30s    %-30s    %016x\n",
+			v.id,
+			v.mutual_contact,
+			fmt.Sprintf("%s %s", v.first_name, v.last_name),
+			v.username,
+			uint64(v.access_hash),
 		)
 	}
 
 	return nil
 }
 
-func (m *MTProto) SendMessage(user_id int32, msg string) error {
+func (m *MTProto) SendMessage(user_id int64, access_hash int64, msg string) error {
 	resp := make(chan TL, 1)
 	m.queueSend <- packetToSend{
 		TL_messages_sendMessage{
-			TL_inputPeerContact{user_id},
-			msg,
-			rand.Int63(),
+			peer:      TL_inputPeerUser{user_id, access_hash},
+			message:   msg,
+			random_id: rand.Int63(),
 		},
 		resp,
 	}
 	x := <-resp
-	_, ok := x.(TL_messages_sentMessage)
-	if !ok {
-		return fmt.Errorf("RPC: %#v", x)
-	}
+	fmt.Printf("RPC: %#v\n", x)
 
 	return nil
 }

@@ -4,6 +4,7 @@ import (
 	"crypto/aes"
 	"crypto/rsa"
 	sha1lib "crypto/sha1"
+	sha256lib "crypto/sha256"
 	"errors"
 	"math/big"
 	"math/rand"
@@ -11,9 +12,9 @@ import (
 )
 
 const (
-	telegramPublicKey_N  = "24403446649145068056824081744112065346446136066297307473868293895086332508101251964919587745984311372853053253457835208829824428441874946556659953519213382748319518214765985662663680818277989736779506318868003755216402538945900388706898101286548187286716959100102939636333452457308619454821845196109544157601096359148241435922125602449263164512290854366930013825808102403072317738266383237191313714482187326643144603633877219028262697593882410403273959074350849923041765639673335775605842311578109726403165298875058941765362622936097839775380070572921007586266115476975819175319995527916042178582540628652481530373407"
+	telegramPublicKey_N  = "29379598170669337022986177149456128565388431120058863768162556424047512191330847455146576344487764408661701890505066208632169112269581063774293102577308490531282748465986139880977280302242772832972539403531316010870401287642763009136156734339538042419388722777357134487746169093539093850251243897188928735903389451772730245253062963384108812842079887538976360465290946139638691491496062099570836476454855996319192747663615955633778034897140982517446405334423701359108810182097749467210509584293428076654573384828809574217079944388301239431309115013843331317877374435868468779972014486325557807783825502498215169806323"
 	telegramPublicKey_E  = 65537
-	telegramPublicKey_FP = 14101943622620965665
+	telegramPublicKey_FP = -3414540481677951611
 )
 
 var telegramPublicKey rsa.PublicKey
@@ -28,17 +29,21 @@ func sha1(data []byte) []byte {
 	return r[:]
 }
 
+func sha256(data []byte) []byte {
+	r := sha256lib.Sum256(data)
+	return r[:]
+}
+
 func doRSAencrypt(em []byte) []byte {
-	z := make([]byte, 255)
-	copy(z, em)
+	val := new(big.Int).SetBytes(em)
+	// if val.Cmp(telegramPublicKey.N) >= 0 {
+	// 	println("WARNING: val >= telegramPublicKey.N")
+	// }
 
 	c := new(big.Int)
-	c.Exp(new(big.Int).SetBytes(z), big.NewInt(int64(telegramPublicKey.E)), telegramPublicKey.N)
+	c.Exp(val, big.NewInt(int64(telegramPublicKey.E)), telegramPublicKey.N)
 
-	res := make([]byte, 256)
-	copy(res, c.Bytes())
-
-	return res
+	return c.Bytes()
 }
 
 func splitPQ(pq *big.Int) (p1, p2 *big.Int) {
@@ -137,39 +142,28 @@ func generateAES(msg_key, auth_key []byte, decode bool) ([]byte, []byte) {
 	} else {
 		x = 0
 	}
+
 	aes_key := make([]byte, 0, 32)
 	aes_iv := make([]byte, 0, 32)
-	t_a := make([]byte, 0, 48)
-	t_b := make([]byte, 0, 48)
-	t_c := make([]byte, 0, 48)
-	t_d := make([]byte, 0, 48)
+	t_a := make([]byte, 0, 52)
+	t_b := make([]byte, 0, 52)
 
 	t_a = append(t_a, msg_key...)
-	t_a = append(t_a, auth_key[x:x+32]...)
+	t_a = append(t_a, auth_key[x:x+36]...)
 
-	t_b = append(t_b, auth_key[32+x:32+x+16]...)
+	t_b = append(t_b, auth_key[40+x:40+x+36]...)
 	t_b = append(t_b, msg_key...)
-	t_b = append(t_b, auth_key[48+x:48+x+16]...)
 
-	t_c = append(t_c, auth_key[64+x:64+x+32]...)
-	t_c = append(t_c, msg_key...)
+	sha256_a := sha256(t_a)
+	sha256_b := sha256(t_b)
 
-	t_d = append(t_d, msg_key...)
-	t_d = append(t_d, auth_key[96+x:96+x+32]...)
+	aes_key = append(aes_key, sha256_a[0:8]...)
+	aes_key = append(aes_key, sha256_b[8:8+16]...)
+	aes_key = append(aes_key, sha256_a[24:24+8]...)
 
-	sha1_a := sha1(t_a)
-	sha1_b := sha1(t_b)
-	sha1_c := sha1(t_c)
-	sha1_d := sha1(t_d)
-
-	aes_key = append(aes_key, sha1_a[0:8]...)
-	aes_key = append(aes_key, sha1_b[8:8+12]...)
-	aes_key = append(aes_key, sha1_c[4:4+12]...)
-
-	aes_iv = append(aes_iv, sha1_a[8:8+12]...)
-	aes_iv = append(aes_iv, sha1_b[0:8]...)
-	aes_iv = append(aes_iv, sha1_c[16:16+4]...)
-	aes_iv = append(aes_iv, sha1_d[0:8]...)
+	aes_iv = append(aes_iv, sha256_b[0:8]...)
+	aes_iv = append(aes_iv, sha256_a[8:8+16]...)
+	aes_iv = append(aes_iv, sha256_b[24:24+8]...)
 
 	return aes_key, aes_iv
 }

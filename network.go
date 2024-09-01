@@ -5,6 +5,7 @@ import (
 	"encoding/binary"
 	"errors"
 	"fmt"
+	"slices"
 	"time"
 )
 
@@ -35,11 +36,15 @@ func (m *MTProto) sendPacket(msg TL, resp chan TL) error {
 		z.Int(int32(len(obj)))
 		z.Bytes(obj)
 
-		msgKey := sha1(z.buf)[4:20]
-		aesKey, aesIV := generateAES(msgKey, m.authKey, false)
-
-		y := make([]byte, len(z.buf)+((16-(len(obj)%16))&15))
+		y := make([]byte, len(z.buf)+256+((16-(len(obj)%16))&15))
 		copy(y, z.buf)
+
+		msgKeyData := make([]byte, 32+len(y))
+		copy(msgKeyData, m.authKey[88:88+32])
+		copy(msgKeyData[32:], y)
+		msgKey := sha256(msgKeyData)[8 : 8+16]
+
+		aesKey, aesIV := generateAES(msgKey, m.authKey, false)
 		encryptedData, err := doAES256IGEencrypt(y, aesKey, aesIV)
 		if err != nil {
 			return err
@@ -168,7 +173,11 @@ func (m *MTProto) read(stop <-chan struct{}) (interface{}, error) {
 		if int(messageLen) > dbuf.size-32 {
 			return nil, fmt.Errorf("Message len: %d (need less than %d)", messageLen, dbuf.size-32)
 		}
-		if !bytes.Equal(sha1(dbuf.buf[0 : 32+messageLen])[4:20], msgKey) {
+		paddingCheck := make([]byte, 32+len(dbuf.buf))
+		copy(paddingCheck, m.authKey[88+8:88+8+32])
+		copy(paddingCheck[32:], dbuf.buf)
+		msgKeyCheck := sha256(paddingCheck)[8 : 8+16]
+		if !bytes.Equal(msgKeyCheck, msgKey) {
 			return nil, errors.New("Wrong msg_key")
 		}
 
@@ -186,14 +195,14 @@ func (m *MTProto) read(stop <-chan struct{}) (interface{}, error) {
 	return data, nil
 }
 
-func (m *MTProto) makeAuthKey() error {
+func (m *MTProto) makeAuthKey(dc int32) error {
 	var x []byte
 	var err error
 	var data interface{}
 
 	// (send) req_pq
 	nonceFirst := GenerateNonce(16)
-	err = m.sendPacket(TL_req_pq{nonceFirst}, nil)
+	err = m.sendPacket(TL_req_pq_multi{nonceFirst}, nil)
 	if err != nil {
 		return err
 	}
@@ -212,7 +221,7 @@ func (m *MTProto) makeAuthKey() error {
 	}
 	found := false
 	for _, b := range res.fingerprints {
-		if uint64(b) == telegramPublicKey_FP {
+		if b == telegramPublicKey_FP {
 			found = true
 			break
 		}
@@ -225,12 +234,37 @@ func (m *MTProto) makeAuthKey() error {
 	p, q := splitPQ(res.pq)
 	nonceSecond := GenerateNonce(32)
 	nonceServer := res.server_nonce
-	innerData1 := (TL_p_q_inner_data{res.pq, p, q, nonceFirst, nonceServer, nonceSecond}).encode()
+	innerData1 := (TL_p_q_inner_data_dc{res.pq, p, q, nonceFirst, nonceServer, nonceSecond, dc}).encode()
 
-	x = make([]byte, 255)
-	copy(x[0:], sha1(innerData1))
-	copy(x[20:], innerData1)
-	encryptedData1 := doRSAencrypt(x)
+	// (encoding) RSA_PAD
+	nonce_pad := GenerateNonce(192)
+	// nonce_pad := make([]byte, 192)
+	data_with_padding := make([]byte, 192)
+	data_pad_reversed := make([]byte, 192)
+	copy(data_with_padding, nonce_pad)
+	copy(data_with_padding, innerData1)
+	copy(data_pad_reversed, nonce_pad)
+	copy(data_pad_reversed, innerData1)
+	slices.Reverse(data_pad_reversed)
+
+	temp_key := GenerateNonce(32)
+	temp_iv := make([]byte, 32)
+	data_with_hash := make([]byte, 224)
+	data_hash := make([]byte, 224)
+	copy(data_hash, temp_key)
+	copy(data_hash[32:], data_with_padding)
+	copy(data_with_hash, data_pad_reversed)
+	copy(data_with_hash[192:], sha256(data_hash))
+	aes_encrypted, err := doAES256IGEencrypt(data_with_hash, temp_key, temp_iv)
+	if err != nil {
+		return err
+	}
+	xor(temp_key, sha256(aes_encrypted))
+	key_aes_encrypted := make([]byte, 256)
+	copy(key_aes_encrypted, temp_key)
+	copy(key_aes_encrypted[32:], aes_encrypted)
+
+	encryptedData1 := doRSAencrypt(key_aes_encrypted)
 
 	// (send) req_DH_params
 	err = m.sendPacket(TL_req_DH_params{nonceFirst, nonceServer, p, q, telegramPublicKey_FP, encryptedData1}, nil)

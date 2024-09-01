@@ -142,6 +142,13 @@ func (e TL_req_pq) encode() []byte {
 	return x.buf
 }
 
+func (e TL_req_pq_multi) encode() []byte {
+	x := NewEncodeBuf(20)
+	x.UInt(crc_req_pq_multi)
+	x.Bytes(e.nonce)
+	return x.buf
+}
+
 func (e TL_p_q_inner_data) encode() []byte {
 	x := NewEncodeBuf(256)
 	x.UInt(crc_p_q_inner_data)
@@ -154,6 +161,19 @@ func (e TL_p_q_inner_data) encode() []byte {
 	return x.buf
 }
 
+func (e TL_p_q_inner_data_dc) encode() []byte {
+	x := NewEncodeBuf(256)
+	x.UInt(crc_p_q_inner_data_dc)
+	x.BigInt(e.pq)
+	x.BigInt(e.p)
+	x.BigInt(e.q)
+	x.Bytes(e.nonce)
+	x.Bytes(e.server_nonce)
+	x.Bytes(e.new_nonce)
+	x.Int(e.dc)
+	return x.buf
+}
+
 func (e TL_req_DH_params) encode() []byte {
 	x := NewEncodeBuf(512)
 	x.UInt(crc_req_DH_params)
@@ -161,7 +181,7 @@ func (e TL_req_DH_params) encode() []byte {
 	x.Bytes(e.server_nonce)
 	x.BigInt(e.p)
 	x.BigInt(e.q)
-	x.Long(int64(e.fp))
+	x.Long(e.fp)
 	x.StringBytes(e.encdata)
 	return x.buf
 }

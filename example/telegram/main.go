@@ -13,7 +13,7 @@ func usage() {
 	fmt.Print("    ./telegram <command> [arguments]\n\n")
 	fmt.Print("The commands are:\n\n")
 	fmt.Print("    auth  <phone_number>            auth connection by code\n")
-	fmt.Print("    msg   <user_id> <msgtext>       send message to user\n")
+	fmt.Print("    msg   <user_id> <hash> <msg>    send message to user\n")
 	fmt.Print("    list                            get contact list\n")
 	fmt.Println()
 }
@@ -61,7 +61,8 @@ func main() {
 		err = m.Auth(os.Args[2])
 	case "msg":
 		user_id, _ := strconv.Atoi(os.Args[2])
-		err = m.SendMessage(int32(user_id), os.Args[3])
+		access_hash, _ := strconv.ParseUint(os.Args[3], 16, 64)
+		err = m.SendMessage(int64(user_id), int64(access_hash), os.Args[4])
 
 	case "list":
 		err = m.GetContacts()

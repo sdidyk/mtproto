@@ -8,7 +8,7 @@ Example tool saves the authkey and other data in ~/.telegram_go. If you delete/l
 ## install
 
 ```
-$ go get -v -u github.com/sdidyk/mtproto/example/telegram
+$ go install github.com/sdidyk/mtproto/example/telegram@latest
 ```
 
 ## phone authorization
@@ -18,7 +18,7 @@ Authorizes phone by code (sent by sms or thru telegram app).
 ```
 $ telegram auth 79998886655
 Enter code: 25704
-Signed in: id 104842610 name <Sergey Didyk>
+Signed in: id 104842610 name <Sergei Didyk>
 ```
 
 ## get contact list
@@ -27,12 +27,10 @@ Shows user's contact list.
 
 ```
 $ telegram list
-        id        mutual    name                              username
-    132597         false    Алексей Г*******                  O******
-    326007         false    Татьяна К*******
-    344375          true    Андрей П*********                 r******
-    348798          true    Руслан Ч******
-    473977         false    Тимур Д******
+        id      mutual    name                              username                               access_hash
+     40352        true    Николай ***                       n****                             94c173dd********
+     88928        true    Сергей ***                        s****                             c72a5847********
+    109551        true    Мария ***                         m****                             ff92275a********
 ```
 
 ## send message to contact
@@ -40,7 +38,7 @@ $ telegram list
 Sends a message to contact. Destination id should be from contact list or user himself.
 
 ```
-$ telegram msg 104842610 'Hack the planet!'
+$ telegram msg 109551 ff92275a******** 'Hack the planet!'
 ```
 
 ## Library
